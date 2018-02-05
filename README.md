@@ -1,1 +1,1 @@
-This is a skeleton bot to copy
+This is a referee bot for /r/FakeCollegeFootball
