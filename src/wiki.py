@@ -1,4 +1,5 @@
 import logging.handlers
+import re
 
 import reddit
 import globals
@@ -7,6 +8,7 @@ log = logging.getLogger("bot")
 
 teams = {}
 coaches = {}
+plays = {}
 
 
 def loadTeams(debug=False):
@@ -31,6 +33,97 @@ def loadTeams(debug=False):
 		teams[team['tag']] = team
 
 
+def validatePlayItem(playItem, regex):
+	return re.match(regex, playItem) is not None
+
+
+def initOffenseDefense(play, offense, defense, range):
+	if not initRange(play, range):
+		return False
+	if not validatePlayItem(offense, "\w{3,7}"):
+		log.warning("Bad offense item: {}".format(offense))
+		return False
+	if offense not in plays[play]:
+		plays[play][offense] = {}
+	if not validatePlayItem(defense, "\d-\d"):
+		log.warning("Bad defense item: {}".format(defense))
+		return False
+	if defense not in plays[play][offense]:
+		plays[play][offense][defense] = {}
+	return True
+
+
+def initRange(play, range):
+	if not validatePlayItem(play, "\w{3,12}"):
+		log.warning("Bad play item: {}".format(play))
+		return False
+	if not validatePlayItem(range, "\d+-\d+"):
+		log.warning("Bad range item: {}".format(range))
+		return False
+	if play not in plays:
+		plays[play] = {}
+	return True
+
+
+def parsePlayPart(playPart):
+	parts = playPart.split(',')
+	if len(parts) < 2:
+		log.warning("Could not parse play part: {}".format(playPart))
+		return None
+	rangeEnds = re.findall('(\d+)', parts[0])
+	if len(rangeEnds) < 2 or len(rangeEnds) > 2:
+		log.warning("Could not validate range: {}".format(parts[0]))
+		return None
+	rangeStart = int(rangeEnds[0])
+	rangeEnd = int(rangeEnds[1])
+	result = parts[1]
+	if not validatePlayItem(result, "\w{3,20}"):
+		log.warning("Could not validate result: {}".format(result))
+		return None
+	play = {'range': [rangeStart, rangeEnd], 'result': result}
+	if len(parts) > 2:
+		if not validatePlayItem(parts[2], "-?\d+"):
+			log.warning("Could not validate yards: {}".format(parts[2]))
+			return None
+		play['yards'] = int(parts[2])
+	return play
+
+
+def loadPlays():
+	playsPage = reddit.getWikiPage(globals.CONFIG_SUBREDDIT, "plays")
+
+	for playLine in playsPage.splitlines():
+		items = playLine.split('|')
+
+		if items[0] in ['run', 'runRedzone', 'pass', 'passRedzone']:
+			if not initOffenseDefense(items[0], items[1], items[2], items[3]):
+				log.warning("Could not parse play: {}".format(playLine))
+				continue
+
+			playParts = []
+			for item in items[4:]:
+				play = parsePlayPart(item)
+				if play is None:
+					continue
+				playParts.append(play)
+
+			plays[items[0]][items[1]][items[2]][items[3]] = playParts
+
+		else:
+			if not initRange(items[0], items[1]):
+				log.warning("Could not parse play: {}".format(playLine))
+				continue
+
+			playParts = []
+			for item in items[2:]:
+				play = parsePlayPart(item)
+				if play is None:
+					continue
+				playParts.append(play)
+
+			plays[items[0]][items[1]] = playParts
+
+
 def getTeamByTag(tag):
 	tag = tag.lower()
 	if tag in teams:
@@ -43,5 +136,12 @@ def getTeamByCoach(coach):
 	coach = coach.lower()
 	if coach in coaches:
 		return coaches[coach]
+	else:
+		return None
+
+
+def getPlay(play):
+	if play in plays:
+		return plays[play]
 	else:
 		return None

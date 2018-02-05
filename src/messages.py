@@ -154,7 +154,6 @@ def processMessageDefer(isDefer, author):
 		log.debug("Not waiting on message author's team")
 		return "I'm not waiting on a message from you, are you sure you responded to the right message?"
 
-	if isDefer:
 
 
 

@@ -79,6 +79,7 @@ while True:
 	log.debug("Starting run")
 
 	wiki.loadTeams(debug)
+	wiki.loadPlays()
 
 	messages.processMessages()
 
