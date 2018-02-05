@@ -3,6 +3,7 @@ import re
 
 import reddit
 import globals
+import utils
 
 log = logging.getLogger("bot")
 
@@ -69,24 +70,30 @@ def parsePlayPart(playPart):
 	parts = playPart.split(',')
 	if len(parts) < 2:
 		log.warning("Could not parse play part: {}".format(playPart))
-		return None
-	rangeEnds = re.findall('(\d+)', parts[0])
-	if len(rangeEnds) < 2 or len(rangeEnds) > 2:
-		log.warning("Could not validate range: {}".format(parts[0]))
-		return None
-	rangeStart = int(rangeEnds[0])
-	rangeEnd = int(rangeEnds[1])
+		return None, None
+
+	range = parts[0]
+	if not validatePlayItem(range, "\d+-\d+"):
+		log.warning("Could not validate range: {}".format(range))
+		return None, None
+
 	result = parts[1]
 	if not validatePlayItem(result, "\w{3,20}"):
 		log.warning("Could not validate result: {}".format(result))
-		return None
-	play = {'range': [rangeStart, rangeEnd], 'result': result}
+		return None, None
+
+	play = {'result': result}
+
 	if len(parts) > 2:
 		if not validatePlayItem(parts[2], "-?\d+"):
 			log.warning("Could not validate yards: {}".format(parts[2]))
-			return None
+			return None, None
 		play['yards'] = int(parts[2])
-	return play
+
+	return range, play
+
+
+movementPlays = ['run', 'pass']
 
 
 def loadPlays():
@@ -94,33 +101,29 @@ def loadPlays():
 
 	for playLine in playsPage.splitlines():
 		items = playLine.split('|')
+		isMovementPlay = items[0] in movementPlays
 
-		if items[0] in ['run', 'runRedzone', 'pass', 'passRedzone']:
+		if isMovementPlay:
+			startIndex = 4
 			if not initOffenseDefense(items[0], items[1], items[2], items[3]):
 				log.warning("Could not parse play: {}".format(playLine))
 				continue
-
-			playParts = []
-			for item in items[4:]:
-				play = parsePlayPart(item)
-				if play is None:
-					continue
-				playParts.append(play)
-
-			plays[items[0]][items[1]][items[2]][items[3]] = playParts
-
 		else:
+			startIndex = 2
 			if not initRange(items[0], items[1]):
 				log.warning("Could not parse play: {}".format(playLine))
 				continue
 
-			playParts = []
-			for item in items[2:]:
-				play = parsePlayPart(item)
-				if play is None:
-					continue
-				playParts.append(play)
+		playParts = {}
+		for item in items[startIndex:]:
+			range, play = parsePlayPart(item)
+			if play is None:
+				continue
+			playParts[range] = play
 
+		if isMovementPlay:
+			plays[items[0]][items[1]][items[2]][items[3]] = playParts
+		else:
 			plays[items[0]][items[1]] = playParts
 
 

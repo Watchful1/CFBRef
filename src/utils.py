@@ -1,6 +1,7 @@
 import logging.handlers
 import json
 import random
+import re
 
 import globals
 import database
@@ -207,7 +208,23 @@ def sendGameMessage(isHome, game, message, dataTable):
 
 
 def newGameObject(home, away):
-	status = {'clock': 15*60, 'quarter': 1, 'location': 0, 'possession': 'home', 'down': 1, 'yards': 10}
+	status = {'clock': 15*60, 'quarter': 1, 'location': -1, 'possession': 'home', 'down': 1, 'yards': 10}
 	score = {'quarters': [{'home': 0, 'away': 0}, {'home': 0, 'away': 0}, {'home': 0, 'away': 0}, {'home': 0, 'away': 0}], 'home': 0, 'away': 0}
 	game = {'home': home, 'away': away, 'drives': [], 'status': status, 'score': score, 'waitingAction': 'coin', 'waitingOn': 'away'}
 	return game
+
+
+def reverseHomeAway(homeAway):
+	if homeAway == 'home':
+		return 'away'
+	elif homeAway == 'away':
+		return 'home'
+	else:
+		return None
+
+
+def getRange(rangeString):
+	rangeEnds = re.findall('(\d+)', rangeString)
+	if len(rangeEnds) < 2 or len(rangeEnds) > 2:
+		return None, None
+	return int(rangeEnds[0]), int(rangeEnds[1])

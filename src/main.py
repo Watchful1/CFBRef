@@ -21,6 +21,7 @@ import messages
 import database
 import wiki
 import utils
+import state
 
 ### Logging setup ###
 LOG_LEVEL = logging.DEBUG
