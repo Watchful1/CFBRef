@@ -58,6 +58,15 @@ def sendMessage(recipients, subject, message):
 	return success
 
 
+def replySubmission(id, message):
+	try:
+		submission = getSubmission(id)
+		resultComment = submission.reply(message)
+		return resultComment.id
+	except Exception as err:
+		log.warning(traceback.format_exc())
+		return None
+
 
 def getWikiPage(subreddit, pageName):
 	wikiPage = reddit.subreddit(subreddit).wiki[pageName]

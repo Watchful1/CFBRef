@@ -7,6 +7,8 @@ import utils
 import wiki
 import globals
 import database
+import state
+from globals import actions
 
 log = logging.getLogger("bot")
 
@@ -44,7 +46,7 @@ def processMessageNewGame(body, author):
 		return "/u/{} is already playing a game".format(opponent)
 
 	authorTeam = wiki.getTeamByCoach(author)
-	message = "/u/{}'s {} has challenged you to a game! Reply accept or reject.".format(author, authorTeam['name'])
+	message = "/u/{}'s {} has challenged you to a game! Reply **accept** or **reject**.".format(author, authorTeam['name'])
 	data = {'action': 'newgame', 'opponent': author}
 	embeddedMessage = utils.embedTableInMessage(message, data)
 	log.debug("Sending message to /u/{} that /u/{} has challenged them to a game".format(opponent, author))
@@ -106,58 +108,115 @@ def processMessageAcceptGame(dataTable, author):
 		database.addCoach(gameID, user, False)
 		log.debug("Coach added to away: {}".format(user))
 
-	log.debug("Sending message to home coaches")
-	reddit.sendMessage(game['home']['coaches'], "Game started!",
-	                   "/u/{} has accepted your challenge and a new game has begun. Find it [here]({}).".format(author, utils.getLinkToThread(threadID)))
+	log.debug("Game started, posting coin toss comment")
+	message = "The game has started! {}, you're home, call **heads** or **tails** in the air.".format(utils.getCoachString(game, 'home'))
+	utils.sendGameComment(game, message, {'action': 'coin'})
 
-	awayMessage = "Game started. Find it [here]({}).\n\nIt's your coin toss, reply with heads or tails.".format(utils.getLinkToThread(threadID))
-	return utils.embedTableInMessage(awayMessage, {'action': 'coin'})
+	log.debug("Returning game started message")
+	return "Game started. Find it [here]({}).".format(utils.getLinkToThread(threadID))
 
 
 def processMessageCoin(isHeads, author):
 	log.debug("Processing coin toss message: {}".format(str(isHeads)))
 	game = utils.getGameByUser(author)
 
-	if game['waitingAction'] != 'coin':
-		log.debug("Not waiting on coin toss: {}".format(game['waitingAction']))
-		return "I'm not waiting on a coin toss for this game, are you sure you replied to the right message?"
-
-	if (game['waitingOn'] == 'home') != utils.isCoachHome(game, author):
-		log.debug("Not waiting on message author's team")
-		return "I'm not waiting on a message from you, are you sure you responded to the right message?"
+	waitingOn = utils.isGameWaitingOn(game, author, actions.coin)
+	if waitingOn is not None:
+		return waitingOn
 
 	if isHeads == utils.coinToss():
 		log.debug("User won coin toss, asking if they want to defer")
-		game['waitingAction'] = 'defer'
+		game['waitingAction'] = actions.defer
 		utils.updateGameThread(game)
-		message = "You won the toss, reply receive or defer"
+
+		message = "{} won the toss, do you want to **receive** or **defer**?".format(game['home']['name'])
 		return utils.embedTableInMessage(message, {'action': 'defer'})
 	else:
 		log.debug("User lost coin toss, asking other team if they want to defer")
-		game['waitingAction'] = 'defer'
-		game['waitingOn'] = 'home'
+		game['waitingAction'] = actions.defer
+		game['waitingOn'] = 'away'
 		utils.updateGameThread(game)
 
-		utils.sendGameMessage(True, game, "You have won the toss, reply receive or defer", {'action': 'defer'})
-		return "You have lost the toss, asking the other team if they want to receive or defer"
+		message = "{}, {} won the toss, do you want to **receive** or **defer**?".format(utils.getCoachString(game, 'away'), game['away']['name'])
+		return utils.embedTableInMessage(message, {'action': 'defer'})
 
 
 def processMessageDefer(isDefer, author):
-	log.debug("Processing defer toss message: {}".format(str(isDefer)))
+	log.debug("Processing defer message: {}".format(str(isDefer)))
 	game = utils.getGameByUser(author)
 
-	if game['waitingAction'] != 'defer':
-		log.debug("Not waiting on defer: {}".format(game['waitingAction']))
-		return "I'm not waiting on a receive/defer, are you sure you replied to the right message?"
+	waitingOn = utils.isGameWaitingOn(game, author, actions.defer)
+	if waitingOn is not None:
+		return waitingOn
 
-	if (game['waitingOn'] == 'home') != utils.isCoachHome(game, author):
-		log.debug("Not waiting on message author's team")
-		return "I'm not waiting on a message from you, are you sure you responded to the right message?"
+	authorHomeAway = utils.getHomeAwayString(utils.isCoachHome(game, author))
+	if isDefer:
+		log.debug("User deferred, {} is receiving".format(utils.reverseHomeAway(authorHomeAway)))
+
+		state.setStateTouchback(game, utils.reverseHomeAway(authorHomeAway))
+		utils.updateGameThread(game)
+		utils.sendDefensiveNumberMessage(game)
+
+		return "{} deferred and will receive the ball in the second half. The game has started!\n\n{}\n\n{}".format(
+			game[authorHomeAway]['name'],
+		    utils.getCurrentPlayString(game),
+		    utils.getWaitingOnString(game))
+	else:
+		log.debug("User elected to receive, {} is receiving".format(authorHomeAway))
+
+		state.setStateTouchback(game, authorHomeAway)
+		utils.updateGameThread(game)
+		utils.sendDefensiveNumberMessage(game)
+
+		return "{} elected to receive. The game has started!\n\n{}\n\n{}".format(
+			game[authorHomeAway]['name'],
+		    utils.getCurrentPlayString(game),
+		    utils.getWaitingOnString(game))
 
 
+def processMessageDefenseNumber(message, author):
+	log.debug("Processing defense number message")
+	game = utils.getGameByUser(author)
+
+	waitingOn = utils.isGameWaitingOn(game, author, actions.play)
+	if waitingOn is not None:
+		return waitingOn
+
+	number, resultMessage = utils.extractPlayNumber(message)
+	if resultMessage is not None:
+		return resultMessage
+
+	log.debug("Saving defense number: {}".format(number))
+	database.saveDefensiveNumber(game['dataID'], number)
+
+	game['waitingOn'] = utils.reverseHomeAway(game['waitingOn'])
+	utils.updateGameThread(game)
+
+	log.debug("Sending offense play comment")
+	message = "{} has submitted their number, {} you're up.\n\n{}\n\n{} reply with run or pass and your number.".format(
+		game[utils.reverseHomeAway(game['waitingOn'])]['name'],
+		game[game['waitingOn']]['name'],
+		utils.getCurrentPlayString(game),
+		utils.getCoachString(game, game['waitingOn']))
+	utils.sendGameComment(game, message, {'action': 'play'})
+
+	return "I've got {} as your number.".format(number)
 
 
+def processMessageOffensePlay(message, author):
+	log.debug("Processing offense number message")
+	game = utils.getGameByUser(author)
 
+	waitingOn = utils.isGameWaitingOn(game, author, actions.play)
+	if waitingOn is not None:
+		return waitingOn
+
+	if message.startsWith("run"):
+	elif message.startsWith("pass"):
+	elif message.startsWith("punt"):
+	elif message.startsWith("field goal"):
+	elif message.startsWith("kneel"):
+	elif message.startsWith("spike"):
 
 
 def processMessages():
@@ -177,31 +236,43 @@ def processMessages():
 					log.debug("Found a valid datatable in parent message")
 
 		if isinstance(message, praw.models.Message):
-			body = message.body.lower()
-			if dataTable is not None:
-				if dataTable['action'] == 'newgame':
-					if body.startswith("accept"):
-						response = processMessageAcceptGame(dataTable, str(message.author))
-					elif body.startswith("reject"):
-						response = processMessageRejectGame(dataTable, str(message.author))
-				if dataTable['action'] == 'coin':
-					if body.startswith("heads"):
-						response = processMessageCoin(True, str(message.author))
-					elif body.startswith("tails"):
-						response = processMessageCoin(False, str(message.author))
-				if dataTable['action'] == 'defer':
-					if body.startswith("defer"):
-						response = processMessageDefer(True, str(message.author))
-					elif body.startswith("receive"):
-						response = processMessageDefer(False, str(message.author))
+			isMessage = True
+		else:
+			isMessage = False
 
+		body = message.body.lower()
+		if dataTable is not None:
+			if dataTable['action'] == actions.newGame and isMessage:
+				if body.startswith("accept"):
+					response = processMessageAcceptGame(dataTable, str(message.author))
+				elif body.startswith("reject"):
+					response = processMessageRejectGame(dataTable, str(message.author))
 
-			if body.startswith("newgame"):
+			if dataTable['action'] == actions.coin and not isMessage:
+				if body.startswith("heads"):
+					response = processMessageCoin(True, str(message.author))
+				elif body.startswith("tails"):
+					response = processMessageCoin(False, str(message.author))
+
+			if dataTable['action'] == actions.defer and not isMessage:
+				if body.startswith("defer"):
+					response = processMessageDefer(True, str(message.author))
+				elif body.startswith("receive"):
+					response = processMessageDefer(False, str(message.author))
+
+			if dataTable['action'] == actions.play and isMessage:
+				response = processMessageDefenseNumber(body, str(message.author))
+
+			if dataTable['action'] == actions.play and not isMessage:
+				response = processMessageOffensePlay(body, str(message.author))
+
+			if body.startswith("newgame") and isMessage:
 				response = processMessageNewGame(body, str(message.author))
 
 			message.mark_read()
 			if response is not None:
 				message.reply(response)
 			else:
-				log.debug("Couldn't understand message")
-				message.reply("I couldn't understand your message, please try again or message /u/Watchful1 if you need help.")
+				if isMessage:
+					log.debug("Couldn't understand message")
+					message.reply("I couldn't understand your message, please try again or message /u/Watchful1 if you need help.")

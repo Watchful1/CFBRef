@@ -93,15 +93,12 @@ def parsePlayPart(playPart):
 	return range, play
 
 
-movementPlays = ['run', 'pass']
-
-
 def loadPlays():
 	playsPage = reddit.getWikiPage(globals.CONFIG_SUBREDDIT, "plays")
 
 	for playLine in playsPage.splitlines():
 		items = playLine.split('|')
-		isMovementPlay = items[0] in movementPlays
+		isMovementPlay = items[0] in globals.movementPlays
 
 		if isMovementPlay:
 			startIndex = 4

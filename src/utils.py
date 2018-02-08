@@ -7,6 +7,7 @@ import globals
 import database
 import wiki
 import reddit
+from globals import actions
 
 log = logging.getLogger("bot")
 
@@ -40,18 +41,15 @@ def startGame(initiator, opponent):
 	return True, "Game created"
 
 
-datatag = "[](#datatag"
-
-
 def embedTableInMessage(message, table):
-	return "{}{}{})".format(message, datatag, json.dumps(table))
+	return "{}{}{})".format(message, globals.datatag, json.dumps(table))
 
 
 def extractTableFromMessage(message):
-	datatagLocation = message.find(datatag)
+	datatagLocation = message.find(globals.datatag)
 	if datatagLocation == -1:
 		return None
-	data = message[datatagLocation + len(datatag):-1]
+	data = message[datatagLocation + len(globals.datatag):-1]
 	try:
 		table = json.loads(data)
 		return table
@@ -176,6 +174,7 @@ def getGameByThread(thread):
 def getGameByUser(user):
 	dataGame = database.getGameByCoach(user)
 	game = getGameByThread(dataGame['thread'])
+	game['dataID'] = dataGame['id']
 	game['thread'] = dataGame['thread']
 	return game
 
@@ -207,11 +206,15 @@ def sendGameMessage(isHome, game, message, dataTable):
 	                   embedTableInMessage(message, dataTable))
 
 
-def newGameObject(home, away):
-	status = {'clock': 15*60, 'quarter': 1, 'location': -1, 'possession': 'home', 'down': 1, 'yards': 10}
-	score = {'quarters': [{'home': 0, 'away': 0}, {'home': 0, 'away': 0}, {'home': 0, 'away': 0}, {'home': 0, 'away': 0}], 'home': 0, 'away': 0}
-	game = {'home': home, 'away': away, 'drives': [], 'status': status, 'score': score, 'waitingAction': 'coin', 'waitingOn': 'away'}
-	return game
+def sendGameComment(game, message, dataTable):
+	reddit.replySubmission(game['thread'], embedTableInMessage(message, dataTable))
+
+
+def getHomeAwayString(isHome):
+	if isHome:
+		return 'home'
+	else:
+		return 'away'
 
 
 def reverseHomeAway(homeAway):
@@ -228,3 +231,106 @@ def getRange(rangeString):
 	if len(rangeEnds) < 2 or len(rangeEnds) > 2:
 		return None, None
 	return int(rangeEnds[0]), int(rangeEnds[1])
+
+
+def isGameWaitingOn(game, user, action):
+	if game['waitingAction'] != action:
+		log.debug("Not waiting on {}: {}".format(action, game['waitingAction']))
+		return "I'm not waiting on a {} for this game, are you sure you replied to the right message?".format(action)
+
+	if (game['waitingOn'] == 'home') != isCoachHome(game, user):
+		log.debug("Not waiting on message author's team")
+		return "I'm not waiting on a message from you, are you sure you responded to the right message?"
+
+	return None
+
+
+def getCoachString(game, homeAway):
+	bldr = []
+	for coach in game[homeAway]['coaches']:
+		bldr.append("/u/{}".format(coach))
+	return " and ".join(bldr)
+
+
+def getDownString(down):
+	if down == 1:
+		return "1st"
+	elif down == 2:
+		return "2nd"
+	elif down == 3:
+		return "3rd"
+	elif down == 4:
+		return "4th"
+	else:
+		log.warning("Hit a bad down number: {}".format(down))
+		return ""
+
+
+def getLocationString(location, offenseTeam, defenseTeam):
+	if location < 0 or location > 100:
+		log.warning("Bad location: {}".format(location))
+		return str(location)
+
+	if location == 0:
+		return "{} goal line".format(offenseTeam)
+	if location < 50:
+		return "{} {}".format(offenseTeam, location)
+	elif location == 50:
+		return str(location)
+	elif location == 100:
+		return "{} goal line".format(defenseTeam)
+	else:
+		return "{} {}".format(defenseTeam, 100 - location)
+
+
+def getCurrentPlayString(game):
+	return "It's {} and {} on the {}.".format(
+		getDownString(game['status']['down']),
+		game['status']['yards'],
+		getLocationString(game['status']['location'], game[game['status']['possession']]['name'], game[reverseHomeAway(game['status']['possession'])]['name'])
+	)
+
+
+def getWaitingOnString(game):
+	string = "Error, no action"
+	if game['waitingAction'] == actions.coin:
+		string = "Waiting on {} for coin toss".format(game[game['waitingOn']]['name'])
+	elif game['waitingAction'] == actions.defer:
+		string = "Waiting on {} for receive/defer".format(game[game['waitingOn']]['name'])
+	elif game['waitingAction'] == actions.play:
+		if game['waitingOn'] == game['status']['possession']:
+			string = "Waiting on {} for an offensive play".format(game[game['waitingOn']]['name'])
+		else:
+			string = "Waiting on {} for an defensive number".format(game[game['waitingOn']]['name'])
+
+	return string
+
+
+def sendDefensiveNumberMessage(game):
+	defenseHomeAway = reverseHomeAway(game['status']['possession'])
+	log.debug("Sending get defence number to {}".format(getCoachString(game, defenseHomeAway)))
+	reddit.sendMessage(game[defenseHomeAway]['coaches'],
+	                   "{} vs {}".format(game['home']['name'], game['away']['name']),
+	                   embedTableInMessage("{}\n\nReply with a number between **1** and **1500**, inclusive.".format(getCurrentPlayString(game)), {'action': 'play'}))
+
+
+def extractPlayNumber(message):
+	numbers = re.findall('(\d+)', message)
+	if len(numbers) < 1:
+		log.debug("Couldn't find a number in message")
+		return -1, "It looks like you should be sending me a number, but I can't find one in your message."
+
+	number = int(numbers[0])
+	if number < 1 or number > 1500:
+		log.debug("Number out of range: {}".format(number))
+		return -1, "I found {}, but that's not a valid number.".format(number)
+
+	return number, None
+
+
+def newGameObject(home, away):
+	status = {'clock': 15*60, 'quarter': 1, 'location': -1, 'possession': 'home', 'down': 1, 'yards': 10}
+	score = {'quarters': [{'home': 0, 'away': 0}, {'home': 0, 'away': 0}, {'home': 0, 'away': 0}, {'home': 0, 'away': 0}], 'home': 0, 'away': 0}
+	game = {'home': home, 'away': away, 'drives': [], 'status': status, 'score': score,
+	        'waitingAction': actions.coin, 'waitingOn': 'home', 'dataID': -1, 'thread': "empty"}
+	return game

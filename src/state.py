@@ -2,8 +2,19 @@ import logging.handlers
 
 import wiki
 import utils
+import globals
+from globals import actions
 
 log = logging.getLogger("bot")
+
+
+def setStateTouchback(game, isHome):
+	game['status']['location'] = 25
+	game['status']['down'] = 1
+	game['status']['yards'] = 10
+	game['status']['possession'] = utils.getHomeAwayString(isHome)
+	game['waitingAction'] = actions.play
+	game['waitingOn'] = utils.reverseHomeAway(utils.getHomeAwayString(isHome))
 
 
 def findNumberInRangeDict(number, dict):
@@ -26,7 +37,7 @@ def getPlayResult(game, play, number):
 		log.warning("{} is not a valid play".format(play))
 		return None
 
-	if play in wiki.movementPlays:
+	if play in globals.movementPlays:
 		offense = game[game['status']['possession']]['offense']
 		defense = game[utils.reverseHomeAway(game['status']['possession'])]['defense']
 		playMajorRange = playDict[offense][defense]
@@ -38,13 +49,6 @@ def getPlayResult(game, play, number):
 
 
 def transform(game, play, number):
-	playDict = wiki.getPlay(play)
-	if playDict is None:
-		log.warning("{} is not a valid play".format(play))
-		return None
-
-
-
 	return ""
 
 

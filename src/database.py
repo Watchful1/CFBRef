@@ -126,3 +126,50 @@ def deleteGameByID(id):
 		return True
 	else:
 		return False
+
+
+def saveDefensiveNumber(gameID, number):
+	c = dbConn.cursor()
+	c.execute('''
+		UPDATE games
+		SET LastPlayed = CURRENT_TIMESTAMP
+			,DefenseNumber = ?
+		WHERE ID = ?
+	''', (number, gameID))
+	dbConn.commit()
+
+
+def useDefensiveNumber(gameID):
+	c = dbConn.cursor()
+	result = c.execute('''
+		SELECT DefenseNumber
+		FROM games
+		WHERE ID = ?
+	''', (id,))
+
+	resultTuple = result.fetchone()
+
+	if not resultTuple:
+		return None
+
+	number = resultTuple[0]
+
+	c.execute('''
+		UPDATE games
+		SET LastPlayed = CURRENT_TIMESTAMP
+			,DefenseNumber = NULL
+		WHERE ID = ?
+	''', (gameID,))
+	dbConn.commit()
+
+	return number
+
+
+def setGamePlayed(gameID):
+	c = dbConn.cursor()
+	c.execute('''
+		UPDATE games
+		SET LastPlayed = CURRENT_TIMESTAMP
+		WHERE ID = ?
+	''', (gameID,))
+	dbConn.commit()
