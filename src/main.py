@@ -81,6 +81,7 @@ while True:
 
 	wiki.loadTeams(debug)
 	wiki.loadPlays()
+	wiki.loadTimes()
 
 	messages.processMessages()
 

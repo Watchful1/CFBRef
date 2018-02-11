@@ -211,12 +211,33 @@ def processMessageOffensePlay(message, author):
 	if waitingOn is not None:
 		return waitingOn
 
+	number, numberMessage = utils.extractPlayNumber(message)
+
+	if message.find("timeout"):
+		timeout = True
+	else:
+		timeout = False
+
 	if message.startsWith("run"):
+		play = "run"
 	elif message.startsWith("pass"):
+		play = "pass"
 	elif message.startsWith("punt"):
+		play = "punt"
 	elif message.startsWith("field goal"):
+		play = "fieldGoal"
 	elif message.startsWith("kneel"):
+		play = "kneel"
 	elif message.startsWith("spike"):
+		play = "spike"
+	elif message.startsWith("two point"):
+		play = "twoPoint"
+	elif message.startsWith("pat"):
+		play = "pat"
+	else:
+		return "I couldn't find a play in your message"
+
+	resultMessage = state.executePlay(game, play, number, numberMessage, timeout)
 
 
 def processMessages():

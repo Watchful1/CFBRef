@@ -12,6 +12,9 @@ ACCOUNT_NAME = "default"
 
 ### Constants ###
 movementPlays = ['run', 'pass']
+normalPlays = ['run', 'pass', 'punt', 'punt', 'fieldGoal']
+timePlays = ['kneel', 'spike']
+conversionPlays = ['pat', 'twoPoint']
 datatag = "[](#datatag"
 
 

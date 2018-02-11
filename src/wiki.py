@@ -10,6 +10,7 @@ log = logging.getLogger("bot")
 teams = {}
 coaches = {}
 plays = {}
+times = {}
 
 
 def loadTeams(debug=False):
@@ -34,19 +35,19 @@ def loadTeams(debug=False):
 		teams[team['tag']] = team
 
 
-def validatePlayItem(playItem, regex):
+def validateItem(playItem, regex):
 	return re.match(regex, playItem) is not None
 
 
 def initOffenseDefense(play, offense, defense, range):
 	if not initRange(play, range):
 		return False
-	if not validatePlayItem(offense, "\w{3,7}"):
+	if not validateItem(offense, "\w{3,7}"):
 		log.warning("Bad offense item: {}".format(offense))
 		return False
 	if offense not in plays[play]:
 		plays[play][offense] = {}
-	if not validatePlayItem(defense, "\d-\d"):
+	if not validateItem(defense, "\d-\d"):
 		log.warning("Bad defense item: {}".format(defense))
 		return False
 	if defense not in plays[play][offense]:
@@ -55,10 +56,10 @@ def initOffenseDefense(play, offense, defense, range):
 
 
 def initRange(play, range):
-	if not validatePlayItem(play, "\w{3,12}"):
+	if not validateItem(play, "\w{3,12}"):
 		log.warning("Bad play item: {}".format(play))
 		return False
-	if not validatePlayItem(range, "\d+-\d+"):
+	if not validateItem(range, "\d+-\d+"):
 		log.warning("Bad range item: {}".format(range))
 		return False
 	if play not in plays:
@@ -73,19 +74,19 @@ def parsePlayPart(playPart):
 		return None, None
 
 	range = parts[0]
-	if not validatePlayItem(range, "\d+-\d+"):
+	if not validateItem(range, "\d+-\d+"):
 		log.warning("Could not validate range: {}".format(range))
 		return None, None
 
 	result = parts[1]
-	if not validatePlayItem(result, "\w{3,20}"):
+	if not validateItem(result, "\w{3,20}"):
 		log.warning("Could not validate result: {}".format(result))
 		return None, None
 
 	play = {'result': result}
 
 	if len(parts) > 2:
-		if not validatePlayItem(parts[2], "-?\d+"):
+		if not validateItem(parts[2], "-?\d+"):
 			log.warning("Could not validate yards: {}".format(parts[2]))
 			return None, None
 		play['yards'] = int(parts[2])
@@ -124,6 +125,37 @@ def loadPlays():
 			plays[items[0]][items[1]] = playParts
 
 
+def loadTimes():
+	timesPage = reddit.getWikiPage(globals.CONFIG_SUBREDDIT, "times")
+
+	for timeLine in timesPage.splitlines():
+		items = timeLine.split('|')
+		if items[0] not in times:
+			times[items[0]] = {}
+
+		for item in items[1:]:
+			timePart = item.split(",")
+			if timePart[0] == "gain":
+				if not validateItem(timePart[1], "-?\d+"):
+					log.warning("Could not validate time yards: {}".format(timePart[1]))
+					continue
+				if not validateItem(timePart[2], "\d+"):
+					log.warning("Could not validate time: {}".format(timePart[2]))
+					continue
+
+				if "gain" not in times[items[0]]:
+					times[items[0]]["gain"] = []
+				timeObject = {"yards": int(timePart[1]), "time": int(timePart[2])}
+				times[items[0]][timePart[0]].append(timeObject)
+			else:
+				if not validateItem(timePart[1], "\d+"):
+					log.warning("Could not validate time: {}".format(timePart[1]))
+					continue
+
+				timeObject = {"time": int(timePart[1])}
+				times[items[0]][timePart[0]] = timeObject
+
+
 def getTeamByTag(tag):
 	tag = tag.lower()
 	if tag in teams:
@@ -143,5 +175,12 @@ def getTeamByCoach(coach):
 def getPlay(play):
 	if play in plays:
 		return plays[play]
+	else:
+		return None
+
+
+def getTimeByPlay(play):
+	if play in times:
+		return times[play]
 	else:
 		return None

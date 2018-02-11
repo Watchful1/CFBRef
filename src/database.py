@@ -139,7 +139,7 @@ def saveDefensiveNumber(gameID, number):
 	dbConn.commit()
 
 
-def useDefensiveNumber(gameID):
+def getDefensiveNumber(gameID):
 	c = dbConn.cursor()
 	result = c.execute('''
 		SELECT DefenseNumber
@@ -152,8 +152,11 @@ def useDefensiveNumber(gameID):
 	if not resultTuple:
 		return None
 
-	number = resultTuple[0]
+	return resultTuple[0]
 
+
+def clearDefensiveNumber(gameID):
+	c = dbConn.cursor()
 	c.execute('''
 		UPDATE games
 		SET LastPlayed = CURRENT_TIMESTAMP
@@ -161,8 +164,6 @@ def useDefensiveNumber(gameID):
 		WHERE ID = ?
 	''', (gameID,))
 	dbConn.commit()
-
-	return number
 
 
 def setGamePlayed(gameID):
