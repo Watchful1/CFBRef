@@ -113,6 +113,19 @@ def getPlayResult(game, play, number):
 	return findNumberInRangeDict(number, playMinorRange)
 
 
+def getTimeAfterForOffense(game, homeAway):
+	offenseType = game[homeAway]['offense']
+	if offenseType == "spread":
+		return 10
+	elif offenseType == "pro":
+		return 15
+	elif offenseType == "option":
+		return 20
+	else:
+		log.warning("Not a valid offense: {}".format(offenseType))
+		return None
+
+
 def getTimeByPlay(play, result, yards):
 	timePlay = wiki.getTimeByPlay(play)
 	if timePlay is None:
@@ -145,29 +158,53 @@ def getTimeByPlay(play, result, yards):
 		return timeObject['time']
 
 
-def getTimeTotal(game, play, result, yards, timeout):
+def updateTime(game, play, result, yards, timeout, offenseHomeAway):
+	if result in ['touchdown']:
+		actualResult = "gain"
+	else:
+		actualResult = result
+	timeoutUsed = False
+	timeOffClock = getTimeByPlay(play, actualResult, yards)
+	if result in ["gain", "kneel"]:
+		if timeout:
+			timeoutUsed = True
+		else:
+			timeOffClock += getTimeAfterForOffense(game, offenseHomeAway)
+	log.debug("Time off clock: {}".format(timeOffClock))
+
+	game['status']['clock'] -= timeOffClock
+
+	if game['status']['clock'] < 0:
+		# finish updateTime
+		# track defer
+		# charge timeout (inc defense)
+		# executeplay return
+		# message stream
+
+
 
 
 
 def executeGain(game, play, yards):
 	if play not in globals.movementPlays:
 		log.warning("This doesn't look like a valid movement play: {}".format(play))
-		return "Something went wrong trying to move the ball"
+		return "error", None, "Something went wrong trying to move the ball"
 
-	log.debug("Ball moved from {} to {}".format(game['status']['location'], game['status']['location'] + yards))
-	game['status']['location'] = game['status']['location'] + yards
+	previousLocation = game['status']['location']
+	log.debug("Ball moved from {} to {}".format(previousLocation, previousLocation + yards))
+	game['status']['location'] = previousLocation + yards
 	if game['status']['location'] > 100:
 		log.debug("Ball passed the line, touchdown offense")
 
 		scoreTouchdown(game, game['status']['possession'])
 
-		return "{} with a {} yard {} into the end zone for a touchdown!".format(game[game['status']['possession']]['name'], yards, play)
+		return "touchdown", 100 - previousLocation, "{} with a {} yard {} into the end zone for a touchdown!".format(game[game['status']['possession']]['name'], yards, play)
 	elif game['status']['location'] < 0:
 		log.debug("Ball went back over the line, touchdown for the defense")
 
 		scoreSafety(game, utils.reverseHomeAway(game['status']['possession']))
 
-		return "Sack! The quarterback is taken down in the endzone for a safety."
+		return "touchback", 0 - previousLocation, "Sack! The quarterback is taken down in the endzone for a safety."
 	else:
 		log.debug("Ball moved, but didn't enter an endzone, checking and updating play status")
 
@@ -177,18 +214,18 @@ def executeGain(game, play, yards):
 			log.debug("First down")
 			game['status']['yards'] = 10
 			game['status']['down'] = 1
-			return "{} play for {} yards, first down".format(play.capitalize(), yards)
+			return "gain", game['status']['location'] - previousLocation, "{} play for {} yards, first down".format(play.capitalize(), yards)
 		else:
 			log.debug("Not a first down, incrementing down")
 			game['status']['down'] += 1
 			if game['status']['down'] > 4:
 				log.debug("Turnover on downs")
 				turnover(game)
-				return "{} play for {} yards, but that's not enough for the first down. Turnover on downs".format(play.capitalize(), yards)
+				return "turnover", game['status']['location'] - previousLocation, "{} play for {} yards, but that's not enough for the first down. Turnover on downs".format(play.capitalize(), yards)
 			else:
 				log.debug("Now {} down and {}".format(utils.getDownString(game['status']['down']), yardsRemaining))
 				game['status']['yards'] = yardsRemaining
-				return "{} play for {} yards, {} and {}".format(play.capitalize(), yards, utils.getDownString(game['status']['down']), yardsRemaining)
+				return "gain", game['status']['location'] - previousLocation, "{} play for {} yards, {} and {}".format(play.capitalize(), yards, utils.getDownString(game['status']['down']), yardsRemaining)
 
 
 def executePunt(game, yards):
@@ -208,11 +245,13 @@ def executePunt(game, yards):
 
 
 def executePlay(game, play, number, numberMessage, timeout):
+	startingPossessionHomeAway = game['status']['possession']
+	timeoutUsed = False
 	if game['status']['conversion']:
 		if play in globals.conversionPlays:
 			if number == -1:
 				log.debug("Trying to execute a normal play, but didn't have a number")
-				return numberMessage
+				return timeoutUsed, numberMessage
 
 			numberResult = getNumberDiffForGame(game, number)
 
@@ -222,13 +261,13 @@ def executePlay(game, play, number, numberMessage, timeout):
 				log.debug("Successful two point conversion")
 				resultMessage = "The two point conversion is successful"
 				scoreTwoPoint(game, game['status']['possession'])
-				return resultMessage
+				return timeoutUsed, resultMessage
 
 			elif result['result'] == 'pat':
 				log.debug("Successful PAT")
 				resultMessage = "The PAT was successful"
 				scorePAT(game, game['status']['possession'])
-				return resultMessage
+				return timeoutUsed, resultMessage
 
 			elif result['result'] == 'touchback':
 				log.debug("Attempt unsuccessful")
@@ -239,7 +278,7 @@ def executePlay(game, play, number, numberMessage, timeout):
 				else:
 					resultMessage = "Conversion unsuccessful"
 				setStateTouchback(game, utils.reverseHomeAway(game['status']['possession']))
-				return resultMessage
+				return timeoutUsed, resultMessage
 
 		else:
 			return "It looks like you're trying to get the extra point after a touchdown, but this isn't a valid play"
@@ -258,20 +297,28 @@ def executePlay(game, play, number, numberMessage, timeout):
 					log.warning("Result is a gain, but I couldn't find any yards")
 					return "Result of play is a number of yards, but something went wrong and I couldn't find what number"
 				log.debug("Result is a gain of {} yards".format(result['yards']))
-				resultMessage = executeGain(game, play, result['yards'])
-				return resultMessage
+				actualResult, yards, resultMessage = executeGain(game, play, result['yards'])
+				if result == "error":
+					return timeoutUsed, resultMessage
+				if yards is not None:
+					timeoutUsed = updateTime(game, play, actualResult, yards, timeout, startingPossessionHomeAway)
+
+				return timeoutUsed, resultMessage
 
 			elif result['result'] == 'touchdown':
 				log.debug("Result is a touchdown")
 				resultMessage = "It's a {} into the endzone! Touchdown {}!".format(play, game[game['status']['possession']]['name'])
+				previousLocation = game['status']['location']
 				scoreTouchdown(game, game['status']['possession'])
-				return resultMessage
+				timeoutUsed = updateTime(game, play, "touchdown", 100 - previousLocation, timeout, startingPossessionHomeAway)
+				return timeoutUsed, resultMessage
 
 			elif result['result'] == 'fieldGoal':
 				log.debug("Result is a field goal")
 				resultMessage = "The {} yard field goal is good!".format(100 - game['status']['location'] + 17)
 				scoreFieldGoal(game, game['status']['possession'])
-				return resultMessage
+				timeoutUsed = updateTime(game, play, "fieldGoal", None, timeout, startingPossessionHomeAway)
+				return timeoutUsed, resultMessage
 
 			elif result['result'] == 'punt':
 				if 'yards' not in result:
@@ -279,7 +326,8 @@ def executePlay(game, play, number, numberMessage, timeout):
 					return "Result of play is a successful punt, but something went wrong and I couldn't find how long a punt"
 				log.debug("Successful punt of {} yards".format(result['yards']))
 				resultMessage = executePunt(game, result['yards'])
-				return resultMessage
+				timeoutUsed = updateTime(game, play, "punt", None, timeout, startingPossessionHomeAway)
+				return timeoutUsed, resultMessage
 
 			elif result['result'] == 'turnover':
 				log.debug("Play results in a turnover")
@@ -292,7 +340,8 @@ def executePlay(game, play, number, numberMessage, timeout):
 				else:
 					resultMessage = "It's a turnover!"
 				turnover(game)
-				return resultMessage
+				timeoutUsed = updateTime(game, play, "turnover", None, timeout, startingPossessionHomeAway)
+				return timeoutUsed, resultMessage
 
 			elif result['result'] == 'turnoverTouchdown':
 				log.debug("Play results in a turnover and run back")
@@ -305,12 +354,33 @@ def executePlay(game, play, number, numberMessage, timeout):
 				else:
 					resultMessage = "It's a turnover and run back for a touchdown!"
 				scoreTouchdown(game, utils.reverseHomeAway(game['status']['possession']))
-				return resultMessage
+				timeoutUsed = updateTime(game, play, "turnoverTouchdown", None, timeout, startingPossessionHomeAway)
+				return timeoutUsed, resultMessage
 
 		elif play in globals.timePlays:
-			return "Not implemented"
+			if play == 'kneel':
+				log.debug("Running kneel play")
+				timeoutUsed = updateTime(game, play, "kneel", None, timeout, startingPossessionHomeAway)
+				game['status']['down'] += 1
+				if game['status']['down'] > 4:
+					log.debug("Turnover on downs")
+					turnover(game)
+					return timeoutUsed, "Turnover on downs"
+				else:
+					return timeoutUsed, "The quarterback takes a knee"
+
+			elif play == 'spike':
+				log.debug("Running spike play")
+				timeoutUsed = updateTime(game, play, "spike", None, timeout, startingPossessionHomeAway)
+				game['status']['down'] += 1
+				if game['status']['down'] > 4:
+					log.debug("Turnover on downs")
+					turnover(game)
+					return timeoutUsed, "Turnover on downs"
+				else:
+					return timeoutUsed, "The quarterback spikes the ball"
 
 		else:
-			return "{} isn't a valid play at the moment".format(play)
+			return timeoutUsed, "{} isn't a valid play at the moment".format(play)
 
-	return "Something went wrong, I should never have reached this"
+	return timeoutUsed, "Something went wrong, I should never have reached this"

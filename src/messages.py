@@ -237,7 +237,7 @@ def processMessageOffensePlay(message, author):
 	else:
 		return "I couldn't find a play in your message"
 
-	resultMessage = state.executePlay(game, play, number, numberMessage, timeout)
+	timeoutUsed, resultMessage = state.executePlay(game, play, number, numberMessage, timeout)
 
 
 def processMessages():
