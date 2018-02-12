@@ -239,6 +239,11 @@ def processMessageOffensePlay(message, author):
 
 	timeoutUsed, resultMessage = state.executePlay(game, play, number, numberMessage, timeout)
 
+	# track defer
+	# charge timeout (inc defense)
+	# executeplay return
+	# message stream
+
 
 def processMessages():
 	for message in reddit.getMessages():

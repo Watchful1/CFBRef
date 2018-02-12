@@ -16,6 +16,7 @@ normalPlays = ['run', 'pass', 'punt', 'punt', 'fieldGoal']
 timePlays = ['kneel', 'spike']
 conversionPlays = ['pat', 'twoPoint']
 datatag = "[](#datatag"
+quarterLength = 15*60
 
 
 class actions(Enum):

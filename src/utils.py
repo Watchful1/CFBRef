@@ -329,7 +329,7 @@ def extractPlayNumber(message):
 
 
 def newGameObject(home, away):
-	status = {'clock': 15*60, 'quarter': 1, 'location': -1, 'possession': 'home', 'down': 1, 'yards': 10, 'timeouts': {'home': 3, 'away': 3}, 'conversion': False}
+	status = {'clock': globals.quarterLength, 'quarter': 1, 'location': -1, 'possession': 'home', 'down': 1, 'yards': 10, 'timeouts': {'home': 3, 'away': 3}, 'conversion': False}
 	score = {'quarters': [{'home': 0, 'away': 0}, {'home': 0, 'away': 0}, {'home': 0, 'away': 0}, {'home': 0, 'away': 0}], 'home': 0, 'away': 0}
 	game = {'home': home, 'away': away, 'drives': [], 'status': status, 'score': score,
 	        'waitingAction': actions.coin, 'waitingOn': 'home', 'dataID': -1, 'thread': "empty", "receivingNext": "home"}
