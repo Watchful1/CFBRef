@@ -154,6 +154,7 @@ def processMessageDefer(isDefer, author):
 		log.debug("User deferred, {} is receiving".format(utils.reverseHomeAway(authorHomeAway)))
 
 		state.setStateTouchback(game, utils.reverseHomeAway(authorHomeAway))
+		game['receivingNext'] = authorHomeAway
 		utils.updateGameThread(game)
 		utils.sendDefensiveNumberMessage(game)
 
@@ -165,6 +166,7 @@ def processMessageDefer(isDefer, author):
 		log.debug("User elected to receive, {} is receiving".format(authorHomeAway))
 
 		state.setStateTouchback(game, authorHomeAway)
+		game['receivingNext'] = utils.reverseHomeAway(authorHomeAway)
 		utils.updateGameThread(game)
 		utils.sendDefensiveNumberMessage(game)
 
@@ -239,7 +241,6 @@ def processMessageOffensePlay(message, author):
 
 	timeoutUsed, resultMessage = state.executePlay(game, play, number, numberMessage, timeout)
 
-	# track defer
 	# charge timeout (inc defense)
 	# executeplay return
 	# message stream
