@@ -9,6 +9,7 @@ import globals
 import database
 import state
 from globals import actions
+from globals import timeoutState
 
 log = logging.getLogger("bot")
 
@@ -191,6 +192,14 @@ def processMessageDefenseNumber(message, author):
 	log.debug("Saving defense number: {}".format(number))
 	database.saveDefensiveNumber(game['dataID'], number)
 
+	timeoutMessage = None
+	if message.find("timeout"):
+		if game['status']['timeouts'][utils.reverseHomeAway(game['status']['possession'])] > 0:
+			game['status']['requestedTimeout'][utils.reverseHomeAway(game['status']['possession'])] = timeoutState.requested
+			timeoutMessage = "Timeout requested successfully"
+		else:
+			timeoutMessage = "You requested a timeout, but you don't have any left"
+
 	game['waitingOn'] = utils.reverseHomeAway(game['waitingOn'])
 	utils.updateGameThread(game)
 
@@ -202,7 +211,10 @@ def processMessageDefenseNumber(message, author):
 		utils.getCoachString(game, game['waitingOn']))
 	utils.sendGameComment(game, message, {'action': 'play'})
 
-	return "I've got {} as your number.".format(number)
+	result = ["I've got {} as your number.".format(number)]
+	if timeoutMessage is not None:
+		result.append(timeoutMessage)
+	return '\n\n'.join(result)
 
 
 def processMessageOffensePlay(message, author):
@@ -215,10 +227,13 @@ def processMessageOffensePlay(message, author):
 
 	number, numberMessage = utils.extractPlayNumber(message)
 
+	timeoutMessageOffense = None
+	timeoutMessageDefense = None
 	if message.find("timeout"):
-		timeout = True
-	else:
-		timeout = False
+		if game['status']['timeouts'][game['status']['possession']] > 0:
+			game['status']['requestedTimeout'][game['status']['possession']] = timeoutState.requested
+		else:
+			timeoutMessageOffense = "The offense requested a timeout, but they don't have any left"
 
 	if message.startsWith("run"):
 		play = "run"
@@ -239,11 +254,30 @@ def processMessageOffensePlay(message, author):
 	else:
 		return "I couldn't find a play in your message"
 
-	timeoutUsed, resultMessage = state.executePlay(game, play, number, numberMessage, timeout)
+	resultMessage = state.executePlay(game, play, number, numberMessage)
 
-	# charge timeout (inc defense)
+	if game['status']['requestedTimeout'][game['status']['possession']] == timeoutState.used:
+		timeoutMessageOffense = "The offense is charged a timeout"
+	elif game['status']['requestedTimeout'][game['status']['possession']] == timeoutState.requested:
+		timeoutMessageOffense = "The offense requested a timeout, but it was not used"
+	game['status']['requestedTimeout'][game['status']['possession']] = timeoutState.none
+
+	if game['status']['requestedTimeout'][utils.reverseHomeAway(game['status']['possession'])] == timeoutState.used:
+		timeoutMessageDefense = "The defense is charged a timeout"
+	elif game['status']['requestedTimeout'][utils.reverseHomeAway(game['status']['possession'])] == timeoutState.requested:
+		timeoutMessageDefense = "The defense requested a timeout, but it was not used"
+	game['status']['requestedTimeout'][utils.reverseHomeAway(game['status']['possession'])] = timeoutState.none
+
+	result = [resultMessage]
+	if timeoutMessageOffense is not None:
+		result.append(timeoutMessageOffense)
+	if timeoutMessageDefense is not None:
+		result.append(timeoutMessageDefense)
+	return '\n\n'.join(result)
+
 	# executeplay return
 	# message stream
+	# clear defense number
 
 
 def processMessages():

@@ -5,6 +5,7 @@ import utils
 import globals
 import database
 from globals import actions
+from globals import timeoutState
 
 log = logging.getLogger("bot")
 
@@ -161,8 +162,7 @@ def getTimeByPlay(play, result, yards):
 		return timeObject['time']
 
 
-def updateTime(game, play, result, yards, timeout, offenseHomeAway):
-	timeoutUsed = False
+def updateTime(game, play, result, yards, offenseHomeAway):
 	quarterMessage = None
 	if result in ['touchdown']:
 		actualResult = "gain"
@@ -170,8 +170,14 @@ def updateTime(game, play, result, yards, timeout, offenseHomeAway):
 		actualResult = result
 	timeOffClock = getTimeByPlay(play, actualResult, yards)
 	if result in ["gain", "kneel"]:
-		if timeout:
-			timeoutUsed = True
+		if game['status']['requestedTimeout'][offenseHomeAway] == timeoutState.requested:
+			log.debug("Using offensive timeout")
+			game['status']['requestedTimeout'][offenseHomeAway] = timeoutState.used
+			game['status']['timeouts'][offenseHomeAway] -= 1
+		elif game['status']['requestedTimeout'][utils.reverseHomeAway(offenseHomeAway)] == timeoutState.requested:
+			log.debug("Using defensive timeout")
+			game['status']['requestedTimeout'][utils.reverseHomeAway(offenseHomeAway)] = timeoutState.used
+			game['status']['timeouts'][utils.reverseHomeAway(offenseHomeAway)] -= 1
 		else:
 			timeOffClock += getTimeAfterForOffense(game, offenseHomeAway)
 	log.debug("Time off clock: {} : {}".format(game['status']['clock'], timeOffClock))
@@ -189,7 +195,7 @@ def updateTime(game, play, result, yards, timeout, offenseHomeAway):
 				quarterMessage = "End of the first half"
 			elif game['status']['quarter'] == 4:
 				quarterMessage = "Full time!"
-				return timeoutUsed, quarterMessage
+				return quarterMessage
 
 			setStateTouchback(game, game['receivingNext'])
 			game['receivingNext'] = utils.reverseHomeAway(game['receivingNext'])
@@ -198,7 +204,7 @@ def updateTime(game, play, result, yards, timeout, offenseHomeAway):
 		game['status']['quarter'] += 1
 		game['status']['clock'] = globals.quarterLength
 
-	return timeoutUsed, quarterMessage
+	return quarterMessage
 
 
 def executeGain(game, play, yards):
@@ -260,9 +266,8 @@ def executePunt(game, yards):
 		return "It's a {} yard punt".format(yards)
 
 
-def executePlay(game, play, number, numberMessage, timeout):
+def executePlay(game, play, number, numberMessage):
 	startingPossessionHomeAway = game['status']['possession']
-	timeoutUsed = False
 	actualResult = None
 	yards = None
 	resultMessage = "Something went wrong, I should never have reached this"
@@ -396,9 +401,9 @@ def executePlay(game, play, number, numberMessage, timeout):
 			resultMessage = "{} isn't a valid play at the moment".format(play)
 
 	if actualResult is not None:
-		timeoutUsed, quarterMessage = updateTime(game, play, actualResult, yards, timeout, startingPossessionHomeAway)
+		quarterMessage = updateTime(game, play, actualResult, yards, startingPossessionHomeAway)
 
 		if quarterMessage is not None:
 			resultMessage = "{}\n\n{}".format(resultMessage, quarterMessage)
 
-	return timeoutUsed, resultMessage
+	return resultMessage

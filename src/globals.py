@@ -24,3 +24,9 @@ class actions(Enum):
 	coin = "coin"
 	defer = "defer"
 	play = "play"
+
+
+class timeoutState(Enum):
+	none = "none"
+	requested = "requested"
+	used = "used"

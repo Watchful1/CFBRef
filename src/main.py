@@ -5,15 +5,7 @@ import os
 import logging.handlers
 import time
 import sys
-import configparser
 import signal
-import sqlite3
-import requests
-import traceback
-import re
-import json
-from datetime import datetime
-from datetime import timedelta
 
 import globals
 import reddit
