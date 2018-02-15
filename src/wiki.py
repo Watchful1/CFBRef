@@ -1,5 +1,6 @@
 import logging.handlers
 import re
+import time
 from datetime import datetime
 from datetime import timedelta
 
@@ -20,11 +21,13 @@ lastTime = None
 def loadPages():
 	global lastTime
 	if lastTime is None or lastTime + timedelta(minutes=15) < datetime.utcnow():
+		startTime = time.perf_counter()
 		log.debug("Loading pages")
 		lastTime = datetime.utcnow()
 		loadTeams()
 		loadPlays()
 		loadTimes()
+		log.debug("Done loading pages in: %d", int(time.perf_counter() - startTime))
 
 
 def loadTeams():
