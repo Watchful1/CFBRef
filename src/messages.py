@@ -284,10 +284,6 @@ def processMessageOffensePlay(message, author):
 
 
 def processMessage(message):
-	if str(message.author).lower() not in globals.WHITELIST:
-		log.debug("/u/{} not whitelisted".format(str(message.author)))
-		return
-
 	if isinstance(message, praw.models.Message):
 		isMessage = True
 		log.debug("Processing a message from /u/{}".format(str(message.author)))
