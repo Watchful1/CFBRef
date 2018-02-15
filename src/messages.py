@@ -205,7 +205,7 @@ def processMessageDefenseNumber(message, author):
 	utils.updateGameThread(game)
 
 	log.debug("Sending offense play comment")
-	message = "{} has submitted their number, {} you're up.\n\n{}\n\n{} reply with run or pass and your number.".format(
+	message = "{} has submitted their number. {} you're up.\n\n{}\n\n{} reply with run or pass and your number.".format(
 		game[utils.reverseHomeAway(game['waitingOn'])]['name'],
 		game[game['waitingOn']]['name'],
 		utils.getCurrentPlayString(game),
