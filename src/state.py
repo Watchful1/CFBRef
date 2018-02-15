@@ -74,12 +74,11 @@ def getNumberDiffForGame(game, offenseNumber):
 		log.warning("Something went wrong, couldn't get a defensive number for that game")
 		return -1
 
-	database.clearDefensiveNumber(game['dataID'])
+	straightDiff = abs(offenseNumber - defenseNumber)
+	aroundRightDiff = abs(abs(1500-offenseNumber) + defenseNumber)
+	aroundLeftDiff = abs(offenseNumber + abs(1500-defenseNumber))
 
-	offenseNormalized = offenseNumber - 750
-	defenseNormalized = defenseNumber - 750
-
-	difference = abs(offenseNormalized - defenseNormalized)
+	difference = min([straightDiff, aroundRightDiff, aroundLeftDiff])
 
 	numberMessage = "Offense: {}\n\nDefense: {}\n\nDifference: {}".format(offenseNumber, defenseNumber, difference)
 	log.debug("Offense: {} Defense: {} Result: {}".format(offenseNumber, defenseNumber, difference))
@@ -164,7 +163,6 @@ def getTimeByPlay(play, result, yards):
 
 
 def updateTime(game, play, result, yards, offenseHomeAway):
-	quarterMessage = None
 	if result in ['touchdown']:
 		actualResult = "gain"
 	else:
@@ -184,7 +182,7 @@ def updateTime(game, play, result, yards, offenseHomeAway):
 	log.debug("Time off clock: {} : {}".format(game['status']['clock'], timeOffClock))
 
 	game['status']['clock'] -= timeOffClock
-	timeMessage = ", {} left".format(utils.renderTime(game['status']['clock']))
+	timeMessage = "{} left".format(utils.renderTime(game['status']['clock']))
 
 	if game['status']['clock'] < 0:
 		log.debug("End of quarter: {}".format(game['status']['quarter']))
@@ -306,6 +304,8 @@ def executePlay(game, play, number, numberMessage):
 						resultMessage = "Conversion unsuccessful"
 					setStateTouchback(game, utils.reverseHomeAway(game['status']['possession']))
 
+				database.clearDefensiveNumber(game['dataID'])
+
 		else:
 			resultMessage = "It looks like you're trying to get the extra point after a touchdown, but this isn't a valid play"
 	else:
@@ -377,6 +377,8 @@ def executePlay(game, play, number, numberMessage):
 						resultMessage = "It's a turnover and run back for a touchdown!"
 					scoreTouchdown(game, utils.reverseHomeAway(game['status']['possession']))
 					actualResult = "turnoverTouchdown"
+
+				database.clearDefensiveNumber(game['dataID'])
 
 		elif play in globals.timePlays:
 			if play == 'kneel':

@@ -67,19 +67,16 @@ if not reddit.init(user):
 
 database.init()
 
-while True:
+wiki.loadPages()
+
+for message in reddit.getMessageStream():
 	startTime = time.perf_counter()
-	log.debug("Starting run")
+	log.debug("Processing message")
+	wiki.loadPages()
 
-	wiki.loadTeams(debug)
-	wiki.loadPlays()
-	wiki.loadTimes()
+	messages.processMessage(message)
 
-	messages.processMessages()
-
-	log.debug("Run complete after: %d", int(time.perf_counter() - startTime))
+	log.debug("Message processed after: %d", int(time.perf_counter() - startTime))
 	if once:
 		database.close()
 		break
-
-	time.sleep(globals.LOOP_TIME)

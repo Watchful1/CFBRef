@@ -92,7 +92,7 @@ def processMessageAcceptGame(dataTable, author):
 	game = utils.newGameObject(homeTeam, awayTeam)
 
 	gameThread = utils.getGameThreadText(game)
-	gameTitle = "[GAME THREAD] {} vs {}".format(game['away']['name'], game['home']['name'])
+	gameTitle = "[GAME THREAD] {} @ {}".format(game['away']['name'], game['home']['name'])
 
 	threadID = str(reddit.submitSelfPost(globals.SUBREDDIT, gameTitle, gameThread))
 	game['thread'] = threadID
@@ -110,7 +110,7 @@ def processMessageAcceptGame(dataTable, author):
 		log.debug("Coach added to away: {}".format(user))
 
 	log.debug("Game started, posting coin toss comment")
-	message = "The game has started! {}, you're home, call **heads** or **tails** in the air.".format(utils.getCoachString(game, 'away'))
+	message = "The game has started! {}, you're away, call **heads** or **tails** in the air.".format(utils.getCoachString(game, 'away'))
 	utils.sendGameComment(game, message, {'action': 'coin'})
 
 	log.debug("Returning game started message")
@@ -128,9 +128,10 @@ def processMessageCoin(isHeads, author):
 	if isHeads == utils.coinToss():
 		log.debug("User won coin toss, asking if they want to defer")
 		game['waitingAction'] = 'defer'
+		game['waitingOn'] = 'home'
 		utils.updateGameThread(game)
 
-		message = "{} won the toss, do you want to **receive** or **defer**?".format(game['home']['name'])
+		message = "{}, {} won the toss, do you want to **receive** or **defer**?".format(utils.getCoachString(game, 'home'), game['home']['name'])
 		return utils.embedTableInMessage(message, {'action': 'defer'})
 	else:
 		log.debug("User lost coin toss, asking other team if they want to defer")
@@ -275,74 +276,76 @@ def processMessageOffensePlay(message, author):
 	if timeoutMessageDefense is not None:
 		result.append(timeoutMessageDefense)
 
+	game['waitingOn'] = utils.reverseHomeAway(game['waitingOn'])
 	utils.updateGameThread(game)
+	utils.sendDefensiveNumberMessage(game)
 
 	return utils.embedTableInMessage('\n\n'.join(result), {'action': game['waitingAction']})
 
 
-def processMessages():
-	for message in reddit.getMessages():
-		if str(message.author).lower() not in globals.WHITELIST:
-			log.debug("/u/{} not whitelisted".format(str(message.author)))
-			continue
+def processMessage(message):
+	if str(message.author).lower() not in globals.WHITELIST:
+		log.debug("/u/{} not whitelisted".format(str(message.author)))
+		return
 
-		if isinstance(message, praw.models.Message):
-			isMessage = True
-			log.debug("Processing a message from /u/{}".format(str(message.author)))
+	if isinstance(message, praw.models.Message):
+		isMessage = True
+		log.debug("Processing a message from /u/{}".format(str(message.author)))
+	else:
+		isMessage = False
+		log.debug("Processing a comment from /u/{}".format(str(message.author)))
+
+	response = None
+	dataTable = None
+
+	if message.parent_id is not None:
+		if isMessage:
+			parent = reddit.getMessage(message.parent_id[3:])
 		else:
-			isMessage = False
-			log.debug("Processing a comment from /u/{}".format(str(message.author)))
+			parent = reddit.getComment(message.parent_id[3:])
 
-		response = None
-		dataTable = None
-
-		if message.parent_id is not None:
-			if isMessage:
-				parent = reddit.getMessage(message.parent_id[3:])
-			else:
-				parent = reddit.getComment(message.parent_id[3:])
-
-			if parent is not None and str(parent.author).lower() == globals.ACCOUNT_NAME:
-				dataTable = utils.extractTableFromMessage(parent.body)
+		if parent is not None and str(parent.author).lower() == globals.ACCOUNT_NAME:
+			dataTable = utils.extractTableFromMessage(parent.body)
+			if dataTable is not None:
 				if 'action' not in dataTable:
 					dataTable = None
 				else:
 					log.debug("Found a valid datatable in parent message")
 
-		body = message.body.lower()
-		if dataTable is not None:
-			if dataTable['action'] == 'newgame' and isMessage:
-				if body.startswith("accept"):
-					response = processMessageAcceptGame(dataTable, str(message.author))
-				elif body.startswith("reject"):
-					response = processMessageRejectGame(dataTable, str(message.author))
+	body = message.body.lower()
+	if dataTable is not None:
+		if dataTable['action'] == 'newgame' and isMessage:
+			if body.startswith("accept"):
+				response = processMessageAcceptGame(dataTable, str(message.author))
+			elif body.startswith("reject"):
+				response = processMessageRejectGame(dataTable, str(message.author))
 
-			if dataTable['action'] == 'coin' and not isMessage:
-				if body.startswith("heads"):
-					response = processMessageCoin(True, str(message.author))
-				elif body.startswith("tails"):
-					response = processMessageCoin(False, str(message.author))
+		if dataTable['action'] == 'coin' and not isMessage:
+			if body.startswith("heads"):
+				response = processMessageCoin(True, str(message.author))
+			elif body.startswith("tails"):
+				response = processMessageCoin(False, str(message.author))
 
-			if dataTable['action'] == 'defer' and not isMessage:
-				if body.startswith("defer"):
-					response = processMessageDefer(True, str(message.author))
-				elif body.startswith("receive"):
-					response = processMessageDefer(False, str(message.author))
+		if dataTable['action'] == 'defer' and not isMessage:
+			if body.startswith("defer"):
+				response = processMessageDefer(True, str(message.author))
+			elif body.startswith("receive"):
+				response = processMessageDefer(False, str(message.author))
 
-			if dataTable['action'] == 'play' and isMessage:
-				response = processMessageDefenseNumber(body, str(message.author))
+		if dataTable['action'] == 'play' and isMessage:
+			response = processMessageDefenseNumber(body, str(message.author))
 
-			if dataTable['action'] == 'play' and not isMessage:
-				response = processMessageOffensePlay(body, str(message.author))
-		else:
-			log.debug("Parsing non-datatable message")
-			if body.startswith("newgame") and isMessage:
-				response = processMessageNewGame(body, str(message.author))
+		if dataTable['action'] == 'play' and not isMessage:
+			response = processMessageOffensePlay(body, str(message.author))
+	else:
+		log.debug("Parsing non-datatable message")
+		if body.startswith("newgame") and isMessage:
+			response = processMessageNewGame(body, str(message.author))
 
-		message.mark_read()
-		if response is not None:
-			message.reply(response)
-		else:
-			if isMessage:
-				log.debug("Couldn't understand message")
-				message.reply("I couldn't understand your message, please try again or message /u/Watchful1 if you need help.")
+	message.mark_read()
+	if response is not None:
+		message.reply(response)
+	else:
+		if isMessage:
+			log.debug("Couldn't understand message")
+			message.reply("I couldn't understand your message, please try again or message /u/Watchful1 if you need help.")

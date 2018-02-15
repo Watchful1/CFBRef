@@ -1,5 +1,7 @@
 import logging.handlers
 import re
+from datetime import datetime
+from datetime import timedelta
 
 import reddit
 import globals
@@ -12,14 +14,21 @@ coaches = {}
 plays = {}
 times = {}
 
+lastTime = None
 
-def loadTeams(debug=False):
+
+def loadPages():
+	global lastTime
+	if lastTime is None or lastTime + timedelta(minutes=15) < datetime.utcnow():
+		log.debug("Loading pages")
+		lastTime = datetime.utcnow()
+		loadTeams()
+		loadPlays()
+		loadTimes()
+
+
+def loadTeams():
 	teamsPage = reddit.getWikiPage(globals.CONFIG_SUBREDDIT, "teams")
-
-	if debug:
-		teamsPage = "\n".join([teamsPage,
-		                       "testteam|Test Team|Spread|3-4|Watchful1",
-		                       "testteam2|Test Team 2|Spread|3-4|Watchful12"])
 
 	for teamLine in teamsPage.splitlines():
 		items = teamLine.split('|')

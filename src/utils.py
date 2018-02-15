@@ -80,7 +80,7 @@ def flair(team, flair):
 
 
 def renderTime(time):
-	return "{}:{}".format(str(math.trunc(time / 60)), str(time % 60))
+	return "{}:{}".format(str(math.trunc(time / 60)), str(time % 60).zfill(2))
 
 
 def renderGame(game):
@@ -315,7 +315,7 @@ def sendDefensiveNumberMessage(game):
 	defenseHomeAway = reverseHomeAway(game['status']['possession'])
 	log.debug("Sending get defence number to {}".format(getCoachString(game, defenseHomeAway)))
 	reddit.sendMessage(game[defenseHomeAway]['coaches'],
-	                   "{} vs {}".format(game['home']['name'], game['away']['name']),
+	                   "{} vs {}".format(game['away']['name'], game['home']['name']),
 	                   embedTableInMessage("{}\n\nReply with a number between **1** and **1500**, inclusive.".format(getCurrentPlayString(game)), {'action': 'play'}))
 
 

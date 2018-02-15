@@ -89,3 +89,6 @@ def editThread(id, text):
 
 def getComment(id):
 	return reddit.comment(id)
+
+def getMessageStream():
+	return reddit.inbox.stream()
