@@ -85,3 +85,7 @@ def getSubmission(id):
 def editThread(id, text):
 	submission = getSubmission(id)
 	submission.edit(text)
+
+
+def getComment(id):
+	return reddit.comment(id)

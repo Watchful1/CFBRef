@@ -145,7 +145,7 @@ def getDefensiveNumber(gameID):
 		SELECT DefenseNumber
 		FROM games
 		WHERE ID = ?
-	''', (id,))
+	''', (gameID,))
 
 	resultTuple = result.fetchone()
 

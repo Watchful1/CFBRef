@@ -2,13 +2,14 @@ from enum import Enum
 
 ### Config ###
 LOG_FOLDER_NAME = "logs"
-SUBREDDIT = "SubTestBot1"
+SUBREDDIT = "FakeCollegeFootball"
 CONFIG_SUBREDDIT = "FakeCollegeFootball"
 USER_AGENT = "FakeCFBRef (by /u/Watchful1)"
 LOOP_TIME = 2*60
 DATABASE_NAME = "database.db"
 SUBREDDIT_LINK = "https://www.reddit.com/r/{}/comments/".format(SUBREDDIT)
 ACCOUNT_NAME = "default"
+WHITELIST = ['watchful1','maxwasson2','yellowskarmory']
 
 ### Constants ###
 movementPlays = ['run', 'pass']
@@ -16,17 +17,4 @@ normalPlays = ['run', 'pass', 'punt', 'punt', 'fieldGoal']
 timePlays = ['kneel', 'spike']
 conversionPlays = ['pat', 'twoPoint']
 datatag = "[](#datatag"
-quarterLength = 15*60
-
-
-class actions(Enum):
-	newGame = "newgame"
-	coin = "coin"
-	defer = "defer"
-	play = "play"
-
-
-class timeoutState(Enum):
-	none = "none"
-	requested = "requested"
-	used = "used"
+quarterLength = 7*60

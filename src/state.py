@@ -4,8 +4,6 @@ import wiki
 import utils
 import globals
 import database
-from globals import actions
-from globals import timeoutState
 
 log = logging.getLogger("bot")
 
@@ -26,7 +24,7 @@ def setStateTouchback(game, homeAway):
 	game['status']['yards'] = 10
 	game['status']['possession'] = homeAway
 	game['status']['conversion'] = False
-	game['waitingAction'] = actions.play
+	game['waitingAction'] = 'play'
 	game['waitingOn'] = utils.reverseHomeAway(homeAway)
 
 
@@ -37,7 +35,7 @@ def scoreTouchdown(game, homeAway):
 	game['status']['yards'] = 10
 	game['status']['possession'] = homeAway
 	game['status']['conversion'] = True
-	game['waitingAction'] = actions.play
+	game['waitingAction'] = 'play'
 	game['waitingOn'] = utils.reverseHomeAway(homeAway)
 
 
@@ -61,7 +59,7 @@ def turnover(game):
 	game['status']['yards'] = 10
 	game['status']['possession'] = utils.reverseHomeAway(game['status']['possession'])
 	game['status']['location'] = 100 - game['status']['location']
-	game['waitingAction'] = actions.play
+	game['waitingAction'] = 'play'
 	game['waitingOn'] = utils.reverseHomeAway(game['status']['possession'])
 
 
@@ -76,14 +74,17 @@ def getNumberDiffForGame(game, offenseNumber):
 		log.warning("Something went wrong, couldn't get a defensive number for that game")
 		return -1
 
-	offenseNormalized = abs(offenseNumber - 750)
-	defenseNormalized = abs(defenseNumber - 750)
+	database.clearDefensiveNumber(game['dataID'])
+
+	offenseNormalized = offenseNumber - 750
+	defenseNormalized = defenseNumber - 750
 
 	difference = abs(offenseNormalized - defenseNormalized)
 
+	numberMessage = "Offense: {}\n\nDefense: {}\n\nDifference: {}".format(offenseNumber, defenseNumber, difference)
 	log.debug("Offense: {} Defense: {} Result: {}".format(offenseNumber, defenseNumber, difference))
 
-	return difference
+	return difference, numberMessage
 
 
 def findNumberInRangeDict(number, dict):
@@ -121,7 +122,7 @@ def getTimeAfterForOffense(game, homeAway):
 	offenseType = game[homeAway]['offense']
 	if offenseType == "spread":
 		return 10
-	elif offenseType == "pro":
+	elif offenseType == "pro style":
 		return 15
 	elif offenseType == "option":
 		return 20
@@ -170,41 +171,43 @@ def updateTime(game, play, result, yards, offenseHomeAway):
 		actualResult = result
 	timeOffClock = getTimeByPlay(play, actualResult, yards)
 	if result in ["gain", "kneel"]:
-		if game['status']['requestedTimeout'][offenseHomeAway] == timeoutState.requested:
+		if game['status']['requestedTimeout'][offenseHomeAway] == 'requested':
 			log.debug("Using offensive timeout")
-			game['status']['requestedTimeout'][offenseHomeAway] = timeoutState.used
+			game['status']['requestedTimeout'][offenseHomeAway] = 'used'
 			game['status']['timeouts'][offenseHomeAway] -= 1
-		elif game['status']['requestedTimeout'][utils.reverseHomeAway(offenseHomeAway)] == timeoutState.requested:
+		elif game['status']['requestedTimeout'][utils.reverseHomeAway(offenseHomeAway)] == 'requested':
 			log.debug("Using defensive timeout")
-			game['status']['requestedTimeout'][utils.reverseHomeAway(offenseHomeAway)] = timeoutState.used
+			game['status']['requestedTimeout'][utils.reverseHomeAway(offenseHomeAway)] = 'used'
 			game['status']['timeouts'][utils.reverseHomeAway(offenseHomeAway)] -= 1
 		else:
 			timeOffClock += getTimeAfterForOffense(game, offenseHomeAway)
 	log.debug("Time off clock: {} : {}".format(game['status']['clock'], timeOffClock))
 
 	game['status']['clock'] -= timeOffClock
+	timeMessage = ", {} left".format(utils.renderTime(game['status']['clock']))
 
 	if game['status']['clock'] < 0:
 		log.debug("End of quarter: {}".format(game['status']['quarter']))
 		if game['status']['quarter'] == 1:
-			quarterMessage = "End of the first quarter"
+			timeMessage = "end of the first quarter"
 		elif game['status']['quarter'] == 3:
-			quarterMessage = "End of the third quarter"
+			timeMessage = "end of the third quarter"
 		else:
-			if game['status']['quarter'] == 2:
-				quarterMessage = "End of the first half"
-			elif game['status']['quarter'] == 4:
-				quarterMessage = "Full time!"
-				return quarterMessage
+			if game['status']['quarter'] == 4:
+				timeMessage = "full time!"
+			else:
+				if game['status']['quarter'] == 2:
+					timeMessage = "end of the first half"
 
-			setStateTouchback(game, game['receivingNext'])
-			game['receivingNext'] = utils.reverseHomeAway(game['receivingNext'])
-			game['status']['timeouts'] = {'home': 3, 'away': 3}
+				setStateTouchback(game, game['receivingNext'])
+				game['receivingNext'] = utils.reverseHomeAway(game['receivingNext'])
+				game['status']['timeouts'] = {'home': 3, 'away': 3}
 
-		game['status']['quarter'] += 1
-		game['status']['clock'] = globals.quarterLength
+		if game['status']['quarter'] < 4:
+			game['status']['quarter'] += 1
+			game['status']['clock'] = globals.quarterLength
 
-	return quarterMessage
+	return "The play took {} seconds, {}".format(timeOffClock, timeMessage)
 
 
 def executeGain(game, play, yards):
@@ -271,6 +274,7 @@ def executePlay(game, play, number, numberMessage):
 	actualResult = None
 	yards = None
 	resultMessage = "Something went wrong, I should never have reached this"
+	diffMessage = None
 	if game['status']['conversion']:
 		if play in globals.conversionPlays:
 			if number == -1:
@@ -278,7 +282,7 @@ def executePlay(game, play, number, numberMessage):
 				resultMessage = numberMessage
 
 			else:
-				numberResult = getNumberDiffForGame(game, number)
+				numberResult, diffMessage = getNumberDiffForGame(game, number)
 
 				log.debug("Executing conversion play")
 				result = getPlayResult(game, play, numberResult)
@@ -311,7 +315,7 @@ def executePlay(game, play, number, numberMessage):
 				resultMessage = numberMessage
 
 			else:
-				numberResult = getNumberDiffForGame(game, number)
+				numberResult, diffMessage = getNumberDiffForGame(game, number)
 
 				log.debug("Executing normal play")
 				result = getPlayResult(game, play, numberResult)
@@ -400,10 +404,13 @@ def executePlay(game, play, number, numberMessage):
 		else:
 			resultMessage = "{} isn't a valid play at the moment".format(play)
 
+	messages = [resultMessage]
 	if actualResult is not None:
-		quarterMessage = updateTime(game, play, actualResult, yards, startingPossessionHomeAway)
+		timeMessage = updateTime(game, play, actualResult, yards, startingPossessionHomeAway)
 
-		if quarterMessage is not None:
-			resultMessage = "{}\n\n{}".format(resultMessage, quarterMessage)
+		messages.append(timeMessage)
 
-	return resultMessage
+	if diffMessage is not None:
+		messages.append(diffMessage)
+
+	return '\n\n'.join(messages)

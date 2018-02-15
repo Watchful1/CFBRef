@@ -8,8 +8,6 @@ import wiki
 import globals
 import database
 import state
-from globals import actions
-from globals import timeoutState
 
 log = logging.getLogger("bot")
 
@@ -94,12 +92,14 @@ def processMessageAcceptGame(dataTable, author):
 	game = utils.newGameObject(homeTeam, awayTeam)
 
 	gameThread = utils.getGameThreadText(game)
-	gameTitle = "[GAME THREAD] {} vs {}".format(game['home']['name'], game['away']['name'])
+	gameTitle = "[GAME THREAD] {} vs {}".format(game['away']['name'], game['home']['name'])
 
 	threadID = str(reddit.submitSelfPost(globals.SUBREDDIT, gameTitle, gameThread))
+	game['thread'] = threadID
 	log.debug("Game thread created: {}".format(threadID))
 
 	gameID = database.createNewGame(threadID)
+	game['dataID'] = gameID
 	log.debug("Game database record created: {}".format(gameID))
 
 	for user in game['home']['coaches']:
@@ -110,7 +110,7 @@ def processMessageAcceptGame(dataTable, author):
 		log.debug("Coach added to away: {}".format(user))
 
 	log.debug("Game started, posting coin toss comment")
-	message = "The game has started! {}, you're home, call **heads** or **tails** in the air.".format(utils.getCoachString(game, 'home'))
+	message = "The game has started! {}, you're home, call **heads** or **tails** in the air.".format(utils.getCoachString(game, 'away'))
 	utils.sendGameComment(game, message, {'action': 'coin'})
 
 	log.debug("Returning game started message")
@@ -121,20 +121,20 @@ def processMessageCoin(isHeads, author):
 	log.debug("Processing coin toss message: {}".format(str(isHeads)))
 	game = utils.getGameByUser(author)
 
-	waitingOn = utils.isGameWaitingOn(game, author, actions.coin)
+	waitingOn = utils.isGameWaitingOn(game, author, 'coin')
 	if waitingOn is not None:
 		return waitingOn
 
 	if isHeads == utils.coinToss():
 		log.debug("User won coin toss, asking if they want to defer")
-		game['waitingAction'] = actions.defer
+		game['waitingAction'] = 'defer'
 		utils.updateGameThread(game)
 
 		message = "{} won the toss, do you want to **receive** or **defer**?".format(game['home']['name'])
 		return utils.embedTableInMessage(message, {'action': 'defer'})
 	else:
 		log.debug("User lost coin toss, asking other team if they want to defer")
-		game['waitingAction'] = actions.defer
+		game['waitingAction'] = 'defer'
 		game['waitingOn'] = 'away'
 		utils.updateGameThread(game)
 
@@ -146,7 +146,7 @@ def processMessageDefer(isDefer, author):
 	log.debug("Processing defer message: {}".format(str(isDefer)))
 	game = utils.getGameByUser(author)
 
-	waitingOn = utils.isGameWaitingOn(game, author, actions.defer)
+	waitingOn = utils.isGameWaitingOn(game, author, 'defer')
 	if waitingOn is not None:
 		return waitingOn
 
@@ -181,7 +181,7 @@ def processMessageDefenseNumber(message, author):
 	log.debug("Processing defense number message")
 	game = utils.getGameByUser(author)
 
-	waitingOn = utils.isGameWaitingOn(game, author, actions.play)
+	waitingOn = utils.isGameWaitingOn(game, author, 'play')
 	if waitingOn is not None:
 		return waitingOn
 
@@ -193,9 +193,9 @@ def processMessageDefenseNumber(message, author):
 	database.saveDefensiveNumber(game['dataID'], number)
 
 	timeoutMessage = None
-	if message.find("timeout"):
+	if message.find("timeout") > 0:
 		if game['status']['timeouts'][utils.reverseHomeAway(game['status']['possession'])] > 0:
-			game['status']['requestedTimeout'][utils.reverseHomeAway(game['status']['possession'])] = timeoutState.requested
+			game['status']['requestedTimeout'][utils.reverseHomeAway(game['status']['possession'])] = 'requested'
 			timeoutMessage = "Timeout requested successfully"
 		else:
 			timeoutMessage = "You requested a timeout, but you don't have any left"
@@ -221,7 +221,7 @@ def processMessageOffensePlay(message, author):
 	log.debug("Processing offense number message")
 	game = utils.getGameByUser(author)
 
-	waitingOn = utils.isGameWaitingOn(game, author, actions.play)
+	waitingOn = utils.isGameWaitingOn(game, author, 'play')
 	if waitingOn is not None:
 		return waitingOn
 
@@ -229,111 +229,120 @@ def processMessageOffensePlay(message, author):
 
 	timeoutMessageOffense = None
 	timeoutMessageDefense = None
-	if message.find("timeout"):
+	if message.find("timeout") > 0:
 		if game['status']['timeouts'][game['status']['possession']] > 0:
-			game['status']['requestedTimeout'][game['status']['possession']] = timeoutState.requested
+			game['status']['requestedTimeout'][game['status']['possession']] = 'requested'
 		else:
 			timeoutMessageOffense = "The offense requested a timeout, but they don't have any left"
 
-	if message.startsWith("run"):
+	play = "default"
+	if message.startswith("run"):
 		play = "run"
-	elif message.startsWith("pass"):
+	elif message.startswith("pass"):
 		play = "pass"
-	elif message.startsWith("punt"):
+	elif message.startswith("punt"):
 		play = "punt"
-	elif message.startsWith("field goal"):
+	elif message.startswith("field goal"):
 		play = "fieldGoal"
-	elif message.startsWith("kneel"):
+	elif message.startswith("kneel"):
 		play = "kneel"
-	elif message.startsWith("spike"):
+	elif message.startswith("spike"):
 		play = "spike"
-	elif message.startsWith("two point"):
+	elif message.startswith("two point"):
 		play = "twoPoint"
-	elif message.startsWith("pat"):
+	elif message.startswith("pat"):
 		play = "pat"
 	else:
 		return "I couldn't find a play in your message"
 
 	resultMessage = state.executePlay(game, play, number, numberMessage)
 
-	if game['status']['requestedTimeout'][game['status']['possession']] == timeoutState.used:
+	if game['status']['requestedTimeout'][game['status']['possession']] == 'used':
 		timeoutMessageOffense = "The offense is charged a timeout"
-	elif game['status']['requestedTimeout'][game['status']['possession']] == timeoutState.requested:
+	elif game['status']['requestedTimeout'][game['status']['possession']] == 'requested':
 		timeoutMessageOffense = "The offense requested a timeout, but it was not used"
-	game['status']['requestedTimeout'][game['status']['possession']] = timeoutState.none
+	game['status']['requestedTimeout'][game['status']['possession']] = 'none'
 
-	if game['status']['requestedTimeout'][utils.reverseHomeAway(game['status']['possession'])] == timeoutState.used:
+	if game['status']['requestedTimeout'][utils.reverseHomeAway(game['status']['possession'])] == 'used':
 		timeoutMessageDefense = "The defense is charged a timeout"
-	elif game['status']['requestedTimeout'][utils.reverseHomeAway(game['status']['possession'])] == timeoutState.requested:
+	elif game['status']['requestedTimeout'][utils.reverseHomeAway(game['status']['possession'])] == 'requested':
 		timeoutMessageDefense = "The defense requested a timeout, but it was not used"
-	game['status']['requestedTimeout'][utils.reverseHomeAway(game['status']['possession'])] = timeoutState.none
+	game['status']['requestedTimeout'][utils.reverseHomeAway(game['status']['possession'])] = 'none'
 
 	result = [resultMessage]
 	if timeoutMessageOffense is not None:
 		result.append(timeoutMessageOffense)
 	if timeoutMessageDefense is not None:
 		result.append(timeoutMessageDefense)
-	return '\n\n'.join(result)
 
-	# executeplay return
-	# message stream
-	# clear defense number
+	utils.updateGameThread(game)
+
+	return utils.embedTableInMessage('\n\n'.join(result), {'action': game['waitingAction']})
 
 
 def processMessages():
 	for message in reddit.getMessages():
-		log.debug("Processing a message from /u/{}".format(str(message.author)))
+		if str(message.author).lower() not in globals.WHITELIST:
+			log.debug("/u/{} not whitelisted".format(str(message.author)))
+			continue
+
+		if isinstance(message, praw.models.Message):
+			isMessage = True
+			log.debug("Processing a message from /u/{}".format(str(message.author)))
+		else:
+			isMessage = False
+			log.debug("Processing a comment from /u/{}".format(str(message.author)))
 
 		response = None
 		dataTable = None
 
 		if message.parent_id is not None:
-			parent = reddit.getMessage(message.parent_id[3:])
-			if str(parent.author).lower() == globals.ACCOUNT_NAME:
+			if isMessage:
+				parent = reddit.getMessage(message.parent_id[3:])
+			else:
+				parent = reddit.getComment(message.parent_id[3:])
+
+			if parent is not None and str(parent.author).lower() == globals.ACCOUNT_NAME:
 				dataTable = utils.extractTableFromMessage(parent.body)
 				if 'action' not in dataTable:
 					dataTable = None
 				else:
 					log.debug("Found a valid datatable in parent message")
 
-		if isinstance(message, praw.models.Message):
-			isMessage = True
-		else:
-			isMessage = False
-
 		body = message.body.lower()
 		if dataTable is not None:
-			if dataTable['action'] == actions.newGame and isMessage:
+			if dataTable['action'] == 'newgame' and isMessage:
 				if body.startswith("accept"):
 					response = processMessageAcceptGame(dataTable, str(message.author))
 				elif body.startswith("reject"):
 					response = processMessageRejectGame(dataTable, str(message.author))
 
-			if dataTable['action'] == actions.coin and not isMessage:
+			if dataTable['action'] == 'coin' and not isMessage:
 				if body.startswith("heads"):
 					response = processMessageCoin(True, str(message.author))
 				elif body.startswith("tails"):
 					response = processMessageCoin(False, str(message.author))
 
-			if dataTable['action'] == actions.defer and not isMessage:
+			if dataTable['action'] == 'defer' and not isMessage:
 				if body.startswith("defer"):
 					response = processMessageDefer(True, str(message.author))
 				elif body.startswith("receive"):
 					response = processMessageDefer(False, str(message.author))
 
-			if dataTable['action'] == actions.play and isMessage:
+			if dataTable['action'] == 'play' and isMessage:
 				response = processMessageDefenseNumber(body, str(message.author))
 
-			if dataTable['action'] == actions.play and not isMessage:
+			if dataTable['action'] == 'play' and not isMessage:
 				response = processMessageOffensePlay(body, str(message.author))
-
+		else:
+			log.debug("Parsing non-datatable message")
 			if body.startswith("newgame") and isMessage:
 				response = processMessageNewGame(body, str(message.author))
 
-			message.mark_read()
-			if response is not None:
-				message.reply(response)
-			else:
-				if isMessage:
-					log.debug("Couldn't understand message")
-					message.reply("I couldn't understand your message, please try again or message /u/Watchful1 if you need help.")
+		message.mark_read()
+		if response is not None:
+			message.reply(response)
+		else:
+			if isMessage:
+				log.debug("Couldn't understand message")
+				message.reply("I couldn't understand your message, please try again or message /u/Watchful1 if you need help.")

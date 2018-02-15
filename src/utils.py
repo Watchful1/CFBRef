@@ -2,13 +2,12 @@ import logging.handlers
 import json
 import random
 import re
+import math
 
 import globals
 import database
 import wiki
 import reddit
-from globals import actions
-from globals import timeoutState
 
 log = logging.getLogger("bot")
 
@@ -81,26 +80,22 @@ def flair(team, flair):
 
 
 def renderTime(time):
-	return str(time)
-
-
-def renderDown(down):
-	return str(down)
+	return "{}:{}".format(str(math.trunc(time / 60)), str(time % 60))
 
 
 def renderGame(game):
 	bldr = []
 
-	bldr.append(flair(game['home']['name'], game['home']['tag']))
-	bldr.append(" **")
-	bldr.append(game['home']['name'])
-	bldr.append("** @ ")
 	bldr.append(flair(game['away']['name'], game['away']['tag']))
 	bldr.append(" **")
 	bldr.append(game['away']['name'])
+	bldr.append("** @ ")
+	bldr.append(flair(game['home']['name'], game['home']['tag']))
+	bldr.append(" **")
+	bldr.append(game['home']['name'])
 	bldr.append("**\n\n___\n\n")
 
-	for team in ['home', 'away']:
+	for team in ['away', 'home']:
 		bldr.append(flair(game[team]['name'], game[team]['tag']))
 		bldr.append("\n\n")
 		bldr.append("Total Passing Yards|Total Rushing Yards|Total Yards|Interceptions Lost|Fumbles Lost|Field Goals|Time of Possession\n")
@@ -127,13 +122,22 @@ def renderGame(game):
 	bldr.append(":-:|:-:|:-:|:-:|:-:\n")
 	bldr.append(renderTime(game['status']['clock']))
 	bldr.append("|")
-	bldr.append(renderDown(game['status']['down']))
+	bldr.append(getDownString(game['status']['down']))
 	bldr.append(" & ")
 	bldr.append(str(game['status']['yards']))
 	bldr.append("|")
 	bldr.append(str(game['status']['location']))
+	if game['status']['location'] < 50:
+		bldr.append(" ")
+		team = game[game['status']['possession']]
+		bldr.append(flair(team['name'], team['tag']))
+	elif game['status']['location'] > 50:
+		bldr.append(" ")
+		team = game[reverseHomeAway(game['status']['possession'])]
+		bldr.append(flair(team['name'], team['tag']))
 	bldr.append("|")
-	bldr.append(game[game['status']['possession']]['name'])
+	team = game[game['status']['possession']]
+	bldr.append(flair(team['name'], team['tag']))
 
 	bldr.append("\n\n___\n\n")
 
@@ -294,11 +298,11 @@ def getCurrentPlayString(game):
 
 def getWaitingOnString(game):
 	string = "Error, no action"
-	if game['waitingAction'] == actions.coin:
+	if game['waitingAction'] == 'coin':
 		string = "Waiting on {} for coin toss".format(game[game['waitingOn']]['name'])
-	elif game['waitingAction'] == actions.defer:
+	elif game['waitingAction'] == 'defer':
 		string = "Waiting on {} for receive/defer".format(game[game['waitingOn']]['name'])
-	elif game['waitingAction'] == actions.play:
+	elif game['waitingAction'] == 'play':
 		if game['waitingOn'] == game['status']['possession']:
 			string = "Waiting on {} for an offensive play".format(game[game['waitingOn']]['name'])
 		else:
@@ -331,8 +335,8 @@ def extractPlayNumber(message):
 
 def newGameObject(home, away):
 	status = {'clock': globals.quarterLength, 'quarter': 1, 'location': -1, 'possession': 'home', 'down': 1, 'yards': 10,
-	          'timeouts': {'home': 3, 'away': 3}, 'requestedTimeout': {'home': timeoutState.none, 'away': timeoutState.none}, 'conversion': False}
+	          'timeouts': {'home': 3, 'away': 3}, 'requestedTimeout': {'home': 'none', 'away': 'none'}, 'conversion': False}
 	score = {'quarters': [{'home': 0, 'away': 0}, {'home': 0, 'away': 0}, {'home': 0, 'away': 0}, {'home': 0, 'away': 0}], 'home': 0, 'away': 0}
 	game = {'home': home, 'away': away, 'drives': [], 'status': status, 'score': score,
-	        'waitingAction': actions.coin, 'waitingOn': 'home', 'dataID': -1, 'thread': "empty", "receivingNext": "home"}
+	        'waitingAction': 'coin', 'waitingOn': 'away', 'dataID': -1, 'thread': "empty", "receivingNext": "home"}
 	return game
