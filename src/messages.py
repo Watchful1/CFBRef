@@ -340,8 +340,9 @@ def processMessage(message):
 
 	message.mark_read()
 	if response is not None:
-		message.reply(response)
+		reddit.replyMessage(message, response)
 	else:
 		if isMessage:
 			log.debug("Couldn't understand message")
-			message.reply("I couldn't understand your message, please try again or message /u/Watchful1 if you need help.")
+			reddit.replyMessage(message,
+			                    "I couldn't understand your message, please try again or message /u/Watchful1 if you need help.")

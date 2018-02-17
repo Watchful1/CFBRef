@@ -90,5 +90,15 @@ def editThread(id, text):
 def getComment(id):
 	return reddit.comment(id)
 
+
 def getMessageStream():
 	return reddit.inbox.stream()
+
+
+def replyMessage(message, body):
+	try:
+		message.reply(body)
+		return True
+	except Exception as err:
+		log.warning(traceback.format_exc())
+		return False
