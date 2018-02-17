@@ -12,7 +12,7 @@ def scoreForTeam(game, points, homeAway):
 	oldScore = game['score'][homeAway]
 	game['score'][homeAway] += points
 	log.debug("Score for {} changed from {} to {}".format(homeAway, oldScore, game['score'][homeAway]))
-	game['score']['quarters'][game['status']['quarter']][homeAway] += points
+	game['score']['quarters'][game['status']['quarter'] - 1][homeAway] += points
 
 
 def setStateTouchback(game, homeAway):
