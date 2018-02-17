@@ -25,7 +25,7 @@ def setStateTouchback(game, homeAway):
 	game['status']['possession'] = homeAway
 	game['status']['conversion'] = False
 	game['waitingAction'] = 'play'
-	game['waitingOn'] = utils.reverseHomeAway(homeAway)
+	game['waitingOn'] = homeAway
 
 
 def scoreTouchdown(game, homeAway):
@@ -36,7 +36,7 @@ def scoreTouchdown(game, homeAway):
 	game['status']['possession'] = homeAway
 	game['status']['conversion'] = True
 	game['waitingAction'] = 'play'
-	game['waitingOn'] = utils.reverseHomeAway(homeAway)
+	game['waitingOn'] = homeAway
 
 
 def scoreFieldGoal(game, homeAway):
