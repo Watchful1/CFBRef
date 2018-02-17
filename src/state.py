@@ -60,7 +60,7 @@ def turnover(game):
 	game['status']['possession'] = utils.reverseHomeAway(game['status']['possession'])
 	game['status']['location'] = 100 - game['status']['location']
 	game['waitingAction'] = 'play'
-	game['waitingOn'] = utils.reverseHomeAway(game['status']['possession'])
+	game['waitingOn'] = utils.reverseHomeAway(game['waitingOn'])
 
 
 def scoreSafety(game, homeAway):
