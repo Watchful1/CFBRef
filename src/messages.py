@@ -157,6 +157,7 @@ def processMessageDefer(isDefer, author):
 
 		state.setStateTouchback(game, utils.reverseHomeAway(authorHomeAway))
 		game['receivingNext'] = authorHomeAway
+		game['waitingOn'] = utils.reverseHomeAway(game['waitingOn'])
 		utils.updateGameThread(game)
 		utils.sendDefensiveNumberMessage(game)
 
@@ -169,6 +170,7 @@ def processMessageDefer(isDefer, author):
 
 		state.setStateTouchback(game, authorHomeAway)
 		game['receivingNext'] = utils.reverseHomeAway(authorHomeAway)
+		game['waitingOn'] = utils.reverseHomeAway(game['waitingOn'])
 		utils.updateGameThread(game)
 		utils.sendDefensiveNumberMessage(game)
 
