@@ -30,7 +30,7 @@ def setStateTouchback(game, homeAway):
 
 def scoreTouchdown(game, homeAway):
 	scoreForTeam(game, 6, homeAway)
-	game['status']['location'] = 98
+	game['status']['location'] = 97
 	game['status']['down'] = 1
 	game['status']['yards'] = 10
 	game['status']['possession'] = homeAway
