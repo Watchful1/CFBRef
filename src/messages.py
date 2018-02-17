@@ -294,7 +294,7 @@ def processMessage(message):
 	response = None
 	dataTable = None
 
-	if message.parent_id is not None and message.parent_id.startswith("t1"):
+	if message.parent_id is not None and (message.parent_id.startswith("t1") or message.parent_id.startswith("t4")):
 		if isMessage:
 			parent = reddit.getMessage(message.parent_id[3:])
 		else:
