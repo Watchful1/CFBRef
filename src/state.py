@@ -163,7 +163,7 @@ def getTimeByPlay(play, result, yards):
 
 
 def updateTime(game, play, result, yards, offenseHomeAway):
-	if result in ['touchdown']:
+	if result in ['touchdown', 'touchback']:
 		actualResult = "gain"
 	else:
 		actualResult = result
