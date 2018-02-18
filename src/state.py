@@ -65,7 +65,7 @@ def turnover(game):
 
 def scoreSafety(game, homeAway):
 	scoreForTeam(game, 2, homeAway)
-	setStateTouchback(game, homeAway)
+	setStateTouchback(game, utils.reverseHomeAway(homeAway))
 
 
 def getNumberDiffForGame(game, offenseNumber):
