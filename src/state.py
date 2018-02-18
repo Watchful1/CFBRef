@@ -113,7 +113,7 @@ def getPlayResult(game, play, number):
 	else:
 		playMajorRange = playDict
 
-	playMinorRange = findNumberInRangeDict(game['status']['location'], playMajorRange)
+	playMinorRange = findNumberInRangeDict(100 - game['status']['location'], playMajorRange)
 	return findNumberInRangeDict(number, playMinorRange)
 
 
@@ -292,7 +292,7 @@ def executePlay(game, play, number, numberMessage):
 			else:
 				numberResult, diffMessage = getNumberDiffForGame(game, number)
 
-				log.debug("Executing conversion play")
+				log.debug("Executing conversion play: {}".format(play))
 				result = getPlayResult(game, play, numberResult)
 				if result['result'] == 'twoPoint':
 					log.debug("Successful two point conversion")
@@ -327,7 +327,7 @@ def executePlay(game, play, number, numberMessage):
 			else:
 				numberResult, diffMessage = getNumberDiffForGame(game, number)
 
-				log.debug("Executing normal play")
+				log.debug("Executing normal play: {}".format(play))
 				result = getPlayResult(game, play, numberResult)
 				if result['result'] == 'gain':
 					if 'yards' not in result:
@@ -369,7 +369,7 @@ def executePlay(game, play, number, numberMessage):
 					elif play == "pass":
 						resultMessage = "Picked off! The pass is intercepted, but the runner is tackled immediately"
 					elif play == "fieldGoal" or play == "punt":
-						resultMessage = "It's blocked! The ball is picked up by the defense, but the runner is tackled immediately"
+						resultMessage = "It's a miss!"
 					else:
 						resultMessage = "It's a turnover!"
 					turnover(game)
