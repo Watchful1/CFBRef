@@ -40,20 +40,20 @@ def getMessage(id):
 def sendMessage(recipients, subject, message):
 	if not isinstance(recipients, list):
 		recipients = [recipients]
-	success = True
+	success = None
 	for recipient in recipients:
 		try:
-			reddit.redditor(recipient).message(
+			success = reddit.redditor(recipient).message(
 				subject=subject,
 				message=message
 			)
 		except praw.exceptions.APIException:
 			log.warning("User "+recipient+" doesn't exist")
-			success = False
+			success = None
 		except Exception:
 			log.warning("Couldn't sent message to "+recipient)
 			log.warning(traceback.format_exc())
-			success = False
+			success = None
 
 	return success
 

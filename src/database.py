@@ -19,7 +19,6 @@ def init():
 			LastPlayed TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			Complete BOOLEAN NOT NULL DEFAULT 0,
 			Errored BOOLEAN NOT NULL DEFAULT 0,
-			WaitingID VARCHAR(80),
 			UNIQUE (ThreadID)
 		)
 	''')
@@ -207,39 +206,3 @@ def setGameErrored(gameID):
 		WHERE ID = ?
 	''', (gameID,))
 	dbConn.commit()
-
-
-def clearGameWaitingId(gameID):
-	c = dbConn.cursor()
-	c.execute('''
-		UPDATE games
-		SET WaitingID = NULL
-		WHERE ID = ?
-	''', (gameID,))
-	dbConn.commit()
-
-
-def setGameWaitingId(gameID, waitingId):
-	c = dbConn.cursor()
-	c.execute('''
-		UPDATE games
-		SET WaitingID = ?
-		WHERE ID = ?
-	''', (waitingId, gameID))
-	dbConn.commit()
-
-
-def getGameWaitingId(gameID):
-	c = dbConn.cursor()
-	result = c.execute('''
-		SELECT WaitingID
-		FROM games
-		WHERE ID = ?
-	''', (gameID,))
-
-	resultTuple = result.fetchone()
-
-	if not resultTuple:
-		return None
-
-	return resultTuple[0]

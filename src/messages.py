@@ -117,14 +117,8 @@ def processMessageAcceptGame(dataTable, author):
 	return "Game started. Find it [here]({}).".format(utils.getLinkToThread(threadID))
 
 
-def processMessageCoin(isHeads, author):
+def processMessageCoin(game, isHeads, author):
 	log.debug("Processing coin toss message: {}".format(str(isHeads)))
-	game = utils.getGameByUser(author)
-	utils.setLogGameID(game['thread'])
-
-	waitingOn = utils.isGameWaitingOn(game, author, 'coin')
-	if waitingOn is not None:
-		return waitingOn
 
 	if isHeads == utils.coinToss():
 		log.debug("User won coin toss, asking if they want to defer")
@@ -144,14 +138,8 @@ def processMessageCoin(isHeads, author):
 		return utils.embedTableInMessage(message, {'action': 'defer'})
 
 
-def processMessageDefer(isDefer, author):
+def processMessageDefer(game, isDefer, author):
 	log.debug("Processing defer message: {}".format(str(isDefer)))
-	game = utils.getGameByUser(author)
-	utils.setLogGameID(game['thread'])
-
-	waitingOn = utils.isGameWaitingOn(game, author, 'defer')
-	if waitingOn is not None:
-		return waitingOn
 
 	authorHomeAway = utils.getHomeAwayString(utils.isCoachHome(game, author))
 	if isDefer:
@@ -182,14 +170,8 @@ def processMessageDefer(isDefer, author):
 		    utils.getWaitingOnString(game))
 
 
-def processMessageDefenseNumber(message, author):
+def processMessageDefenseNumber(game, message, author):
 	log.debug("Processing defense number message")
-	game = utils.getGameByUser(author)
-	utils.setLogGameID(game['thread'])
-
-	waitingOn = utils.isGameWaitingOn(game, author, 'play')
-	if waitingOn is not None:
-		return waitingOn
 
 	number, resultMessage = utils.extractPlayNumber(message)
 	if resultMessage is not None:
@@ -223,14 +205,8 @@ def processMessageDefenseNumber(message, author):
 	return '\n\n'.join(result)
 
 
-def processMessageOffensePlay(message, author):
+def processMessageOffensePlay(game, message, author):
 	log.debug("Processing offense number message")
-	game = utils.getGameByUser(author)
-	utils.setLogGameID(game['thread'])
-
-	waitingOn = utils.isGameWaitingOn(game, author, 'play')
-	if waitingOn is not None:
-		return waitingOn
 
 	number, numberMessage = utils.extractPlayNumber(message)
 
@@ -318,6 +294,7 @@ def processMessage(message):
 					log.debug("Found a valid datatable in parent message")
 
 	body = message.body.lower()
+	author = str(message.author)
 	if dataTable is not None:
 		if dataTable['action'] == 'newgame' and isMessage:
 			if body.startswith("accept"):
@@ -325,23 +302,32 @@ def processMessage(message):
 			elif body.startswith("reject"):
 				response = processMessageRejectGame(dataTable, str(message.author))
 
-		if dataTable['action'] == 'coin' and not isMessage:
-			if body.startswith("heads"):
-				response = processMessageCoin(True, str(message.author))
-			elif body.startswith("tails"):
-				response = processMessageCoin(False, str(message.author))
+		else:
+			game = utils.getGameByUser(author)
+			if game is not None:
+				utils.setLogGameID(game['thread'])
 
-		if dataTable['action'] == 'defer' and not isMessage:
-			if body.startswith("defer"):
-				response = processMessageDefer(True, str(message.author))
-			elif body.startswith("receive"):
-				response = processMessageDefer(False, str(message.author))
+				waitingOn = utils.isGameWaitingOn(game, author, dataTable['action'], message.id)
+				if waitingOn is not None:
+					response = waitingOn
 
-		if dataTable['action'] == 'play' and isMessage:
-			response = processMessageDefenseNumber(body, str(message.author))
+				elif dataTable['action'] == 'coin' and not isMessage:
+					if body.startswith("heads"):
+						response = processMessageCoin(game, True, str(message.author))
+					elif body.startswith("tails"):
+						response = processMessageCoin(game, False, str(message.author))
 
-		if dataTable['action'] == 'play' and not isMessage:
-			response = processMessageOffensePlay(body, str(message.author))
+				elif dataTable['action'] == 'defer' and not isMessage:
+					if body.startswith("defer"):
+						response = processMessageDefer(game, True, str(message.author))
+					elif body.startswith("receive"):
+						response = processMessageDefer(game, False, str(message.author))
+
+				elif dataTable['action'] == 'play' and isMessage:
+					response = processMessageDefenseNumber(game, body, str(message.author))
+
+				elif dataTable['action'] == 'play' and not isMessage:
+					response = processMessageOffensePlay(game, body, str(message.author))
 	else:
 		log.debug("Parsing non-datatable message")
 		if body.startswith("newgame") and isMessage:

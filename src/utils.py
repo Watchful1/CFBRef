@@ -178,9 +178,13 @@ def getGameByThread(thread):
 
 def getGameByUser(user):
 	dataGame = database.getGameByCoach(user)
+	if dataGame is None:
+		return None
 	game = getGameByThread(dataGame['thread'])
 	game['dataID'] = dataGame['id']
 	game['thread'] = dataGame['thread']
+	game['errored'] = dataGame['errored']
+	game['waitingId'] = dataGame['waitingId']
 	return game
 
 
@@ -238,7 +242,7 @@ def getRange(rangeString):
 	return int(rangeEnds[0]), int(rangeEnds[1])
 
 
-def isGameWaitingOn(game, user, action):
+def isGameWaitingOn(game, user, action, messageId):
 	if game['waitingAction'] != action:
 		log.debug("Not waiting on {}: {}".format(action, game['waitingAction']))
 		return "I'm not waiting on a {} for this game, are you sure you replied to the right message?".format(action)
@@ -246,6 +250,10 @@ def isGameWaitingOn(game, user, action):
 	if (game['waitingOn'] == 'home') != isCoachHome(game, user):
 		log.debug("Not waiting on message author's team")
 		return "I'm not waiting on a message from you, are you sure you responded to the right message?"
+
+	if game['waitingId'] is not None and game['waitingId'] != messageId:
+		log.debug("Not waiting on message id: {} : {}".format(game['waitingId'], messageId))
+		return "I'm not waiting on a reply to this message, be sure to respond to my newest message for this game."
 
 	return None
 
@@ -345,6 +353,6 @@ def newGameObject(home, away):
 	status = {'clock': globals.quarterLength, 'quarter': 1, 'location': -1, 'possession': 'home', 'down': 1, 'yards': 10,
 	          'timeouts': {'home': 3, 'away': 3}, 'requestedTimeout': {'home': 'none', 'away': 'none'}, 'conversion': False}
 	score = {'quarters': [{'home': 0, 'away': 0}, {'home': 0, 'away': 0}, {'home': 0, 'away': 0}, {'home': 0, 'away': 0}], 'home': 0, 'away': 0}
-	game = {'home': home, 'away': away, 'drives': [], 'status': status, 'score': score,
+	game = {'home': home, 'away': away, 'drives': [], 'status': status, 'score': score, 'errored': 0, 'waitingId': None,
 	        'waitingAction': 'coin', 'waitingOn': 'away', 'dataID': -1, 'thread': "empty", "receivingNext": "home"}
 	return game
