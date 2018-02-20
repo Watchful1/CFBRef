@@ -17,6 +17,9 @@ def init():
 			ThreadID VARCHAR(80) NOT NULL,
 			DefenseNumber INTEGER,
 			LastPlayed TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			Complete BOOLEAN NOT NULL DEFAULT 0,
+			Errored BOOLEAN NOT NULL DEFAULT 0,
+			WaitingID VARCHAR(80),
 			UNIQUE (ThreadID)
 		)
 	''')
@@ -26,7 +29,7 @@ def init():
 			GameID INTEGER NOT NULL,
 			Coach VARCHAR(80) NOT NULL,
 			HomeTeam BOOLEAN NOT NULL,
-			UNIQUE (Coach),
+			UNIQUE (Coach, GameID),
 			FOREIGN KEY(GameID) REFERENCES games(ID)
 		)
 	''')
@@ -75,6 +78,8 @@ def getGameByCoach(coach):
 		SELECT g.ID
 			,g.ThreadID
 			,g.DefenseNumber
+			,g.Errored
+			,g.WaitingID
 			,group_concat(c2.Coach) as Coaches
 		FROM games g
 			INNER JOIN coaches c
@@ -82,6 +87,7 @@ def getGameByCoach(coach):
 			LEFT JOIN coaches c2
 				on g.ID = c2.GameID
 		WHERE c.Coach = ?
+			and g.Complete = 0
 		GROUP BY g.ID, g.ThreadID, g.DefenseNumber
 	''', (coach.lower(),))
 
@@ -90,7 +96,8 @@ def getGameByCoach(coach):
 	if not resultTuple:
 		return None
 	else:
-		return {"id": resultTuple[0], "thread": resultTuple[1], "defenseNumber": resultTuple[2], "coaches": resultTuple[1].split(',')}
+		return {"id": resultTuple[0], "thread": resultTuple[1], "defenseNumber": resultTuple[2], "errored": resultTuple[3],
+		        "waitingId": resultTuple[4], "coaches": resultTuple[5].split(',')}
 
 
 def getGameByID(id):
@@ -98,11 +105,14 @@ def getGameByID(id):
 	result = c.execute('''
 		SELECT g.ThreadID
 			,g.DefenseNumber
+			,g.Errored
+			,g.WaitingID
 			,group_concat(c.Coach) as Coaches
 		FROM games g
 			LEFT JOIN coaches c
 				ON g.ID = c.GameID
 		WHERE g.ID = ?
+			and g.Complete = 0
 		GROUP BY g.ThreadID, g.DefenseNumber
 	''', (id,))
 
@@ -111,17 +121,16 @@ def getGameByID(id):
 	if not resultTuple:
 		return None
 	else:
-		return {"id": id, "thread": resultTuple[0], "defenseNumber": resultTuple[1], "coaches": resultTuple[1].split(',')}
+		return {"id": id, "thread": resultTuple[0], "defenseNumber": resultTuple[1], "errored": resultTuple[2],
+		        "waitingId": resultTuple[3], "coaches": resultTuple[4].split(',')}
 
 
-def deleteGameByID(id):
+def endGameByID(id):
 	c = dbConn.cursor()
 	c.execute('''
-		DELETE FROM coaches
-		WHERE GameID = ?
-	''', (id,))
-	c.execute('''
-		DELETE FROM games
+		UPDATE games
+		SET Complete = 0
+			,LastPlayed = CURRENT_TIMESTAMP
 		WHERE ID = ?
 	''', (id,))
 	dbConn.commit()
@@ -178,3 +187,59 @@ def setGamePlayed(gameID):
 		WHERE ID = ?
 	''', (gameID,))
 	dbConn.commit()
+
+
+def clearGameErrored(gameID):
+	c = dbConn.cursor()
+	c.execute('''
+		UPDATE games
+		SET Errored = 0
+		WHERE ID = ?
+	''', (gameID,))
+	dbConn.commit()
+
+
+def setGameErrored(gameID):
+	c = dbConn.cursor()
+	c.execute('''
+		UPDATE games
+		SET Errored = 1
+		WHERE ID = ?
+	''', (gameID,))
+	dbConn.commit()
+
+
+def clearGameWaitingId(gameID):
+	c = dbConn.cursor()
+	c.execute('''
+		UPDATE games
+		SET WaitingID = NULL
+		WHERE ID = ?
+	''', (gameID,))
+	dbConn.commit()
+
+
+def setGameWaitingId(gameID, waitingId):
+	c = dbConn.cursor()
+	c.execute('''
+		UPDATE games
+		SET WaitingID = ?
+		WHERE ID = ?
+	''', (waitingId, gameID))
+	dbConn.commit()
+
+
+def getGameWaitingId(gameID):
+	c = dbConn.cursor()
+	result = c.execute('''
+		SELECT WaitingID
+		FROM games
+		WHERE ID = ?
+	''', (gameID,))
+
+	resultTuple = result.fetchone()
+
+	if not resultTuple:
+		return None
+
+	return resultTuple[0]

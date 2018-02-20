@@ -295,10 +295,10 @@ def processMessageOffensePlay(message, author):
 def processMessage(message):
 	if isinstance(message, praw.models.Message):
 		isMessage = True
-		log.debug("Processing a message from /u/{}".format(str(message.author)))
+		log.debug("Processing a message from /u/{} : {}".format(str(message.author), message.id))
 	else:
 		isMessage = False
-		log.debug("Processing a comment from /u/{}".format(str(message.author)))
+		log.debug("Processing a comment from /u/{} : {}".format(str(message.author), message.id))
 
 	response = None
 	dataTable = None
