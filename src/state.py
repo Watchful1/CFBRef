@@ -202,7 +202,12 @@ def updateTime(game, play, result, yards, offenseHomeAway):
 			timeMessage = "end of the third quarter"
 		else:
 			if game['status']['quarter'] == 4:
-				timeMessage = "full time!"
+				if game['score']['home'] == game['score']['away']:
+					timeMessage = "full time! The score is tied, but unfortunately overtime is not implemented yet."
+				else:
+					timeMessage = "full time!"
+				game['status']['clock'] = 0
+				game['waitingAction'] = 'end'
 			else:
 				if game['status']['quarter'] == 2:
 					timeMessage = "end of the first half"

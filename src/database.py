@@ -117,6 +117,10 @@ def getGameByID(id):
 def deleteGameByID(id):
 	c = dbConn.cursor()
 	c.execute('''
+		DELETE FROM coaches
+		WHERE GameID = ?
+	''', (id,))
+	c.execute('''
 		DELETE FROM games
 		WHERE ID = ?
 	''', (id,))

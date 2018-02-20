@@ -23,16 +23,23 @@ LOG_FILENAME = globals.LOG_FOLDER_NAME+"/"+"bot.log"
 LOG_FILE_BACKUPCOUNT = 5
 LOG_FILE_MAXSIZE = 1024 * 256 * 16
 
+
+class ContextFilter(logging.Filter):
+	def filter(self, record):
+		record.gameid = globals.logGameId
+		return True
+
+
 log = logging.getLogger("bot")
 log.setLevel(LOG_LEVEL)
-log_formatter = logging.Formatter('%(asctime)s - %(levelname)s: %(message)s')
-log_stderrHandler = logging.StreamHandler()
-log_stderrHandler.setFormatter(log_formatter)
-log.addHandler(log_stderrHandler)
+log_formatter = logging.Formatter('%(asctime)s - %(levelname)s: %(gameid) %(message)s')
+log_stdHandler = logging.StreamHandler()
+log_stdHandler.setFormatter(log_formatter)
+log.addHandler(log_stdHandler)
+log.addFilter(ContextFilter())
 if LOG_FILENAME is not None:
 	log_fileHandler = logging.handlers.RotatingFileHandler(LOG_FILENAME, maxBytes=LOG_FILE_MAXSIZE, backupCount=LOG_FILE_BACKUPCOUNT)
-	log_formatter_file = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-	log_fileHandler.setFormatter(log_formatter_file)
+	log_fileHandler.setFormatter(log_formatter)
 	log.addHandler(log_fileHandler)
 
 
@@ -77,6 +84,7 @@ for message in reddit.getMessageStream():
 	messages.processMessage(message)
 
 	log.debug("Message processed after: %d", int(time.perf_counter() - startTime))
+	utils.clearLogGameID()
 	if once:
 		database.close()
 		break

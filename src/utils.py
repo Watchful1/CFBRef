@@ -333,6 +333,15 @@ def extractPlayNumber(message):
 	return number, None
 
 
+def setLogGameID(gameid):
+	globals.logGameId = "{}: ".format(gameid)
+
+
+def clearLogGameID():
+	globals.logGameId = ""
+
+
+
 def newGameObject(home, away):
 	status = {'clock': globals.quarterLength, 'quarter': 1, 'location': -1, 'possession': 'home', 'down': 1, 'yards': 10,
 	          'timeouts': {'home': 3, 'away': 3}, 'requestedTimeout': {'home': 'none', 'away': 'none'}, 'conversion': False}

@@ -120,6 +120,7 @@ def processMessageAcceptGame(dataTable, author):
 def processMessageCoin(isHeads, author):
 	log.debug("Processing coin toss message: {}".format(str(isHeads)))
 	game = utils.getGameByUser(author)
+	utils.setLogGameID(game['thread'])
 
 	waitingOn = utils.isGameWaitingOn(game, author, 'coin')
 	if waitingOn is not None:
@@ -146,6 +147,7 @@ def processMessageCoin(isHeads, author):
 def processMessageDefer(isDefer, author):
 	log.debug("Processing defer message: {}".format(str(isDefer)))
 	game = utils.getGameByUser(author)
+	utils.setLogGameID(game['thread'])
 
 	waitingOn = utils.isGameWaitingOn(game, author, 'defer')
 	if waitingOn is not None:
@@ -183,6 +185,7 @@ def processMessageDefer(isDefer, author):
 def processMessageDefenseNumber(message, author):
 	log.debug("Processing defense number message")
 	game = utils.getGameByUser(author)
+	utils.setLogGameID(game['thread'])
 
 	waitingOn = utils.isGameWaitingOn(game, author, 'play')
 	if waitingOn is not None:
@@ -223,6 +226,7 @@ def processMessageDefenseNumber(message, author):
 def processMessageOffensePlay(message, author):
 	log.debug("Processing offense number message")
 	game = utils.getGameByUser(author)
+	utils.setLogGameID(game['thread'])
 
 	waitingOn = utils.isGameWaitingOn(game, author, 'play')
 	if waitingOn is not None:
@@ -280,7 +284,10 @@ def processMessageOffensePlay(message, author):
 
 	game['waitingOn'] = utils.reverseHomeAway(game['waitingOn'])
 	utils.updateGameThread(game)
-	utils.sendDefensiveNumberMessage(game)
+	if game['waitingAction'] == 'play':
+		utils.sendDefensiveNumberMessage(game)
+	elif game['waitingAction'] == 'end':
+		database.deleteGameByID(game['dataID'])
 
 	return utils.embedTableInMessage('\n\n'.join(result), {'action': game['waitingAction']})
 

@@ -9,7 +9,6 @@ LOOP_TIME = 2*60
 DATABASE_NAME = "database.db"
 SUBREDDIT_LINK = "https://www.reddit.com/r/{}/comments/".format(SUBREDDIT)
 ACCOUNT_NAME = "default"
-WHITELIST = ['watchful1','maxwasson2','yellowskarmory']
 
 ### Constants ###
 movementPlays = ['run', 'pass']
@@ -18,3 +17,6 @@ timePlays = ['kneel', 'spike']
 conversionPlays = ['pat', 'twoPoint']
 datatag = "[](#datatag"
 quarterLength = 7*60
+
+### Log ###
+logGameId = ""
