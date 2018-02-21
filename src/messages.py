@@ -295,6 +295,7 @@ def processMessage(message):
 					dataTable = None
 				else:
 					log.debug("Found a valid datatable in parent message")
+					dataTable['source'] = parent.fullname
 
 	body = message.body.lower()
 	author = str(message.author)
@@ -311,7 +312,7 @@ def processMessage(message):
 			if game is not None:
 				utils.setLogGameID(game['thread'])
 
-				waitingOn = utils.isGameWaitingOn(game, author, dataTable['action'], message.id)
+				waitingOn = utils.isGameWaitingOn(game, author, dataTable['action'], dataTable['source'])
 				if waitingOn is not None:
 					response = waitingOn
 
