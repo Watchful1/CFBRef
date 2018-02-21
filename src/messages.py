@@ -111,7 +111,10 @@ def processMessageAcceptGame(dataTable, author):
 
 	log.debug("Game started, posting coin toss comment")
 	message = "The game has started! {}, you're away, call **heads** or **tails** in the air.".format(utils.getCoachString(game, 'away'))
-	utils.sendGameComment(game, message, {'action': 'coin'})
+	comment = utils.sendGameComment(game, message, {'action': 'coin'})
+	game['waitingId'] = comment.fullname
+	log.debug("Comment posted, now waiting on: {}".format(game['waitingId']))
+	utils.updateGameThread(game)
 
 	log.debug("Returning game started message")
 	return "Game started. Find it [here]({}).".format(utils.getLinkToThread(threadID))
@@ -124,7 +127,8 @@ def processMessageCoin(game, isHeads, author):
 		log.debug("User won coin toss, asking if they want to defer")
 		game['waitingAction'] = 'defer'
 		game['waitingOn'] = 'home'
-		utils.updateGameThread(game)
+		game['waitingId'] = 'return'
+		game['dirty'] = True
 
 		message = "{}, {} won the toss, do you want to **receive** or **defer**?".format(utils.getCoachString(game, 'home'), game['home']['name'])
 		return utils.embedTableInMessage(message, {'action': 'defer'})
@@ -132,7 +136,8 @@ def processMessageCoin(game, isHeads, author):
 		log.debug("User lost coin toss, asking other team if they want to defer")
 		game['waitingAction'] = 'defer'
 		game['waitingOn'] = 'away'
-		utils.updateGameThread(game)
+		game['waitingId'] = 'return'
+		game['dirty'] = True
 
 		message = "{}, {} won the toss, do you want to **receive** or **defer**?".format(utils.getCoachString(game, 'away'), game['away']['name'])
 		return utils.embedTableInMessage(message, {'action': 'defer'})
@@ -148,7 +153,7 @@ def processMessageDefer(game, isDefer, author):
 		state.setStateTouchback(game, utils.reverseHomeAway(authorHomeAway))
 		game['receivingNext'] = authorHomeAway
 		game['waitingOn'] = utils.reverseHomeAway(game['waitingOn'])
-		utils.updateGameThread(game)
+		game['dirty'] = True
 		utils.sendDefensiveNumberMessage(game)
 
 		return "{} deferred and will receive the ball in the second half. The game has started!\n\n{}\n\n{}".format(
@@ -161,7 +166,7 @@ def processMessageDefer(game, isDefer, author):
 		state.setStateTouchback(game, authorHomeAway)
 		game['receivingNext'] = utils.reverseHomeAway(authorHomeAway)
 		game['waitingOn'] = utils.reverseHomeAway(game['waitingOn'])
-		utils.updateGameThread(game)
+		game['dirty'] = True
 		utils.sendDefensiveNumberMessage(game)
 
 		return "{} elected to receive. The game has started!\n\n{}\n\n{}".format(
@@ -189,7 +194,7 @@ def processMessageDefenseNumber(game, message, author):
 			timeoutMessage = "You requested a timeout, but you don't have any left"
 
 	game['waitingOn'] = utils.reverseHomeAway(game['waitingOn'])
-	utils.updateGameThread(game)
+	game['dirty'] = True
 
 	log.debug("Sending offense play comment")
 	message = "{} has submitted their number. {} you're up.\n\n{}\n\n{} reply with run or pass and your number.".format(
@@ -259,11 +264,9 @@ def processMessageOffensePlay(game, message, author):
 		result.append(timeoutMessageDefense)
 
 	game['waitingOn'] = utils.reverseHomeAway(game['waitingOn'])
-	utils.updateGameThread(game)
+	game['dirty'] = True
 	if game['waitingAction'] == 'play':
 		utils.sendDefensiveNumberMessage(game)
-	elif game['waitingAction'] == 'end':
-		database.deleteGameByID(game['dataID'])
 
 	return utils.embedTableInMessage('\n\n'.join(result), {'action': game['waitingAction']})
 
@@ -295,6 +298,7 @@ def processMessage(message):
 
 	body = message.body.lower()
 	author = str(message.author)
+	game = None
 	if dataTable is not None:
 		if dataTable['action'] == 'newgame' and isMessage:
 			if body.startswith("accept"):
@@ -335,9 +339,15 @@ def processMessage(message):
 
 	message.mark_read()
 	if response is not None:
-		reddit.replyMessage(message, response)
+		resultMessage = reddit.replyMessage(message, response)
+		if game is not None and game['waitingId'] == 'return':
+			game['waitingId'] = resultMessage.fullname
+			log.debug("Message/comment replied, now waiting on: {}".format(game['waitingId']))
 	else:
 		if isMessage:
 			log.debug("Couldn't understand message")
 			reddit.replyMessage(message,
 			                    "I couldn't understand your message, please try again or message /u/Watchful1 if you need help.")
+
+	if game is not None and game['dirty']:
+		utils.updateGameThread(game)

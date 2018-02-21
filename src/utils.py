@@ -196,6 +196,7 @@ def getGameThreadText(game):
 def updateGameThread(game):
 	if 'thread' not in game:
 		log.error("No thread ID in game when trying to update")
+	game['dirty'] = False
 	threadText = getGameThreadText(game)
 	reddit.editThread(game['thread'], threadText)
 
@@ -213,10 +214,13 @@ def sendGameMessage(isHome, game, message, dataTable):
 	reddit.sendMessage(game[('home' if isHome else 'away')]['coaches'],
 	                   "{} vs {}".format(game['home']['name'], game['away']['name']),
 	                   embedTableInMessage(message, dataTable))
+	return reddit.getRecentSentMessage().id
 
 
 def sendGameComment(game, message, dataTable):
-	reddit.replySubmission(game['thread'], embedTableInMessage(message, dataTable))
+	commentResult = reddit.replySubmission(game['thread'], embedTableInMessage(message, dataTable))
+	game['waitingId'] = commentResult.fullname
+	log.debug("Game comment sent, now waiting on: {}".format(game['waitingId']))
 
 
 def getHomeAwayString(isHome):
@@ -322,9 +326,12 @@ def getWaitingOnString(game):
 def sendDefensiveNumberMessage(game):
 	defenseHomeAway = reverseHomeAway(game['status']['possession'])
 	log.debug("Sending get defence number to {}".format(getCoachString(game, defenseHomeAway)))
-	reddit.sendMessage(game[defenseHomeAway]['coaches'],
+	messageResult = reddit.sendMessage(game[defenseHomeAway]['coaches'],
 	                   "{} vs {}".format(game['away']['name'], game['home']['name']),
-	                   embedTableInMessage("{}\n\nReply with a number between **1** and **1500**, inclusive.".format(getCurrentPlayString(game)), {'action': 'play'}))
+	                   embedTableInMessage("{}\n\nReply with a number between **1** and **1500**, inclusive."
+	                                       .format(getCurrentPlayString(game)), {'action': 'play'}))
+	game['waitingId'] = messageResult.fullname
+	log.debug("Defensive number sent, now waiting on: {}".format(game['waitingId']))
 
 
 def extractPlayNumber(message):
@@ -354,5 +361,5 @@ def newGameObject(home, away):
 	          'timeouts': {'home': 3, 'away': 3}, 'requestedTimeout': {'home': 'none', 'away': 'none'}, 'conversion': False}
 	score = {'quarters': [{'home': 0, 'away': 0}, {'home': 0, 'away': 0}, {'home': 0, 'away': 0}, {'home': 0, 'away': 0}], 'home': 0, 'away': 0}
 	game = {'home': home, 'away': away, 'drives': [], 'status': status, 'score': score, 'errored': 0, 'waitingId': None,
-	        'waitingAction': 'coin', 'waitingOn': 'away', 'dataID': -1, 'thread': "empty", "receivingNext": "home"}
+	        'waitingAction': 'coin', 'waitingOn': 'away', 'dataID': -1, 'thread': "empty", "receivingNext": "home", 'dirty': False}
 	return game

@@ -62,7 +62,7 @@ def replySubmission(id, message):
 	try:
 		submission = getSubmission(id)
 		resultComment = submission.reply(message)
-		return resultComment.id
+		return resultComment
 	except Exception as err:
 		log.warning(traceback.format_exc())
 		return None
@@ -97,8 +97,11 @@ def getMessageStream():
 
 def replyMessage(message, body):
 	try:
-		message.reply(body)
-		return True
+		return message.reply(body)
 	except Exception as err:
 		log.warning(traceback.format_exc())
-		return False
+		return None
+
+
+def getRecentSentMessage():
+	return reddit.inbox.sent(limit=1).next()
