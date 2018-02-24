@@ -288,11 +288,13 @@ def executePlay(game, play, number, numberMessage):
 	yards = None
 	resultMessage = "Something went wrong, I should never have reached this"
 	diffMessage = None
+	success = True
 	if game['status']['conversion']:
 		if play in globals.conversionPlays:
 			if number == -1:
 				log.debug("Trying to execute a normal play, but didn't have a number")
 				resultMessage = numberMessage
+				success = False
 
 			else:
 				numberResult, diffMessage = getNumberDiffForGame(game, number)
@@ -323,11 +325,13 @@ def executePlay(game, play, number, numberMessage):
 
 		else:
 			resultMessage = "It looks like you're trying to get the extra point after a touchdown, but this isn't a valid play"
+			success = False
 	else:
 		if play in globals.normalPlays:
 			if number == -1:
 				log.debug("Trying to execute a normal play, but didn't have a number")
 				resultMessage = numberMessage
+				success = False
 
 			else:
 				numberResult, diffMessage = getNumberDiffForGame(game, number)
@@ -338,12 +342,15 @@ def executePlay(game, play, number, numberMessage):
 					if 'yards' not in result:
 						log.warning("Result is a gain, but I couldn't find any yards")
 						resultMessage = "Result of play is a number of yards, but something went wrong and I couldn't find what number"
+						success = False
 					else:
 						log.debug("Result is a gain of {} yards".format(result['yards']))
 						gainResult, yards, resultMessage = executeGain(game, play, result['yards'])
-						if result != "error":
+						if gainResult != "error":
 							if yards is not None:
 								actualResult = gainResult
+						else:
+							success = False
 
 				elif result['result'] == 'touchdown':
 					log.debug("Result is a touchdown")
@@ -420,6 +427,7 @@ def executePlay(game, play, number, numberMessage):
 
 		else:
 			resultMessage = "{} isn't a valid play at the moment".format(play)
+			success = False
 
 	messages = [resultMessage]
 	if actualResult is not None:
@@ -430,4 +438,4 @@ def executePlay(game, play, number, numberMessage):
 	if diffMessage is not None:
 		messages.append(diffMessage)
 
-	return '\n\n'.join(messages)
+	return success, '\n\n'.join(messages)

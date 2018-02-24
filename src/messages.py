@@ -59,23 +59,23 @@ def processMessageRejectGame(dataTable, author):
 	log.debug("Processing reject game message")
 	if 'opponent' not in dataTable:
 		log.warning("Couldn't find opponent in datatable")
-		return "I couldn't figure out which opponent you were rejecting. This shouldn't happen, please let /u/Watchful1 know"
+		return False, "I couldn't figure out which opponent you were rejecting. This shouldn't happen, please let /u/Watchful1 know"
 
 	log.debug("Sending message to /u/{} that {} rejected their challenge".format(dataTable['opponent'], author))
 	reddit.sendMessage(dataTable['opponent'], "Challenge rejected", "/u/{} has rejected your game challenge".format(author))
-	return "Challenge successfully rejected"
+	return True, "Challenge successfully rejected"
 
 
 def processMessageAcceptGame(dataTable, author):
 	log.debug("Processing accept game message")
 	if 'opponent' not in dataTable:
 		log.warning("Couldn't find opponent in datatable")
-		return "I couldn't figure out which opponent you were accepting. This shouldn't happen, please let /u/Watchful1 know"
+		return False, "I couldn't figure out which opponent you were accepting. This shouldn't happen, please let /u/Watchful1 know"
 
 	coachNum, result = utils.verifyCoaches([author, dataTable['opponent']])
 	if coachNum != -1:
 		log.debug("Coaches not verified, {} : {}".format(coachNum, result))
-		return "Something went wrong, someone is no longer an acceptable coach. Please try to start the game again"
+		return False, "Something went wrong, someone is no longer an acceptable coach. Please try to start the game again"
 
 	homeTeam = wiki.getTeamByCoach(dataTable['opponent'].lower())
 	awayTeam = wiki.getTeamByCoach(author.lower())
@@ -117,7 +117,7 @@ def processMessageAcceptGame(dataTable, author):
 	utils.updateGameThread(game)
 
 	log.debug("Returning game started message")
-	return "Game started. Find it [here]({}).".format(utils.getLinkToThread(threadID))
+	return True, "Game started. Find it [here]({}).".format(utils.getLinkToThread(threadID))
 
 
 def processMessageCoin(game, isHeads, author):
@@ -131,7 +131,7 @@ def processMessageCoin(game, isHeads, author):
 		game['dirty'] = True
 
 		message = "{}, {} won the toss, do you want to **receive** or **defer**?".format(utils.getCoachString(game, 'home'), game['home']['name'])
-		return utils.embedTableInMessage(message, {'action': 'defer'})
+		return True, utils.embedTableInMessage(message, {'action': 'defer'})
 	else:
 		log.debug("User lost coin toss, asking other team if they want to defer")
 		game['waitingAction'] = 'defer'
@@ -140,7 +140,7 @@ def processMessageCoin(game, isHeads, author):
 		game['dirty'] = True
 
 		message = "{}, {} won the toss, do you want to **receive** or **defer**?".format(utils.getCoachString(game, 'away'), game['away']['name'])
-		return utils.embedTableInMessage(message, {'action': 'defer'})
+		return True, utils.embedTableInMessage(message, {'action': 'defer'})
 
 
 def processMessageDefer(game, isDefer, author):
@@ -156,7 +156,7 @@ def processMessageDefer(game, isDefer, author):
 		game['dirty'] = True
 		utils.sendDefensiveNumberMessage(game)
 
-		return "{} deferred and will receive the ball in the second half. The game has started!\n\n{}\n\n{}".format(
+		return True, "{} deferred and will receive the ball in the second half. The game has started!\n\n{}\n\n{}".format(
 			game[authorHomeAway]['name'],
 		    utils.getCurrentPlayString(game),
 		    utils.getWaitingOnString(game))
@@ -169,7 +169,7 @@ def processMessageDefer(game, isDefer, author):
 		game['dirty'] = True
 		utils.sendDefensiveNumberMessage(game)
 
-		return "{} elected to receive. The game has started!\n\n{}\n\n{}".format(
+		return True, "{} elected to receive. The game has started!\n\n{}\n\n{}".format(
 			game[authorHomeAway]['name'],
 		    utils.getCurrentPlayString(game),
 		    utils.getWaitingOnString(game))
@@ -180,7 +180,7 @@ def processMessageDefenseNumber(game, message, author):
 
 	number, resultMessage = utils.extractPlayNumber(message)
 	if resultMessage is not None:
-		return resultMessage
+		return False, resultMessage
 
 	log.debug("Saving defense number: {}".format(number))
 	database.saveDefensiveNumber(game['dataID'], number)
@@ -207,7 +207,7 @@ def processMessageDefenseNumber(game, message, author):
 	result = ["I've got {} as your number.".format(number)]
 	if timeoutMessage is not None:
 		result.append(timeoutMessage)
-	return '\n\n'.join(result)
+	return True, '\n\n'.join(result)
 
 
 def processMessageOffensePlay(game, message, author):
@@ -241,9 +241,9 @@ def processMessageOffensePlay(game, message, author):
 	elif message.startswith("pat"):
 		play = "pat"
 	else:
-		return "I couldn't find a play in your message"
+		return False, "I couldn't find a play in your message"
 
-	resultMessage = state.executePlay(game, play, number, numberMessage)
+	success, resultMessage = state.executePlay(game, play, number, numberMessage)
 
 	if game['status']['requestedTimeout'][game['status']['possession']] == 'used':
 		timeoutMessageOffense = "The offense is charged a timeout"
@@ -268,7 +268,7 @@ def processMessageOffensePlay(game, message, author):
 	if game['waitingAction'] == 'play':
 		utils.sendDefensiveNumberMessage(game)
 
-	return utils.embedTableInMessage('\n\n'.join(result), {'action': game['waitingAction']})
+	return success, utils.embedTableInMessage('\n\n'.join(result), {'action': game['waitingAction']})
 
 
 def processMessage(message):
@@ -280,6 +280,7 @@ def processMessage(message):
 		log.debug("Processing a comment from /u/{} : {}".format(str(message.author), message.id))
 
 	response = None
+	success = None
 	dataTable = None
 
 	if message.parent_id is not None and (message.parent_id.startswith("t1") or message.parent_id.startswith("t4")):
@@ -303,9 +304,9 @@ def processMessage(message):
 	if dataTable is not None:
 		if dataTable['action'] == 'newgame' and isMessage:
 			if body.startswith("accept"):
-				response = processMessageAcceptGame(dataTable, str(message.author))
+				success, response = processMessageAcceptGame(dataTable, str(message.author))
 			elif body.startswith("reject"):
-				response = processMessageRejectGame(dataTable, str(message.author))
+				success, response = processMessageRejectGame(dataTable, str(message.author))
 
 		else:
 			game = utils.getGameByUser(author)
@@ -315,24 +316,25 @@ def processMessage(message):
 				waitingOn = utils.isGameWaitingOn(game, author, dataTable['action'], dataTable['source'])
 				if waitingOn is not None:
 					response = waitingOn
+					success = False
 
 				elif dataTable['action'] == 'coin' and not isMessage:
 					if body.startswith("heads"):
-						response = processMessageCoin(game, True, str(message.author))
+						success, response = processMessageCoin(game, True, str(message.author))
 					elif body.startswith("tails"):
-						response = processMessageCoin(game, False, str(message.author))
+						success, response = processMessageCoin(game, False, str(message.author))
 
 				elif dataTable['action'] == 'defer' and not isMessage:
 					if body.startswith("defer"):
-						response = processMessageDefer(game, True, str(message.author))
+						success, response = processMessageDefer(game, True, str(message.author))
 					elif body.startswith("receive"):
-						response = processMessageDefer(game, False, str(message.author))
+						success, response = processMessageDefer(game, False, str(message.author))
 
 				elif dataTable['action'] == 'play' and isMessage:
-					response = processMessageDefenseNumber(game, body, str(message.author))
+					success, response = processMessageDefenseNumber(game, body, str(message.author))
 
 				elif dataTable['action'] == 'play' and not isMessage:
-					response = processMessageOffensePlay(game, body, str(message.author))
+					success, response = processMessageOffensePlay(game, body, str(message.author))
 	else:
 		log.debug("Parsing non-datatable message")
 		if body.startswith("newgame") and isMessage:
@@ -340,6 +342,10 @@ def processMessage(message):
 
 	message.mark_read()
 	if response is not None:
+		if success is not None and not success and dataTable is not None and utils.extractTableFromMessage(response) is None:
+			response = utils.embedTableInMessage(message, dataTable)
+			if game is not None:
+				game['waitingId'] = 'return'
 		resultMessage = reddit.replyMessage(message, response)
 		if game is not None and game['waitingId'] == 'return':
 			game['waitingId'] = resultMessage.fullname
