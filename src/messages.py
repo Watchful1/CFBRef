@@ -197,12 +197,12 @@ def processMessageDefenseNumber(game, message, author):
 	game['dirty'] = True
 
 	log.debug("Sending offense play comment")
-	message = "{} has submitted their number. {} you're up.\n\n{}\n\n{} reply with run or pass and your number.".format(
+	resultMessage = "{} has submitted their number. {} you're up.\n\n{}\n\n{} reply with run or pass and your number.".format(
 		game[utils.reverseHomeAway(game['waitingOn'])]['name'],
 		game[game['waitingOn']]['name'],
 		utils.getCurrentPlayString(game),
 		utils.getCoachString(game, game['waitingOn']))
-	utils.sendGameComment(game, message, {'action': 'play'})
+	utils.sendGameComment(game, resultMessage, {'action': 'play'})
 
 	result = ["I've got {} as your number.".format(number)]
 	if timeoutMessage is not None:
@@ -223,23 +223,27 @@ def processMessageOffensePlay(game, message, author):
 		else:
 			timeoutMessageOffense = "The offense requested a timeout, but they don't have any left"
 
+	playOptions = ['run', 'pass', 'punt', 'field goal', 'kneel', 'spike', 'two point', 'pat']
+	playSelected = utils.findKeywordInMessage(playOptions, message)
 	play = "default"
-	if message.startswith("run"):
+	if playSelected == "run":
 		play = "run"
-	elif message.startswith("pass"):
+	elif playSelected == "pass":
 		play = "pass"
-	elif message.startswith("punt"):
+	elif playSelected == "punt":
 		play = "punt"
-	elif message.startswith("field goal"):
+	elif playSelected == "field goal":
 		play = "fieldGoal"
-	elif message.startswith("kneel"):
+	elif playSelected == "kneel":
 		play = "kneel"
-	elif message.startswith("spike"):
+	elif playSelected == "spike":
 		play = "spike"
-	elif message.startswith("two point"):
+	elif playSelected == "two point":
 		play = "twoPoint"
-	elif message.startswith("pat"):
+	elif playSelected == "pat":
 		play = "pat"
+	elif playSelected == "mult":
+		return False, "I found multiple plays in your message. Please repost it with just the play and number."
 	else:
 		return False, "I couldn't find a play in your message"
 
@@ -303,10 +307,15 @@ def processMessage(message):
 	game = None
 	if dataTable is not None:
 		if dataTable['action'] == 'newgame' and isMessage:
-			if body.startswith("accept"):
+			keywords = ['accept', 'reject']
+			keyword = utils.findKeywordInMessage(keywords, body)
+			if keyword == "accept":
 				success, response = processMessageAcceptGame(dataTable, str(message.author))
-			elif body.startswith("reject"):
+			elif keyword == "reject":
 				success, response = processMessageRejectGame(dataTable, str(message.author))
+			elif keyword == 'mult':
+				success = False
+				response = "I found both {} in your message. Please reply with just one of them.".format(' and '.join(keywords))
 
 		else:
 			game = utils.getGameByUser(author)
@@ -319,16 +328,26 @@ def processMessage(message):
 					success = False
 
 				elif dataTable['action'] == 'coin' and not isMessage:
-					if body.startswith("heads"):
+					keywords = ['heads', 'tails']
+					keyword = utils.findKeywordInMessage(keywords, body)
+					if keyword == "heads":
 						success, response = processMessageCoin(game, True, str(message.author))
-					elif body.startswith("tails"):
+					elif keyword == "tails":
 						success, response = processMessageCoin(game, False, str(message.author))
+					elif keyword == 'mult':
+						success = False
+						response = "I found both {} in your message. Please reply with just one of them.".format(' and '.join(keywords))
 
 				elif dataTable['action'] == 'defer' and not isMessage:
-					if body.startswith("defer"):
+					keywords = ['defer', 'receive']
+					keyword = utils.findKeywordInMessage(keywords, body)
+					if keyword == "defer":
 						success, response = processMessageDefer(game, True, str(message.author))
-					elif body.startswith("receive"):
+					elif keyword == "receive":
 						success, response = processMessageDefer(game, False, str(message.author))
+					elif keyword == 'mult':
+						success = False
+						response = "I found both {} in your message. Please reply with just one of them.".format(' and '.join(keywords))
 
 				elif dataTable['action'] == 'play' and isMessage:
 					success, response = processMessageDefenseNumber(game, body, str(message.author))
@@ -337,7 +356,7 @@ def processMessage(message):
 					success, response = processMessageOffensePlay(game, body, str(message.author))
 	else:
 		log.debug("Parsing non-datatable message")
-		if body.startswith("newgame") and isMessage:
+		if "newgame" in body and isMessage:
 			response = processMessageNewGame(body, str(message.author))
 
 	message.mark_read()

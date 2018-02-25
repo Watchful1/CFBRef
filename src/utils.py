@@ -356,6 +356,27 @@ def clearLogGameID():
 	globals.logGameId = ""
 
 
+def findKeywordInMessage(keywords, message):
+	found = []
+	for keyword in keywords:
+		if isinstance(keyword, list):
+			for actualKeyword in keyword:
+				if actualKeyword in message:
+					found.append(keyword[0])
+					break
+		else:
+			if keyword in message:
+				found.append(keyword)
+
+	if len(found) == 0:
+		return 'none'
+	elif len(found) > 1:
+		log.debug("Found multiple keywords: {}".format(', '.join(found)))
+		return 'mult'
+	else:
+		return found[0]
+
+
 def newGameObject(home, away):
 	status = {'clock': globals.quarterLength, 'quarter': 1, 'location': -1, 'possession': 'home', 'down': 1, 'yards': 10,
 	          'timeouts': {'home': 3, 'away': 3}, 'requestedTimeout': {'home': 'none', 'away': 'none'}, 'conversion': False}
