@@ -339,6 +339,9 @@ def extractPlayNumber(message):
 	if len(numbers) < 1:
 		log.debug("Couldn't find a number in message")
 		return -1, "It looks like you should be sending me a number, but I can't find one in your message."
+	if len(numbers) > 1:
+		log.debug("Found more than one number")
+		return -1, "It looks like you puts more than one number in your message"
 
 	number = int(numbers[0])
 	if number < 1 or number > 1500:
