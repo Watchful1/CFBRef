@@ -242,7 +242,15 @@ def executeGain(game, play, yards):
 
 		scoreSafety(game, utils.reverseHomeAway(game['status']['possession']))
 
-		return "touchback", 0 - previousLocation, "Sack! The quarterback is taken down in the endzone for a safety."
+		if play == "run":
+			resultMessage = "The runner is taken down in the end zone for a safety."
+		elif play == "pass":
+			resultMessage = "Sack! The quarterback is taken down in the endzone for a safety."
+		else:
+			resultMessage = "It's a safety!"
+
+
+		return "touchback", 0 - previousLocation, resultMessage
 	else:
 		log.debug("Ball moved, but didn't enter an endzone, checking and updating play status")
 
