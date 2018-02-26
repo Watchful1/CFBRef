@@ -126,15 +126,18 @@ def renderGame(game):
 	bldr.append(" & ")
 	bldr.append(str(game['status']['yards']))
 	bldr.append("|")
-	bldr.append(str(game['status']['location']))
 	if game['status']['location'] < 50:
+		bldr.append(str(game['status']['location']))
 		bldr.append(" ")
 		team = game[game['status']['possession']]
 		bldr.append(flair(team['name'], team['tag']))
 	elif game['status']['location'] > 50:
+		bldr.append(str(100 - game['status']['location']))
 		bldr.append(" ")
 		team = game[reverseHomeAway(game['status']['possession'])]
 		bldr.append(flair(team['name'], team['tag']))
+	else:
+		bldr.append(str(game['status']['location']))
 	bldr.append("|")
 	team = game[game['status']['possession']]
 	bldr.append(flair(team['name'], team['tag']))
