@@ -301,11 +301,14 @@ def getLocationString(location, offenseTeam, defenseTeam):
 
 
 def getCurrentPlayString(game):
-	return "It's {} and {} on the {}.".format(
-		getDownString(game['status']['down']),
-		game['status']['yards'],
-		getLocationString(game['status']['location'], game[game['status']['possession']]['name'], game[reverseHomeAway(game['status']['possession'])]['name'])
-	)
+	if game['status']['conversion']:
+		return "{} just scored.".format(game[game['status']['possession']]['name'])
+	else:
+		return "It's {} and {} on the {}.".format(
+			getDownString(game['status']['down']),
+			"goal" if game['status']['location'] >= 90 else game['status']['yards'],
+			getLocationString(game['status']['location'], game[game['status']['possession']]['name'], game[reverseHomeAway(game['status']['possession'])]['name'])
+		)
 
 
 def getWaitingOnString(game):
@@ -378,6 +381,22 @@ def findKeywordInMessage(keywords, message):
 		return 'mult'
 	else:
 		return found[0]
+
+
+def listSuggestedPlays(game):
+	if game['status']['conversion']:
+		return "**PAT** or **two point**"
+	else:
+		if game['status']['down'] == 4:
+			if game['status']['location'] > 62:
+				return "**field goal**, or go for it with **run** or **pass**"
+			elif game['status']['location'] > 57:
+				return "**punt** or **field goal**, or go for it with **run** or **pass**"
+			else:
+				return "**punt**, or go for it with **run** or **pass**"
+		else:
+			return "**run** or **pass**"
+
 
 
 def newGameObject(home, away):

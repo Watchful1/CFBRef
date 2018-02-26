@@ -197,11 +197,14 @@ def processMessageDefenseNumber(game, message, author):
 	game['dirty'] = True
 
 	log.debug("Sending offense play comment")
-	resultMessage = "{} has submitted their number. {} you're up.\n\n{}\n\n{} reply with run or pass and your number.".format(
+	resultMessage = "{} has submitted their number. {} you're up.\n\n{}\n\n{} reply with {} and your number. [Play list]({})".format(
 		game[utils.reverseHomeAway(game['waitingOn'])]['name'],
 		game[game['waitingOn']]['name'],
 		utils.getCurrentPlayString(game),
-		utils.getCoachString(game, game['waitingOn']))
+		utils.getCoachString(game, game['waitingOn']),
+		utils.listSuggestedPlays(game),
+		"https://www.reddit.com/r/FakeCollegeFootball/wiki/refbot"
+	)
 	utils.sendGameComment(game, resultMessage, {'action': 'play'})
 
 	result = ["I've got {} as your number.".format(number)]
