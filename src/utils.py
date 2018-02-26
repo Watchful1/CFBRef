@@ -118,9 +118,11 @@ def renderGame(game):
 
 	bldr.append("\n___\n\n")
 
-	bldr.append("Playclock|Down|Ball Location|Possession\n")
+	bldr.append("Playclock|Quarter|Down|Ball Location|Possession\n")
 	bldr.append(":-:|:-:|:-:|:-:|:-:\n")
 	bldr.append(renderTime(game['status']['clock']))
+	bldr.append("|")
+	bldr.append(str(game['status']['quarter']))
 	bldr.append("|")
 	bldr.append(getDownString(game['status']['down']))
 	bldr.append(" & ")
