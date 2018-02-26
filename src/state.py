@@ -377,9 +377,9 @@ def executePlay(game, play, number, numberMessage):
 				elif result['result'] == 'turnover':
 					log.debug("Play results in a turnover")
 					if play == "run":
-						resultMessage = "Fumble! The ball is dropped, but the runner is tackled immediately"
+						resultMessage = "Fumble! The ball is dropped, {} recovers!".format(game[utils.reverseHomeAway(game['status']['possession'])]['name'])
 					elif play == "pass":
-						resultMessage = "Picked off! The pass is intercepted, but the runner is tackled immediately"
+						resultMessage = "Picked off! The pass is intercepted, {} ball!".format(game[utils.reverseHomeAway(game['status']['possession'])]['name'])
 					elif play == "fieldGoal" or play == "punt":
 						resultMessage = "It's a miss!"
 					else:
@@ -390,11 +390,11 @@ def executePlay(game, play, number, numberMessage):
 				elif result['result'] == 'turnoverTouchdown':
 					log.debug("Play results in a turnover and run back")
 					if play == "run":
-						resultMessage = "Fumble! {} drops the ball and it's run back for a touchdown"
+						resultMessage = "Fumble! The ball is dropped and it's run all the way back. Touchdown {}!".format(game[utils.reverseHomeAway(game['status']['possession'])]['name'])
 					elif play == "pass":
-						resultMessage = "Picked off! The pass is intercepted and it's run back for a touchdown"
+						resultMessage = "Picked off! The pass is intercepted and it's run all the way back. Touchdown {}!".format(game[utils.reverseHomeAway(game['status']['possession'])]['name'])
 					elif play == "fieldGoal" or play == "punt":
-						resultMessage = "It's blocked! The ball is picked up and run back for a touchdown"
+						resultMessage = "It's blocked! The ball is picked up and run all the back. Touchdown {}!".format(game[utils.reverseHomeAway(game['status']['possession'])]['name'])
 					else:
 						resultMessage = "It's a turnover and run back for a touchdown!"
 					scoreTouchdown(game, utils.reverseHomeAway(game['status']['possession']))
