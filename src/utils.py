@@ -413,6 +413,23 @@ def buildMessageLink(recipient, subject, content):
 	)
 
 
+def addStatRunPass(game, runPass, amount):
+	if runPass == 'run':
+		addStat(game, 'yardsRushing', amount)
+	elif runPass == 'pass':
+		addStat(game, 'yardsPassing', amount)
+	else:
+		log.warning("Error in addStatRunPass, invalid play: {}".format(runPass))
+
+
+def addStat(game, stat, amount, offenseHomeAway=None):
+	if offenseHomeAway is None:
+		offenseHomeAway = game['status']['possession']
+	game[offenseHomeAway][stat] += amount
+	if stat in ['yardsPassing', 'yardsRushing']:
+		game[offenseHomeAway]['yardsTotal'] += amount
+
+
 def newGameObject(home, away):
 	status = {'clock': globals.quarterLength, 'quarter': 1, 'location': -1, 'possession': 'home', 'down': 1, 'yards': 10,
 	          'timeouts': {'home': 3, 'away': 3}, 'requestedTimeout': {'home': 'none', 'away': 'none'}, 'conversion': False}
@@ -420,3 +437,13 @@ def newGameObject(home, away):
 	game = {'home': home, 'away': away, 'drives': [], 'status': status, 'score': score, 'errored': 0, 'waitingId': None,
 	        'waitingAction': 'coin', 'waitingOn': 'away', 'dataID': -1, 'thread': "empty", "receivingNext": "home", 'dirty': False}
 	return game
+
+
+# team['yardsPassing'] = 0
+# team['yardsRushing'] = 0
+# team['yardsTotal'] = 0
+# team['turnoverInterceptions'] = 0
+# team['turnoverFumble'] = 0
+# team['fieldGoalsScored'] = 0
+# team['fieldGoalsAttempted'] = 0
+# team['posTime'] = 0

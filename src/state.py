@@ -196,6 +196,7 @@ def updateTime(game, play, result, yards, offenseHomeAway):
 
 	if game['status']['clock'] < 0:
 		log.debug("End of quarter: {}".format(game['status']['quarter']))
+		actualTimeOffClock = timeOffClock + game['status']['clock']
 		if game['status']['quarter'] == 1:
 			timeMessage = "end of the first quarter"
 		elif game['status']['quarter'] == 3:
@@ -219,6 +220,10 @@ def updateTime(game, play, result, yards, offenseHomeAway):
 		if game['status']['quarter'] < 4:
 			game['status']['quarter'] += 1
 			game['status']['clock'] = globals.quarterLength
+	else:
+		actualTimeOffClock = timeOffClock
+
+	utils.addStat(game, 'posTime', actualTimeOffClock, offenseHomeAway)
 
 	return "The play took {} seconds, {}".format(timeOffClock, timeMessage)
 
@@ -234,12 +239,14 @@ def executeGain(game, play, yards):
 	if game['status']['location'] > 100:
 		log.debug("Ball passed the line, touchdown offense")
 
+		utils.addStatRunPass(game, play, 100 - previousLocation)
 		scoreTouchdown(game, game['status']['possession'])
 
 		return "touchdown", 100 - previousLocation, "{} with a {} yard {} into the end zone for a touchdown!".format(game[game['status']['possession']]['name'], yards, play)
 	elif game['status']['location'] < 0:
 		log.debug("Ball went back over the line, safety for the defense")
 
+		utils.addStatRunPass(game, play, previousLocation * -1)
 		scoreSafety(game, utils.reverseHomeAway(game['status']['possession']))
 
 		if play == "run":
@@ -249,11 +256,11 @@ def executeGain(game, play, yards):
 		else:
 			resultMessage = "It's a safety!"
 
-
 		return "touchback", 0 - previousLocation, resultMessage
 	else:
 		log.debug("Ball moved, but didn't enter an endzone, checking and updating play status")
 
+		utils.addStatRunPass(game, play, yards)
 		yardsRemaining = game['status']['yards'] - yards
 
 		if yardsRemaining <= 0:
@@ -312,6 +319,7 @@ def executePlay(game, play, number, numberMessage):
 				if result['result'] == 'twoPoint':
 					log.debug("Successful two point conversion")
 					resultMessage = "The two point conversion is successful"
+					utils.addStat(game, 'yardsRushing', 3)
 					scoreTwoPoint(game, game['status']['possession'])
 
 				elif result['result'] == 'pat':
@@ -364,6 +372,7 @@ def executePlay(game, play, number, numberMessage):
 					log.debug("Result is a touchdown")
 					resultMessage = "It's a {} into the endzone! Touchdown {}!".format(play, game[game['status']['possession']]['name'])
 					previousLocation = game['status']['location']
+					utils.addStatRunPass(game, play, 100 - previousLocation)
 					scoreTouchdown(game, game['status']['possession'])
 					actualResult = "touchdown"
 					yards = 100 - previousLocation
@@ -371,6 +380,7 @@ def executePlay(game, play, number, numberMessage):
 				elif result['result'] == 'fieldGoal':
 					log.debug("Result is a field goal")
 					resultMessage = "The {} yard field goal is good!".format(100 - game['status']['location'] + 17)
+					utils.addStat(game, 'fieldGoalsScored', 1)
 					scoreFieldGoal(game, game['status']['possession'])
 					actualResult = "fieldGoal"
 
@@ -385,12 +395,16 @@ def executePlay(game, play, number, numberMessage):
 				elif result['result'] == 'turnover':
 					log.debug("Play results in a turnover")
 					if play == "run":
+						utils.addStat(game, 'turnoverInterceptions', 1)
 						resultMessage = "Fumble! The ball is dropped, {} recovers!".format(game[utils.reverseHomeAway(game['status']['possession'])]['name'])
 					elif play == "pass":
+						utils.addStat(game, 'turnoverFumble', 1)
 						resultMessage = "Picked off! The pass is intercepted, {} ball!".format(game[utils.reverseHomeAway(game['status']['possession'])]['name'])
 					elif play == "fieldGoal" or play == "punt":
+						utils.addStat(game, 'turnoverFumble', 1)
 						resultMessage = "It's a miss!"
 					else:
+						utils.addStat(game, 'turnoverFumble', 1)
 						resultMessage = "It's a turnover!"
 					turnover(game)
 					actualResult = "turnover"
@@ -407,6 +421,9 @@ def executePlay(game, play, number, numberMessage):
 						resultMessage = "It's a turnover and run back for a touchdown!"
 					scoreTouchdown(game, utils.reverseHomeAway(game['status']['possession']))
 					actualResult = "turnoverTouchdown"
+
+				if success and play == 'fieldGoal':
+					utils.addStat(game, 'fieldGoalsAttempted', 1)
 
 				database.clearDefensiveNumber(game['dataID'])
 
