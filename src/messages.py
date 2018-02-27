@@ -278,6 +278,22 @@ def processMessageOffensePlay(game, message, author):
 	return success, utils.embedTableInMessage('\n\n'.join(result), {'action': game['waitingAction']})
 
 
+def processMessageKickGame(body):
+	log.debug("Processing kick game message")
+	numbers = re.findall('(\d+)', body)
+	if len(numbers) < 1:
+		log.debug("Couldn't find a game id in message")
+		return "Couldn't find a game id in message"
+	log.debug("Found number: {}".format(str(numbers[0])))
+	success = database.clearGameErrored(numbers[0])
+	if success:
+		log.debug("Kicked game")
+		return "Game {} kicked".format(str(numbers[0]))
+	else:
+		log.debug("Couldn't kick game")
+		return "Couldn't kick game {}".format(str(numbers[0]))
+
+
 def processMessage(message):
 	if isinstance(message, praw.models.Message):
 		isMessage = True
@@ -323,44 +339,52 @@ def processMessage(message):
 		else:
 			game = utils.getGameByUser(author)
 			if game is not None:
-				utils.setLogGameID(game['thread'])
+				utils.setLogGameID(game['thread'], game['dataID'])
+				if game['errored']:
+					log.debug("Game is errored, skipping")
+					response = "This game is currently in an error state, /u/{} has been contacted to take a look".format(globals.OWNER)
 
-				waitingOn = utils.isGameWaitingOn(game, author, dataTable['action'], dataTable['source'])
-				if waitingOn is not None:
-					response = waitingOn
-					success = False
-
-				elif dataTable['action'] == 'coin' and not isMessage:
-					keywords = ['heads', 'tails']
-					keyword = utils.findKeywordInMessage(keywords, body)
-					if keyword == "heads":
-						success, response = processMessageCoin(game, True, str(message.author))
-					elif keyword == "tails":
-						success, response = processMessageCoin(game, False, str(message.author))
-					elif keyword == 'mult':
+				else:
+					waitingOn = utils.isGameWaitingOn(game, author, dataTable['action'], dataTable['source'])
+					if waitingOn is not None:
+						response = waitingOn
 						success = False
-						response = "I found both {} in your message. Please reply with just one of them.".format(' and '.join(keywords))
 
-				elif dataTable['action'] == 'defer' and not isMessage:
-					keywords = ['defer', 'receive']
-					keyword = utils.findKeywordInMessage(keywords, body)
-					if keyword == "defer":
-						success, response = processMessageDefer(game, True, str(message.author))
-					elif keyword == "receive":
-						success, response = processMessageDefer(game, False, str(message.author))
-					elif keyword == 'mult':
-						success = False
-						response = "I found both {} in your message. Please reply with just one of them.".format(' and '.join(keywords))
+					elif dataTable['action'] == 'coin' and not isMessage:
+						keywords = ['heads', 'tails']
+						keyword = utils.findKeywordInMessage(keywords, body)
+						if keyword == "heads":
+							success, response = processMessageCoin(game, True, str(message.author))
+						elif keyword == "tails":
+							success, response = processMessageCoin(game, False, str(message.author))
+						elif keyword == 'mult':
+							success = False
+							response = "I found both {} in your message. Please reply with just one of them.".format(' and '.join(keywords))
 
-				elif dataTable['action'] == 'play' and isMessage:
-					success, response = processMessageDefenseNumber(game, body, str(message.author))
+					elif dataTable['action'] == 'defer' and not isMessage:
+						keywords = ['defer', 'receive']
+						keyword = utils.findKeywordInMessage(keywords, body)
+						if keyword == "defer":
+							success, response = processMessageDefer(game, True, str(message.author))
+						elif keyword == "receive":
+							success, response = processMessageDefer(game, False, str(message.author))
+						elif keyword == 'mult':
+							success = False
+							response = "I found both {} in your message. Please reply with just one of them.".format(' and '.join(keywords))
 
-				elif dataTable['action'] == 'play' and not isMessage:
-					success, response = processMessageOffensePlay(game, body, str(message.author))
+					elif dataTable['action'] == 'play' and isMessage:
+						success, response = processMessageDefenseNumber(game, body, str(message.author))
+
+					elif dataTable['action'] == 'play' and not isMessage:
+						success, response = processMessageOffensePlay(game, body, str(message.author))
+			else:
+				log.debug("Couldn't get a game for /u/{}".format(author))
 	else:
 		log.debug("Parsing non-datatable message")
 		if "newgame" in body and isMessage:
 			response = processMessageNewGame(body, str(message.author))
+		if "kick" in body and isMessage and str(message.author).lower() == globals.OWNER:
+			response = processMessageKickGame(body)
 
 	message.mark_read()
 	if response is not None:

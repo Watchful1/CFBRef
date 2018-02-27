@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 
-import praw
 import os
 import logging.handlers
 import time
 import sys
 import signal
+import traceback
 
 import globals
 import reddit
@@ -13,7 +13,6 @@ import messages
 import database
 import wiki
 import utils
-import state
 
 ### Logging setup ###
 LOG_LEVEL = logging.DEBUG
@@ -81,7 +80,30 @@ for message in reddit.getMessageStream():
 	log.debug("Processing message")
 	wiki.loadPages()
 
-	messages.processMessage(message)
+	try:
+		messages.processMessage(message)
+	except Exception as err:
+		log.warning("Error in main loop")
+		log.warning(traceback.format_exc())
+		if globals.gameId is not None:
+			log.debug("Setting game {} as errored".format(globals.gameId))
+			database.setGameErrored(globals.gameId)
+			ownerMessage = "[Game]({}) errored. Click [here]({}) to clear."\
+				.format("{}/comments/".format(globals.SUBREDDIT_LINK, globals.logGameId[:-2]),
+			            utils.buildMessageLink(
+                            globals.OWNER,
+                            "Kick game",
+                            "kick {}".format(globals.gameId)
+                        ))
+		else:
+			ownerMessage = "Unable to process message from /u/{}, skipping".format(str(message.author))
+
+		try:
+			reddit.sendMessage(globals.OWNER, "NCFAA game errored", ownerMessage)
+			message.mark_read()
+		except Exception as err2:
+			log.warning("Error sending error message")
+			log.warning(traceback.format_exc())
 
 	log.debug("Message processed after: %d", int(time.perf_counter() - startTime))
 	utils.clearLogGameID()

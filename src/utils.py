@@ -359,11 +359,13 @@ def extractPlayNumber(message):
 	return number, None
 
 
-def setLogGameID(gameid):
-	globals.logGameId = "{}: ".format(gameid)
+def setLogGameID(threadId, gameId):
+	globals.gameId = gameId
+	globals.logGameId = "{}: ".format(threadId)
 
 
 def clearLogGameID():
+	globals.gameId = None
 	globals.logGameId = ""
 
 
@@ -402,6 +404,13 @@ def listSuggestedPlays(game):
 		else:
 			return "**run** or **pass**"
 
+
+def buildMessageLink(recipient, subject, content):
+	return "https://np.reddit.com/message/compose/?to={}&subject={}&message={}".format(
+		recipient,
+		subject.replace(" ", "%20"),
+		content.replace(" ", "%20")
+	)
 
 
 def newGameObject(home, away):

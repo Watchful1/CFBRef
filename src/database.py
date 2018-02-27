@@ -189,13 +189,17 @@ def setGamePlayed(gameID):
 
 
 def clearGameErrored(gameID):
-	c = dbConn.cursor()
-	c.execute('''
-		UPDATE games
-		SET Errored = 0
-		WHERE ID = ?
-	''', (gameID,))
-	dbConn.commit()
+	try:
+		c = dbConn.cursor()
+		c.execute('''
+			UPDATE games
+			SET Errored = 0
+			WHERE ID = ?
+		''', (gameID,))
+		dbConn.commit()
+	except Exception as err:
+		return False
+	return True
 
 
 def setGameErrored(gameID):
