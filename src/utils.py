@@ -118,7 +118,7 @@ def renderGame(game):
 
 	bldr.append("\n___\n\n")
 
-	bldr.append("Playclock|Quarter|Down|Ball Location|Possession\n")
+	bldr.append("Playclock|Quarter|Down|Ball Location|Possession|Timeouts\n")
 	bldr.append(":-:|:-:|:-:|:-:|:-:\n")
 	bldr.append(renderTime(game['status']['clock']))
 	bldr.append("|")
@@ -143,6 +143,10 @@ def renderGame(game):
 	bldr.append("|")
 	team = game[game['status']['possession']]
 	bldr.append(flair(team['name'], team['tag']))
+	bldr.append("|")
+	for team in ['away', 'home']:
+		bldr.append(str(game['status']['timeouts'][team]))
+		bldr.append(flair(game[team]['name'], game[team]['tag']))
 
 	bldr.append("\n\n___\n\n")
 
