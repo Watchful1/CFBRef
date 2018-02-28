@@ -31,7 +31,7 @@ class ContextFilter(logging.Filter):
 
 log = logging.getLogger("bot")
 log.setLevel(LOG_LEVEL)
-log_formatter = logging.Formatter('%(asctime)s - %(levelname)s: %(gameid) %(message)s')
+log_formatter = logging.Formatter('%(asctime)s - %(levelname)s: %(gameid)s %(message)s')
 log_stdHandler = logging.StreamHandler()
 log_stdHandler.setFormatter(log_formatter)
 log.addHandler(log_stdHandler)

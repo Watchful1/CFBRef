@@ -78,7 +78,6 @@ def getGameByCoach(coach):
 			,g.ThreadID
 			,g.DefenseNumber
 			,g.Errored
-			,g.WaitingID
 			,group_concat(c2.Coach) as Coaches
 		FROM games g
 			INNER JOIN coaches c
@@ -96,7 +95,7 @@ def getGameByCoach(coach):
 		return None
 	else:
 		return {"id": resultTuple[0], "thread": resultTuple[1], "defenseNumber": resultTuple[2], "errored": resultTuple[3],
-		        "waitingId": resultTuple[4], "coaches": resultTuple[5].split(',')}
+		        "coaches": resultTuple[4].split(',')}
 
 
 def getGameByID(id):
@@ -105,7 +104,6 @@ def getGameByID(id):
 		SELECT g.ThreadID
 			,g.DefenseNumber
 			,g.Errored
-			,g.WaitingID
 			,group_concat(c.Coach) as Coaches
 		FROM games g
 			LEFT JOIN coaches c
@@ -121,7 +119,7 @@ def getGameByID(id):
 		return None
 	else:
 		return {"id": id, "thread": resultTuple[0], "defenseNumber": resultTuple[1], "errored": resultTuple[2],
-		        "waitingId": resultTuple[3], "coaches": resultTuple[4].split(',')}
+		        "coaches": resultTuple[3].split(',')}
 
 
 def endGameByID(id):

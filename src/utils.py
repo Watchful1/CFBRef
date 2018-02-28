@@ -193,7 +193,6 @@ def getGameByUser(user):
 	game['dataID'] = dataGame['id']
 	game['thread'] = dataGame['thread']
 	game['errored'] = dataGame['errored']
-	game['waitingId'] = dataGame['waitingId']
 	return game
 
 
