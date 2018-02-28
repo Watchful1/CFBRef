@@ -319,7 +319,6 @@ def executePlay(game, play, number, numberMessage):
 				if result['result'] == 'twoPoint':
 					log.debug("Successful two point conversion")
 					resultMessage = "The two point conversion is successful"
-					utils.addStat(game, 'yardsRushing', 3)
 					scoreTwoPoint(game, game['status']['possession'])
 
 				elif result['result'] == 'pat':
