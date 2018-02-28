@@ -246,8 +246,10 @@ def processMessageOffensePlay(game, message, author):
 	elif playSelected == "pat":
 		play = "pat"
 	elif playSelected == "mult":
+		log.debug("Found multiple plays")
 		return False, "I found multiple plays in your message. Please repost it with just the play and number."
 	else:
+		log.debug("Didn't find any plays")
 		return False, "I couldn't find a play in your message"
 
 	success, resultMessage = state.executePlay(game, play, number, numberMessage)
@@ -304,6 +306,7 @@ def processMessage(message):
 
 	response = None
 	success = None
+	updateWaiting = True
 	dataTable = None
 
 	if message.parent_id is not None and (message.parent_id.startswith("t1") or message.parent_id.startswith("t4")):
@@ -340,18 +343,20 @@ def processMessage(message):
 			game = utils.getGameByUser(author)
 			if game is not None:
 				utils.setLogGameID(game['thread'], game['dataID'])
-				if game['errored']:
+
+				waitingOn = utils.isGameWaitingOn(game, author, dataTable['action'], dataTable['source'])
+				if waitingOn is not None:
+					response = waitingOn
+					success = False
+					updateWaiting = False
+
+				elif game['errored']:
 					log.debug("Game is errored, skipping")
 					response = "This game is currently in an error state, /u/{} has been contacted to take a look".format(globals.OWNER)
 					success = False
 
 				else:
-					waitingOn = utils.isGameWaitingOn(game, author, dataTable['action'], dataTable['source'])
-					if waitingOn is not None:
-						response = waitingOn
-						success = False
-
-					elif dataTable['action'] == 'coin' and not isMessage:
+					if dataTable['action'] == 'coin' and not isMessage:
 						keywords = ['heads', 'tails']
 						keyword = utils.findKeywordInMessage(keywords, body)
 						if keyword == "heads":
@@ -390,12 +395,14 @@ def processMessage(message):
 	message.mark_read()
 	if response is not None:
 		if success is not None and not success and dataTable is not None and utils.extractTableFromMessage(response) is None:
+			log.debug("Embedding datatable in reply on failure")
 			response = utils.embedTableInMessage(response, dataTable)
-			if game is not None:
+			if updateWaiting and game is not None:
 				game['waitingId'] = 'return'
 		resultMessage = reddit.replyMessage(message, response)
 		if game is not None and game['waitingId'] == 'return':
 			game['waitingId'] = resultMessage.fullname
+			game['dirty'] = True
 			log.debug("Message/comment replied, now waiting on: {}".format(game['waitingId']))
 	else:
 		if isMessage:
@@ -404,4 +411,5 @@ def processMessage(message):
 			                    "I couldn't understand your message, please try again or message /u/Watchful1 if you need help.")
 
 	if game is not None and game['dirty']:
+		log.debug("Game is dirty, updating thread")
 		utils.updateGameThread(game)

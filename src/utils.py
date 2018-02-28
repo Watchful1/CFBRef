@@ -338,13 +338,13 @@ def getWaitingOnString(game):
 def sendDefensiveNumberMessage(game):
 	defenseHomeAway = reverseHomeAway(game['status']['possession'])
 	log.debug("Sending get defence number to {}".format(getCoachString(game, defenseHomeAway)))
-	messageResult = reddit.sendMessage(game[defenseHomeAway]['coaches'],
+	reddit.sendMessage(game[defenseHomeAway]['coaches'],
 	                   "{} vs {}".format(game['away']['name'], game['home']['name']),
 	                   embedTableInMessage("{}\n\nReply with a number between **1** and **1500**, inclusive."
 	                                       .format(getCurrentPlayString(game)), {'action': 'play'}))
+	messageResult = reddit.getRecentSentMessage()
 	game['waitingId'] = messageResult.fullname
 	log.debug("Defensive number sent, now waiting on: {}".format(game['waitingId']))
-	return reddit.getRecentSentMessage().id
 
 
 def extractPlayNumber(message):
