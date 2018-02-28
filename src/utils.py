@@ -119,7 +119,7 @@ def renderGame(game):
 	bldr.append("\n___\n\n")
 
 	bldr.append("Playclock|Quarter|Down|Ball Location|Possession|Timeouts\n")
-	bldr.append(":-:|:-:|:-:|:-:|:-:\n")
+	bldr.append(":-:|:-:|:-:|:-:|:-:|:-:\n")
 	bldr.append(renderTime(game['status']['clock']))
 	bldr.append("|")
 	bldr.append(str(game['status']['quarter']))
@@ -229,6 +229,7 @@ def sendGameComment(game, message, dataTable):
 	commentResult = reddit.replySubmission(game['thread'], embedTableInMessage(message, dataTable))
 	game['waitingId'] = commentResult.fullname
 	log.debug("Game comment sent, now waiting on: {}".format(game['waitingId']))
+	return commentResult
 
 
 def getHomeAwayString(isHome):
@@ -343,6 +344,7 @@ def sendDefensiveNumberMessage(game):
 	                                       .format(getCurrentPlayString(game)), {'action': 'play'}))
 	game['waitingId'] = messageResult.fullname
 	log.debug("Defensive number sent, now waiting on: {}".format(game['waitingId']))
+	return reddit.getRecentSentMessage().id
 
 
 def extractPlayNumber(message):
@@ -364,7 +366,7 @@ def extractPlayNumber(message):
 
 def setLogGameID(threadId, gameId):
 	globals.gameId = gameId
-	globals.logGameId = "{}: ".format(threadId)
+	globals.logGameId = " {}:".format(threadId)
 
 
 def clearLogGameID():

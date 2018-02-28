@@ -318,8 +318,8 @@ def processMessage(message):
 				if 'action' not in dataTable:
 					dataTable = None
 				else:
-					log.debug("Found a valid datatable in parent message")
 					dataTable['source'] = parent.fullname
+					log.debug("Found a valid datatable in parent message: {}".format(str(dataTable)))
 
 	body = message.body.lower()
 	author = str(message.author)
@@ -343,6 +343,7 @@ def processMessage(message):
 				if game['errored']:
 					log.debug("Game is errored, skipping")
 					response = "This game is currently in an error state, /u/{} has been contacted to take a look".format(globals.OWNER)
+					success = False
 
 				else:
 					waitingOn = utils.isGameWaitingOn(game, author, dataTable['action'], dataTable['source'])
