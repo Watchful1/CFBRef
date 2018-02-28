@@ -390,7 +390,7 @@ def processMessage(message):
 	message.mark_read()
 	if response is not None:
 		if success is not None and not success and dataTable is not None and utils.extractTableFromMessage(response) is None:
-			response = utils.embedTableInMessage(message, dataTable)
+			response = utils.embedTableInMessage(response, dataTable)
 			if game is not None:
 				game['waitingId'] = 'return'
 		resultMessage = reddit.replyMessage(message, response)
