@@ -330,7 +330,7 @@ def getWaitingOnString(game):
 		if game['waitingOn'] == game['status']['possession']:
 			string = "Waiting on {} for an offensive play".format(game[game['waitingOn']]['name'])
 		else:
-			string = "Waiting on {} for an defensive number".format(game[game['waitingOn']]['name'])
+			string = "Waiting on {} for a defensive number".format(game[game['waitingOn']]['name'])
 
 	return string
 
