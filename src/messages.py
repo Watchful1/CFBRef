@@ -354,6 +354,7 @@ def processMessage(message):
 					log.debug("Game is errored, skipping")
 					response = "This game is currently in an error state, /u/{} has been contacted to take a look".format(globals.OWNER)
 					success = False
+					updateWaiting = False
 
 				else:
 					if dataTable['action'] == 'coin' and not isMessage:

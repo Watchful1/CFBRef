@@ -106,9 +106,11 @@ def getPlayResult(game, play, number):
 		log.warning("{} is not a valid play".format(play))
 		return None
 
+	log.debug("Getting play result for: {}".format(play))
 	if play in globals.movementPlays:
 		offense = game[game['status']['possession']]['offense']
 		defense = game[utils.reverseHomeAway(game['status']['possession'])]['defense']
+		log.debug("Movement play offense, defense: {} : {}".format(offense, defense))
 		playMajorRange = playDict[offense][defense]
 	else:
 		playMajorRange = playDict
