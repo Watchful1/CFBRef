@@ -89,7 +89,7 @@ for message in reddit.getMessageStream():
 			log.debug("Setting game {} as errored".format(globals.gameId))
 			database.setGameErrored(globals.gameId)
 			ownerMessage = "[Game]({}) errored. Click [here]({}) to clear."\
-				.format("{}/{}".format(globals.SUBREDDIT_LINK, globals.logGameId[1:-1]),
+				.format("{}{}".format(globals.SUBREDDIT_LINK, globals.logGameId[1:-1]),
 			            utils.buildMessageLink(
                             globals.ACCOUNT_NAME,
                             "Kick game",
