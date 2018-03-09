@@ -10,6 +10,7 @@ LOOP_TIME = 2*60
 DATABASE_NAME = "database.db"
 SUBREDDIT_LINK = "https://www.reddit.com/r/{}/comments/".format(SUBREDDIT)
 ACCOUNT_NAME = "default"
+ADMINS = ["watchful1","akick31","inkblot9"]
 
 ### Constants ###
 movementPlays = ['run', 'pass']

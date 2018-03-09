@@ -15,109 +15,46 @@ log = logging.getLogger("bot")
 def processMessageNewGame(body, author):
 	log.debug("Processing new game message")
 
+	if author.lower() not in globals.ADMINS:
+		log.debug("User /u/{} is not allowed to create games".format(author))
+		return "Only admins can start games"
+
 	users = re.findall('(?: /u/)([\w-]*)', body)
-	if len(users) == 0:
-		log.debug("Could not find an opponent in create game message")
-		return "Please resend the message and specify an opponent"
-	opponent = users[0]
-	log.debug("Found opponent in message /u/{}".format(opponent))
+	if len(users) < 2:
+		log.debug("Could not find an two teams in create game message")
+		return "Please resend the message and specify two teams"
 
-	i, result = utils.verifyCoaches([author, opponent])
+	homeCoach = users[0]
+	awayCoach = users[1]
+	log.debug("Found home/away coaches in message /u/{} vs /u/{}".format(homeCoach, awayCoach))
 
-	if i == 0 and result == 'team':
-		log.debug("Author does not have a team")
-		return "It looks like you don't have a team, please contact the /r/FakeCollegeFootball moderators"
+	i, result = utils.verifyCoaches([homeCoach, awayCoach])
 
-	if i == 0 and result == 'game':
-		log.debug("Author already has a game")
-		return "You're already playing a game, you can't challenge anyone else until that game finishes"
+	if result == 'same':
+		log.debug("Coaches are on the same team")
+		return "You can't list two coaches that are on the same team"
 
 	if result == 'duplicate':
-		log.debug("{} challenged themselves to a game".format(author))
-		return "You can't challenge yourself to a game"
+		log.debug("Duplicate coaches")
+		return "Both coaches were the same"
+
+	if i == 0 and result == 'team':
+		log.debug("Home does not have a team")
+		return "The home coach does not have a team"
+
+	if i == 0 and result == 'game':
+		log.debug("Home already has a game")
+		return "The home coach is already in a game"
 
 	if i == 1 and result == 'team':
-		log.debug("Opponent does not have a team")
-		return "It looks like your opponent doesn't have a team, please contact the /r/FakeCollegeFootball moderators"
+		log.debug("Away does not have a team")
+		return "The away coach does not have a team"
 
 	if i == 1 and result == 'game':
-		log.debug("Opponent already has a game")
-		return "/u/{} is already playing a game".format(opponent)
+		log.debug("Away already has a game")
+		return "The away coach is already in a game"
 
-	authorTeam = wiki.getTeamByCoach(author)
-	message = "/u/{}'s {} has challenged you to a game! Reply **accept** or **reject**.".format(author, authorTeam['name'])
-	data = {'action': 'newgame', 'opponent': author}
-	embeddedMessage = utils.embedTableInMessage(message, data)
-	log.debug("Sending message to /u/{} that /u/{} has challenged them to a game".format(opponent, author))
-	if reddit.sendMessage(opponent, "Game challenge", embeddedMessage):
-		return "I've let /u/{} know that you have challenged them to a game. I'll message you again when they accept".format(opponent)
-	else:
-		return "Something went wrong, I couldn't find that user"
-
-
-def processMessageRejectGame(dataTable, author):
-	log.debug("Processing reject game message")
-	if 'opponent' not in dataTable:
-		log.warning("Couldn't find opponent in datatable")
-		return False, "I couldn't figure out which opponent you were rejecting. This shouldn't happen, please let /u/Watchful1 know"
-
-	log.debug("Sending message to /u/{} that {} rejected their challenge".format(dataTable['opponent'], author))
-	reddit.sendMessage(dataTable['opponent'], "Challenge rejected", "/u/{} has rejected your game challenge".format(author))
-	return True, "Challenge successfully rejected"
-
-
-def processMessageAcceptGame(dataTable, author):
-	log.debug("Processing accept game message")
-	if 'opponent' not in dataTable:
-		log.warning("Couldn't find opponent in datatable")
-		return False, "I couldn't figure out which opponent you were accepting. This shouldn't happen, please let /u/Watchful1 know"
-
-	coachNum, result = utils.verifyCoaches([author, dataTable['opponent']])
-	if coachNum != -1:
-		log.debug("Coaches not verified, {} : {}".format(coachNum, result))
-		return False, "Something went wrong, someone is no longer an acceptable coach. Please try to start the game again"
-
-	homeTeam = wiki.getTeamByCoach(dataTable['opponent'].lower())
-	awayTeam = wiki.getTeamByCoach(author.lower())
-	for team in [homeTeam, awayTeam]:
-		team['yardsPassing'] = 0
-		team['yardsRushing'] = 0
-		team['yardsTotal'] = 0
-		team['turnoverInterceptions'] = 0
-		team['turnoverFumble'] = 0
-		team['fieldGoalsScored'] = 0
-		team['fieldGoalsAttempted'] = 0
-		team['posTime'] = 0
-
-	game = utils.newGameObject(homeTeam, awayTeam)
-
-	gameThread = utils.getGameThreadText(game)
-	gameTitle = "[GAME THREAD] {} @ {}".format(game['away']['name'], game['home']['name'])
-
-	threadID = str(reddit.submitSelfPost(globals.SUBREDDIT, gameTitle, gameThread))
-	game['thread'] = threadID
-	log.debug("Game thread created: {}".format(threadID))
-
-	gameID = database.createNewGame(threadID)
-	game['dataID'] = gameID
-	log.debug("Game database record created: {}".format(gameID))
-
-	for user in game['home']['coaches']:
-		database.addCoach(gameID, user, True)
-		log.debug("Coach added to home: {}".format(user))
-	for user in game['away']['coaches']:
-		database.addCoach(gameID, user, False)
-		log.debug("Coach added to away: {}".format(user))
-
-	log.debug("Game started, posting coin toss comment")
-	message = "The game has started! {}, you're away, call **heads** or **tails** in the air.".format(utils.getCoachString(game, 'away'))
-	comment = utils.sendGameComment(game, message, {'action': 'coin'})
-	game['waitingId'] = comment.fullname
-	log.debug("Comment posted, now waiting on: {}".format(game['waitingId']))
-	utils.updateGameThread(game)
-
-	log.debug("Returning game started message")
-	return True, "Game started. Find it [here]({}).".format(utils.getLinkToThread(threadID))
+	return utils.startGame(homeCoach, awayCoach)
 
 
 def processMessageCoin(game, isHeads, author):
@@ -328,64 +265,52 @@ def processMessage(message):
 	author = str(message.author)
 	game = None
 	if dataTable is not None:
-		if dataTable['action'] == 'newgame' and isMessage:
-			keywords = ['accept', 'reject']
-			keyword = utils.findKeywordInMessage(keywords, body)
-			if keyword == "accept":
-				success, response = processMessageAcceptGame(dataTable, str(message.author))
-			elif keyword == "reject":
-				success, response = processMessageRejectGame(dataTable, str(message.author))
-			elif keyword == 'mult':
+		game = utils.getGameByUser(author)
+		if game is not None:
+			utils.setLogGameID(game['thread'], game['dataID'])
+
+			waitingOn = utils.isGameWaitingOn(game, author, dataTable['action'], dataTable['source'])
+			if waitingOn is not None:
+				response = waitingOn
 				success = False
-				response = "I found both {} in your message. Please reply with just one of them.".format(' and '.join(keywords))
+				updateWaiting = False
 
-		else:
-			game = utils.getGameByUser(author)
-			if game is not None:
-				utils.setLogGameID(game['thread'], game['dataID'])
+			elif game['errored']:
+				log.debug("Game is errored, skipping")
+				response = "This game is currently in an error state, /u/{} has been contacted to take a look".format(globals.OWNER)
+				success = False
+				updateWaiting = False
 
-				waitingOn = utils.isGameWaitingOn(game, author, dataTable['action'], dataTable['source'])
-				if waitingOn is not None:
-					response = waitingOn
-					success = False
-					updateWaiting = False
-
-				elif game['errored']:
-					log.debug("Game is errored, skipping")
-					response = "This game is currently in an error state, /u/{} has been contacted to take a look".format(globals.OWNER)
-					success = False
-					updateWaiting = False
-
-				else:
-					if dataTable['action'] == 'coin' and not isMessage:
-						keywords = ['heads', 'tails']
-						keyword = utils.findKeywordInMessage(keywords, body)
-						if keyword == "heads":
-							success, response = processMessageCoin(game, True, str(message.author))
-						elif keyword == "tails":
-							success, response = processMessageCoin(game, False, str(message.author))
-						elif keyword == 'mult':
-							success = False
-							response = "I found both {} in your message. Please reply with just one of them.".format(' and '.join(keywords))
-
-					elif dataTable['action'] == 'defer' and not isMessage:
-						keywords = ['defer', 'receive']
-						keyword = utils.findKeywordInMessage(keywords, body)
-						if keyword == "defer":
-							success, response = processMessageDefer(game, True, str(message.author))
-						elif keyword == "receive":
-							success, response = processMessageDefer(game, False, str(message.author))
-						elif keyword == 'mult':
-							success = False
-							response = "I found both {} in your message. Please reply with just one of them.".format(' and '.join(keywords))
-
-					elif dataTable['action'] == 'play' and isMessage:
-						success, response = processMessageDefenseNumber(game, body, str(message.author))
-
-					elif dataTable['action'] == 'play' and not isMessage:
-						success, response = processMessageOffensePlay(game, body, str(message.author))
 			else:
-				log.debug("Couldn't get a game for /u/{}".format(author))
+				if dataTable['action'] == 'coin' and not isMessage:
+					keywords = ['heads', 'tails']
+					keyword = utils.findKeywordInMessage(keywords, body)
+					if keyword == "heads":
+						success, response = processMessageCoin(game, True, str(message.author))
+					elif keyword == "tails":
+						success, response = processMessageCoin(game, False, str(message.author))
+					elif keyword == 'mult':
+						success = False
+						response = "I found both {} in your message. Please reply with just one of them.".format(' and '.join(keywords))
+
+				elif dataTable['action'] == 'defer' and not isMessage:
+					keywords = ['defer', 'receive']
+					keyword = utils.findKeywordInMessage(keywords, body)
+					if keyword == "defer":
+						success, response = processMessageDefer(game, True, str(message.author))
+					elif keyword == "receive":
+						success, response = processMessageDefer(game, False, str(message.author))
+					elif keyword == 'mult':
+						success = False
+						response = "I found both {} in your message. Please reply with just one of them.".format(' and '.join(keywords))
+
+				elif dataTable['action'] == 'play' and isMessage:
+					success, response = processMessageDefenseNumber(game, body, str(message.author))
+
+				elif dataTable['action'] == 'play' and not isMessage:
+					success, response = processMessageOffensePlay(game, body, str(message.author))
+		else:
+			log.debug("Couldn't get a game for /u/{}".format(author))
 	else:
 		log.debug("Parsing non-datatable message")
 		if "newgame" in body and isMessage:

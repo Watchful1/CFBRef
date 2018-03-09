@@ -16,29 +16,55 @@ def getLinkToThread(threadID):
 	return globals.SUBREDDIT_LINK + threadID
 
 
-def startGame(initiator, opponent):
-	log.debug("Creating new game between /u/{} and /u/{}".format(initiator, opponent))
-	ID = database.getGameIDByCoach(initiator)
-	if ID is not None:
-		game = database.getGameByID(ID)
-		if 'thread' in game:
-			log.debug("Initiator has an existing game at {}".format(game['thread']))
-			return False, "You're already playing a [game]({}).".format(getLinkToThread(game['thread']))
-		else:
-			log.debug("Replacing existing game request")
-			database.deleteGameByID()
+def startGame(homeCoach, awayCoach):
+	log.debug("Creating new game between /u/{} and /u/{}".format(homeCoach, awayCoach))
 
-	ID = database.getGameIDByCoach(opponent)
-	if ID is not None:
-		game = database.getGameByID(ID)
-		log.debug("Opponent has an existing game at {}".format(game['thread']))
-		return False, "Your opponent is already playing a [game]({}).".format(getLinkToThread(game['thread']))
+	coachNum, result = verifyCoaches([homeCoach, awayCoach])
+	if coachNum != -1:
+		log.debug("Coaches not verified, {} : {}".format(coachNum, result))
+		return "Something went wrong, someone is no longer an acceptable coach. Please try to start the game again"
 
-	gameID = database.createNewGame()
-	database.addCoach(gameID, initiator, True)
-	database.addCoach(gameID, opponent, False)
+	homeTeam = wiki.getTeamByCoach(homeCoach.lower())
+	awayTeam = wiki.getTeamByCoach(awayCoach.lower())
+	for team in [homeTeam, awayTeam]:
+		team['yardsPassing'] = 0
+		team['yardsRushing'] = 0
+		team['yardsTotal'] = 0
+		team['turnoverInterceptions'] = 0
+		team['turnoverFumble'] = 0
+		team['fieldGoalsScored'] = 0
+		team['fieldGoalsAttempted'] = 0
+		team['posTime'] = 0
 
-	return True, "Game created"
+	game = newGameObject(homeTeam, awayTeam)
+
+	gameThread = getGameThreadText(game)
+	gameTitle = "[GAME THREAD] {} @ {}".format(game['away']['name'], game['home']['name'])
+
+	threadID = str(reddit.submitSelfPost(globals.SUBREDDIT, gameTitle, gameThread))
+	game['thread'] = threadID
+	log.debug("Game thread created: {}".format(threadID))
+
+	gameID = database.createNewGame(threadID)
+	game['dataID'] = gameID
+	log.debug("Game database record created: {}".format(gameID))
+
+	for user in game['home']['coaches']:
+		database.addCoach(gameID, user, True)
+		log.debug("Coach added to home: {}".format(user))
+	for user in game['away']['coaches']:
+		database.addCoach(gameID, user, False)
+		log.debug("Coach added to away: {}".format(user))
+
+	log.debug("Game started, posting coin toss comment")
+	message = "The game has started! {}, you're home. {}, you're away, call **heads** or **tails** in the air.".format(getCoachString(game, 'home'), getCoachString(game, 'away'))
+	comment = sendGameComment(game, message, {'action': 'coin'})
+	game['waitingId'] = comment.fullname
+	log.debug("Comment posted, now waiting on: {}".format(game['waitingId']))
+	updateGameThread(game)
+
+	log.debug("Returning game started message")
+	return "Game started. Find it [here]({}).".format(getLinkToThread(threadID))
 
 
 def embedTableInMessage(message, table):
@@ -59,6 +85,7 @@ def extractTableFromMessage(message):
 
 def verifyCoaches(coaches):
 	coachSet = set()
+	teamSet = set()
 	for i, coach in enumerate(coaches):
 		if coach in coachSet:
 			return i, 'duplicate'
@@ -67,6 +94,9 @@ def verifyCoaches(coaches):
 		team = wiki.getTeamByCoach(coach)
 		if team is None:
 			return i, 'team'
+		if team['name'] in teamSet:
+			return i, 'same'
+		teamSet.add(team['name'])
 
 		game = database.getGameByCoach(coach)
 		if game is not None:
