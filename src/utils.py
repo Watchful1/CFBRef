@@ -35,6 +35,7 @@ def startGame(homeCoach, awayCoach, startTime=None, location=None, station=None,
 		team['fieldGoalsScored'] = 0
 		team['fieldGoalsAttempted'] = 0
 		team['posTime'] = 0
+		team['record'] = None
 
 	game = newGameObject(homeTeam, awayTeam)
 	if startTime is not None:
@@ -43,6 +44,10 @@ def startGame(homeCoach, awayCoach, startTime=None, location=None, station=None,
 		game['location'] = location
 	if station is not None:
 		game['station'] = station
+	if homeRecord is not None:
+		homeTeam['record'] = homeRecord
+	if awayRecord is not None:
+		awayTeam['record'] = awayRecord
 
 	gameThread = getGameThreadText(game)
 	gameTitle = "[GAME THREAD] {}{} @ {}{}".format(
