@@ -24,8 +24,8 @@ def processMessageNewGame(body, author):
 		log.debug("Could not find an two teams in create game message")
 		return "Please resend the message and specify two teams"
 
-	homeCoach = users[0]
-	awayCoach = users[1]
+	homeCoach = users[0].lower()
+	awayCoach = users[1].lower()
 	log.debug("Found home/away coaches in message /u/{} vs /u/{}".format(homeCoach, awayCoach))
 
 	i, result = utils.verifyCoaches([homeCoach, awayCoach])
@@ -54,7 +54,30 @@ def processMessageNewGame(body, author):
 		log.debug("Away already has a game")
 		return "The away coach is already in a game"
 
-	return utils.startGame(homeCoach, awayCoach)
+	startTime = None
+	location = None
+	station = None
+	homeRecord = None
+	awayRecord = None
+
+	for match in re.finditer('(?: )(\w+)(?:=")([^"]*)', body):
+		if match.group(1) == "start":
+			startTime = match.group(2)
+			log.debug("Found start time: {}".format(startTime))
+		elif match.group(1) == "location":
+			location = match.group(2)
+			log.debug("Found location: {}".format(location))
+		elif match.group(1) == "station":
+			station = match.group(2)
+			log.debug("Found station: {}".format(station))
+		elif match.group(1) == "homeRecord":
+			homeRecord = match.group(2)
+			log.debug("Found home record: {}".format(homeRecord))
+		elif match.group(1) == "awayRecord":
+			awayRecord = match.group(2)
+			log.debug("Found away record: {}".format(awayRecord))
+
+	return utils.startGame(homeCoach, awayCoach, startTime, location, station, homeRecord, awayRecord)
 
 
 def processMessageCoin(game, isHeads, author):
@@ -314,7 +337,7 @@ def processMessage(message):
 	else:
 		log.debug("Parsing non-datatable message")
 		if "newgame" in body and isMessage:
-			response = processMessageNewGame(body, str(message.author))
+			response = processMessageNewGame(message.body, str(message.author))
 		if "kick" in body and isMessage and str(message.author).lower() == globals.OWNER:
 			response = processMessageKickGame(body)
 

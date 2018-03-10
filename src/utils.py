@@ -16,7 +16,7 @@ def getLinkToThread(threadID):
 	return globals.SUBREDDIT_LINK + threadID
 
 
-def startGame(homeCoach, awayCoach):
+def startGame(homeCoach, awayCoach, startTime=None, location=None, station=None, homeRecord=None, awayRecord=None):
 	log.debug("Creating new game between /u/{} and /u/{}".format(homeCoach, awayCoach))
 
 	coachNum, result = verifyCoaches([homeCoach, awayCoach])
@@ -37,9 +37,19 @@ def startGame(homeCoach, awayCoach):
 		team['posTime'] = 0
 
 	game = newGameObject(homeTeam, awayTeam)
+	if startTime is not None:
+		game['startTime'] = startTime
+	if location is not None:
+		game['location'] = location
+	if station is not None:
+		game['station'] = station
 
 	gameThread = getGameThreadText(game)
-	gameTitle = "[GAME THREAD] {} @ {}".format(game['away']['name'], game['home']['name'])
+	gameTitle = "[GAME THREAD] {}{} @ {}{}".format(
+		game['away']['name'],
+		" {}".format(awayRecord) if awayRecord is not None else "",
+		game['home']['name'],
+		" {}".format(homeRecord) if homeRecord is not None else "")
 
 	threadID = str(reddit.submitSelfPost(globals.SUBREDDIT, gameTitle, gameThread))
 	game['thread'] = threadID
@@ -123,7 +133,25 @@ def renderGame(game):
 	bldr.append(flair(game['home']['name'], game['home']['tag']))
 	bldr.append(" **")
 	bldr.append(game['home']['name'])
-	bldr.append("**\n\n___\n\n")
+	bldr.append("**\n\n")
+
+	if game['startTime'] is not None:
+		bldr.append(" **Game Start Time:** ")
+		bldr.append(game['startTime'])
+		bldr.append("\n\n")
+
+	if game['location'] is not None:
+		bldr.append(" **Location:** ")
+		bldr.append(game['location'])
+		bldr.append("\n\n")
+
+	if game['station'] is not None:
+		bldr.append(" **Watch:** ")
+		bldr.append(game['station'])
+		bldr.append("\n\n")
+
+
+	bldr.append("\n\n")
 
 	for team in ['away', 'home']:
 		bldr.append(flair(game[team]['name'], game[team]['tag']))
@@ -470,7 +498,8 @@ def newGameObject(home, away):
 	          'timeouts': {'home': 3, 'away': 3}, 'requestedTimeout': {'home': 'none', 'away': 'none'}, 'conversion': False}
 	score = {'quarters': [{'home': 0, 'away': 0}, {'home': 0, 'away': 0}, {'home': 0, 'away': 0}, {'home': 0, 'away': 0}], 'home': 0, 'away': 0}
 	game = {'home': home, 'away': away, 'drives': [], 'status': status, 'score': score, 'errored': 0, 'waitingId': None,
-	        'waitingAction': 'coin', 'waitingOn': 'away', 'dataID': -1, 'thread': "empty", "receivingNext": "home", 'dirty': False}
+	        'waitingAction': 'coin', 'waitingOn': 'away', 'dataID': -1, 'thread': "empty", "receivingNext": "home",
+	        'dirty': False, 'startTime': None, 'location': None, 'station': None}
 	return game
 
 

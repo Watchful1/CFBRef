@@ -14,6 +14,7 @@ teams = {}
 coaches = {}
 plays = {}
 times = {}
+admins = set()
 
 lastTime = None
 
@@ -196,3 +197,20 @@ def getTimeByPlay(play):
 		return times[play]
 	else:
 		return None
+
+
+def loadAdmins():
+	adminsPage = reddit.getWikiPage(globals.CONFIG_SUBREDDIT, "admins")
+
+	for line in adminsPage.splitlines():
+		items = line.split('|')
+		if len(items) < 5:
+			log.warning("Could not parse team line: {}".format(teamLine))
+			continue
+		team = {'tag': items[0], 'name': items[1], 'offense': items[2].lower(), 'defense': items[3].lower(),
+		        'coaches': []}
+		for coach in items[4].lower().split(','):
+			coach = coach.strip()
+			team['coaches'].append(coach)
+			coaches[coach] = team
+		teams[team['tag']] = team
