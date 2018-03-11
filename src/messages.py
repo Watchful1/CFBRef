@@ -15,7 +15,7 @@ log = logging.getLogger("bot")
 def processMessageNewGame(body, author):
 	log.debug("Processing new game message")
 
-	if author.lower() not in globals.ADMINS:
+	if author.lower() not in wiki.admins:
 		log.debug("User /u/{} is not allowed to create games".format(author))
 		return "Only admins can start games"
 
@@ -86,20 +86,28 @@ def processMessageCoin(game, isHeads, author):
 	if isHeads == utils.coinToss():
 		log.debug("User won coin toss, asking if they want to defer")
 		game['waitingAction'] = 'defer'
-		game['waitingOn'] = 'home'
-		game['waitingId'] = 'return'
-		game['dirty'] = True
-
-		message = "{}, {} won the toss, do you want to **receive** or **defer**?".format(utils.getCoachString(game, 'home'), game['home']['name'])
-		return True, utils.embedTableInMessage(message, {'action': 'defer'})
-	else:
-		log.debug("User lost coin toss, asking other team if they want to defer")
-		game['waitingAction'] = 'defer'
 		game['waitingOn'] = 'away'
 		game['waitingId'] = 'return'
 		game['dirty'] = True
 
-		message = "{}, {} won the toss, do you want to **receive** or **defer**?".format(utils.getCoachString(game, 'away'), game['away']['name'])
+		if utils.isGameOvertime(game):
+			questionString = "do you want to **defend** or **attack**?"
+		else:
+			questionString = "do you want to **receive** or **defer**?"
+		message = "{}, {} won the toss, {}".format(utils.getCoachString(game, 'away'), game['away']['name'], questionString)
+		return True, utils.embedTableInMessage(message, {'action': 'defer'})
+	else:
+		log.debug("User lost coin toss, asking other team if they want to defer")
+		game['waitingAction'] = 'defer'
+		game['waitingOn'] = 'home'
+		game['waitingId'] = 'return'
+		game['dirty'] = True
+
+		if utils.isGameOvertime(game):
+			questionString = "do you want to **defend** or **attack**?"
+		else:
+			questionString = "do you want to **receive** or **defer**?"
+		message = "{}, {} won the toss, {}".format(utils.getCoachString(game, 'home'), game['away']['home'], questionString)
 		return True, utils.embedTableInMessage(message, {'action': 'defer'})
 
 
@@ -107,32 +115,60 @@ def processMessageDefer(game, isDefer, author):
 	log.debug("Processing defer message: {}".format(str(isDefer)))
 
 	authorHomeAway = utils.getHomeAwayString(utils.isCoachHome(game, author))
-	if isDefer:
-		log.debug("User deferred, {} is receiving".format(utils.reverseHomeAway(authorHomeAway)))
+	if utils.isGameOvertime(game):
+		if isDefer:
+			log.debug("User deferred, {} is attacking".format(utils.reverseHomeAway(authorHomeAway)))
 
-		state.setStateTouchback(game, utils.reverseHomeAway(authorHomeAway))
-		game['receivingNext'] = authorHomeAway
-		game['waitingOn'] = utils.reverseHomeAway(game['waitingOn'])
-		game['dirty'] = True
-		utils.sendDefensiveNumberMessage(game)
+			state.setStateOvertimeDrive(game, utils.reverseHomeAway(authorHomeAway))
+			game['receivingNext'] = authorHomeAway
+			game['waitingOn'] = utils.reverseHomeAway(game['waitingOn'])
+			game['dirty'] = True
+			utils.sendDefensiveNumberMessage(game)
 
-		return True, "{} deferred and will receive the ball in the second half. The game has started!\n\n{}\n\n{}".format(
-			game[authorHomeAway]['name'],
-		    utils.getCurrentPlayString(game),
-		    utils.getWaitingOnString(game))
+			return True, "{} deferred and will attack next. Overtime has started!\n\n{}\n\n{}".format(
+				game[authorHomeAway]['name'],
+			    utils.getCurrentPlayString(game),
+			    utils.getWaitingOnString(game))
+		else:
+			log.debug("User elected to attack, {} is attacking".format(authorHomeAway))
+
+			state.setStateOvertimeDrive(game, authorHomeAway)
+			game['receivingNext'] = utils.reverseHomeAway(authorHomeAway)
+			game['waitingOn'] = utils.reverseHomeAway(game['waitingOn'])
+			game['dirty'] = True
+			utils.sendDefensiveNumberMessage(game)
+
+			return True, "{} elected to attack. Overtime has started!\n\n{}\n\n{}".format(
+				game[authorHomeAway]['name'],
+			    utils.getCurrentPlayString(game),
+			    utils.getWaitingOnString(game))
 	else:
-		log.debug("User elected to receive, {} is receiving".format(authorHomeAway))
+		if isDefer:
+			log.debug("User deferred, {} is receiving".format(utils.reverseHomeAway(authorHomeAway)))
 
-		state.setStateTouchback(game, authorHomeAway)
-		game['receivingNext'] = utils.reverseHomeAway(authorHomeAway)
-		game['waitingOn'] = utils.reverseHomeAway(game['waitingOn'])
-		game['dirty'] = True
-		utils.sendDefensiveNumberMessage(game)
+			state.setStateTouchback(game, utils.reverseHomeAway(authorHomeAway))
+			game['receivingNext'] = authorHomeAway
+			game['waitingOn'] = utils.reverseHomeAway(game['waitingOn'])
+			game['dirty'] = True
+			utils.sendDefensiveNumberMessage(game)
 
-		return True, "{} elected to receive. The game has started!\n\n{}\n\n{}".format(
-			game[authorHomeAway]['name'],
-		    utils.getCurrentPlayString(game),
-		    utils.getWaitingOnString(game))
+			return True, "{} deferred and will receive the ball in the second half. The game has started!\n\n{}\n\n{}".format(
+				game[authorHomeAway]['name'],
+			    utils.getCurrentPlayString(game),
+			    utils.getWaitingOnString(game))
+		else:
+			log.debug("User elected to receive, {} is receiving".format(authorHomeAway))
+
+			state.setStateTouchback(game, authorHomeAway)
+			game['receivingNext'] = utils.reverseHomeAway(authorHomeAway)
+			game['waitingOn'] = utils.reverseHomeAway(game['waitingOn'])
+			game['dirty'] = True
+			utils.sendDefensiveNumberMessage(game)
+
+			return True, "{} elected to receive. The game has started!\n\n{}\n\n{}".format(
+				game[authorHomeAway]['name'],
+			    utils.getCurrentPlayString(game),
+			    utils.getWaitingOnString(game))
 
 
 def processMessageDefenseNumber(game, message, author):
@@ -236,6 +272,13 @@ def processMessageOffensePlay(game, message, author):
 	game['dirty'] = True
 	if game['waitingAction'] == 'play':
 		utils.sendDefensiveNumberMessage(game)
+	elif game['waitingAction'] == 'overtime':
+		log.debug("Starting overtime, posting coin toss comment")
+		message = "Overtime has started! {}, you're away, call **heads** or **tails** in the air.".format(
+			utils.getCoachString(game, 'away'))
+		comment = utils.sendGameComment(game, message, {'action': 'coin'})
+		game['waitingId'] = comment.fullname
+		game['waitingAction'] = 'coin'
 
 	return success, utils.embedTableInMessage('\n\n'.join(result), {'action': game['waitingAction']})
 
@@ -317,11 +360,14 @@ def processMessage(message):
 						response = "I found both {} in your message. Please reply with just one of them.".format(' and '.join(keywords))
 
 				elif dataTable['action'] == 'defer' and not isMessage:
-					keywords = ['defer', 'receive']
+					if utils.isGameOvertime(game):
+						keywords = ['defend', 'attack']
+					else:
+						keywords = ['defer', 'receive']
 					keyword = utils.findKeywordInMessage(keywords, body)
-					if keyword == "defer":
+					if keyword == "defer" or keyword == "defend":
 						success, response = processMessageDefer(game, True, str(message.author))
-					elif keyword == "receive":
+					elif keyword == "receive" or keyword == "attack":
 						success, response = processMessageDefer(game, False, str(message.author))
 					elif keyword == 'mult':
 						success = False

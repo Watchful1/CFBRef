@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import datetime
 
 import globals
 
@@ -16,7 +17,8 @@ def init():
 			ID INTEGER PRIMARY KEY AUTOINCREMENT,
 			ThreadID VARCHAR(80) NOT NULL,
 			DefenseNumber INTEGER,
-			LastPlayed TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			Deadline TIMESTAMP NOT NULL DEFAULT DATETIME(CURRENT_TIMESTAMP, '+10 days'),
+			Playclock TIMESTAMP NOT NULL DEFAULT DATETIME(CURRENT_TIMESTAMP, '+24 hours'),
 			Complete BOOLEAN NOT NULL DEFAULT 0,
 			Errored BOOLEAN NOT NULL DEFAULT 0,
 			UNIQUE (ThreadID)
@@ -127,7 +129,7 @@ def endGameByID(id):
 	c.execute('''
 		UPDATE games
 		SET Complete = 0
-			,LastPlayed = CURRENT_TIMESTAMP
+			,Playclock = DATETIME(CURRENT_TIMESTAMP, '+24 hours')
 		WHERE ID = ?
 	''', (id,))
 	dbConn.commit()
@@ -142,7 +144,7 @@ def saveDefensiveNumber(gameID, number):
 	c = dbConn.cursor()
 	c.execute('''
 		UPDATE games
-		SET LastPlayed = CURRENT_TIMESTAMP
+		SET Playclock = DATETIME(CURRENT_TIMESTAMP, '+24 hours')
 			,DefenseNumber = ?
 		WHERE ID = ?
 	''', (number, gameID))
@@ -169,10 +171,21 @@ def clearDefensiveNumber(gameID):
 	c = dbConn.cursor()
 	c.execute('''
 		UPDATE games
-		SET LastPlayed = CURRENT_TIMESTAMP
+		SET Playclock = DATETIME(CURRENT_TIMESTAMP, '+24 hours')
 			,DefenseNumber = NULL
 		WHERE ID = ?
 	''', (gameID,))
+	dbConn.commit()
+
+
+def pauseGame(gameID, hours):
+	c = dbConn.cursor()
+	c.execute('''
+		UPDATE games
+		SET Playclock = DATETIME(CURRENT_TIMESTAMP, '+' || ? || ' hours')
+			,Deadline = DATETIME(Deadline, '+' || ? || ' hours')
+		WHERE ID = ?
+	''', (str(hours), str(hours), gameID))
 	dbConn.commit()
 
 
@@ -180,10 +193,72 @@ def setGamePlayed(gameID):
 	c = dbConn.cursor()
 	c.execute('''
 		UPDATE games
-		SET LastPlayed = CURRENT_TIMESTAMP
+		SET Playclock = DATETIME(CURRENT_TIMESTAMP, '+24 hours')
 		WHERE ID = ?
 	''', (gameID,))
 	dbConn.commit()
+
+
+def getGamePlayed(gameID):
+	c = dbConn.cursor()
+	result = c.execute('''
+		SELECT LastPlayed
+		FROM games
+		WHERE ID = ?
+	''', (gameID,))
+
+	resultTuple = result.fetchone()
+
+	if not resultTuple:
+		return None
+
+	return datetime.strptime(resultTuple[0], "%Y-%m-%d %H:%M:%S")
+
+
+def getGameDeadline(gameID):
+	c = dbConn.cursor()
+	result = c.execute('''
+		SELECT Deadline
+		FROM games
+		WHERE ID = ?
+	''', (gameID,))
+
+	resultTuple = result.fetchone()
+
+	if not resultTuple:
+		return None
+
+	return datetime.strptime(resultTuple[0], "%Y-%m-%d %H:%M:%S")
+
+
+def getGamesPastPlayclock():
+	c = dbConn.cursor()
+	results = []
+	for row in c.execute('''
+		SELECT ThreadID
+		FROM games
+		WHERE Playclock < CURRENT_TIMESTAMP
+			and Complete = 0
+			and Errored = 0
+		'''):
+		results.append(row[0])
+
+	return results
+
+
+def getGamesPastDeadline():
+	c = dbConn.cursor()
+	results = []
+	for row in c.execute('''
+		SELECT ThreadID
+		FROM games
+		WHERE Deadline < CURRENT_TIMESTAMP
+			and Complete = 0
+			and Errored = 0
+		'''):
+		results.append(row[0])
+
+	return results
 
 
 def clearGameErrored(gameID):
@@ -192,6 +267,8 @@ def clearGameErrored(gameID):
 		c.execute('''
 			UPDATE games
 			SET Errored = 0
+				,Deadline = DATETIME(Deadline, '+' || (julianday(CURRENT_TIMESTAMP) - julianday(Playclock) * 86400.0) || ' seconds')
+				,Playclock = DATETIME(CURRENT_TIMESTAMP, '+24 hours')
 			WHERE ID = ?
 		''', (gameID,))
 		dbConn.commit()
@@ -205,6 +282,7 @@ def setGameErrored(gameID):
 	c.execute('''
 		UPDATE games
 		SET Errored = 1
+			,Playclock = CURRENT_TIMESTAMP
 		WHERE ID = ?
 	''', (gameID,))
 	dbConn.commit()

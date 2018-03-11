@@ -28,6 +28,17 @@ def setStateTouchback(game, homeAway):
 	game['waitingOn'] = homeAway
 
 
+def setStateOvertimeDrive(game, homeAway):
+	if homeAway not in ['home', 'away']:
+		log.warning("Bad homeAway in setStateOvertimeDrive: {}".format(homeAway))
+		return
+	if game['status']['overtimePossession'] is None:
+		game['status']['overtimePossession'] = 1
+
+	setStateTouchback(game, homeAway)
+	game['status']['location'] = 75
+
+
 def scoreTouchdown(game, homeAway):
 	scoreForTeam(game, 6, homeAway)
 	game['status']['location'] = 97
@@ -41,17 +52,14 @@ def scoreTouchdown(game, homeAway):
 
 def scoreFieldGoal(game, homeAway):
 	scoreForTeam(game, 3, homeAway)
-	setStateTouchback(game, utils.reverseHomeAway(homeAway))
 
 
 def scoreTwoPoint(game, homeAway):
 	scoreForTeam(game, 1, homeAway)
-	setStateTouchback(game, utils.reverseHomeAway(homeAway))
 
 
 def scorePAT(game, homeAway):
 	scoreForTeam(game, 1, homeAway)
-	setStateTouchback(game, utils.reverseHomeAway(homeAway))
 
 
 def turnover(game):
@@ -61,6 +69,50 @@ def turnover(game):
 	game['status']['location'] = 100 - game['status']['location']
 	game['waitingAction'] = 'play'
 	game['waitingOn'] = utils.reverseHomeAway(game['waitingOn'])
+
+
+def overtimeTurnover(game):
+	log.debug("Running overtime turnover")
+	if game['status']['overtimePossession'] == 1:
+		log.debug("End of first overtime possession, starting second")
+		game['status']['overtimePossession'] = 2
+		setStateOvertimeDrive(game, utils.reverseHomeAway(game['status']['possession']))
+		return "End of the drive. {} has possession now".format(utils.flair(game[game['status']['possession']]['name'], game[game['status']['possession']]['tag']))
+	elif game['status']['overtimePossession'] == 2:
+		if game['score']['home'] == game['score']['away']:
+			if game['status']['quarterType'] == 'overtimeTime' and game['status']['quarter'] >= 6:
+				log.debug("End of 6th quarter in a time forced overtime, flipping coin for victor")
+				game['status']['quarterType'] = 'end'
+				game['waitingAction'] = 'end'
+				if utils.coinToss():
+					log.debug("Home has won")
+					victor = 'home'
+				else:
+					log.debug("Away has won")
+					victor = 'away'
+
+				return "It is the end of the 6th quarter in an overtime forced by the game clock and the score is still tied. " \
+				       "I'm flipping a coin to determine the victor. {} has won!".format(utils.flair(game[victor]['name'], game[victor]['tag']))
+			else:
+				log.debug("End of second overtime possession, still tied, starting new quarter")
+				game['status']['overtimePossession'] = 1
+				game['status']['quarter'] += 1
+				setStateOvertimeDrive(game, game['receivingNext'])
+				game['receivingNext'] = utils.reverseHomeAway(game['receivingNext'])
+				return "It's still tied! Going to the {} quarter.".format(utils.getNthWord(game['status']['quarter']))
+
+		else:
+			log.debug("End of game")
+			game['status']['quarterType'] = 'end'
+			game['waitingAction'] = 'end'
+			if game['score']['home'] > game['score']['away']:
+				victor = 'home'
+			else:
+				victor = 'away'
+			return "That's the end of the game. {} has won!".format(utils.flair(game[victor]['name'], game[victor]['tag']))
+
+	else:
+		log.warning("Something went wrong. Invalid overtime possession: {}".format(game['status']['overtimePossession']))
 
 
 def scoreSafety(game, homeAway):
@@ -206,20 +258,30 @@ def updateTime(game, play, result, yards, offenseHomeAway):
 		else:
 			if game['status']['quarter'] == 4:
 				if game['score']['home'] == game['score']['away']:
-					timeMessage = "full time! The score is tied, but unfortunately overtime is not implemented yet."
+					log.debug("Score tied at end of 4th, going to overtime")
+					timeMessage = "end of regulation. The score is tied, we're going to overtime!"
+					game['status']['quarterType'] = 'overtimeNormal'
+					game['waitingAction'] = 'overtime'
 				else:
-					timeMessage = "full time!"
+					log.debug("End of game")
+					if game['score']['home'] > game['score']['away']:
+						victor = 'home'
+					else:
+						victor = 'away'
+					timeMessage = "that's the end of the game! {} has won!".format(utils.flair(game[victor]['name'], game[victor]['tag']))
+					game['status']['quarterType'] = 'end'
 				game['status']['clock'] = 0
 				game['waitingAction'] = 'end'
 			else:
 				if game['status']['quarter'] == 2:
+					log.debug("End of half")
 					timeMessage = "end of the first half"
 
 				setStateTouchback(game, game['receivingNext'])
 				game['receivingNext'] = utils.reverseHomeAway(game['receivingNext'])
 				game['status']['timeouts'] = {'home': 3, 'away': 3}
 
-		if game['status']['quarter'] < 4:
+		if game['status']['quarterType'] != 'end':
 			game['status']['quarter'] += 1
 			game['status']['clock'] = globals.quarterLength
 	else:
@@ -306,6 +368,7 @@ def executePlay(game, play, number, numberMessage):
 	resultMessage = "Something went wrong, I should never have reached this"
 	diffMessage = None
 	success = True
+	timeMessage = None
 	if game['status']['conversion']:
 		if play in globals.conversionPlays:
 			if number == -1:
@@ -322,11 +385,19 @@ def executePlay(game, play, number, numberMessage):
 					log.debug("Successful two point conversion")
 					resultMessage = "The two point conversion is successful"
 					scoreTwoPoint(game, game['status']['possession'])
+					if utils.isGameOvertime(game):
+						timeMessage = overtimeTurnover(game)
+					else:
+						setStateTouchback(game, utils.reverseHomeAway(game['status']['possession']))
 
 				elif result['result'] == 'pat':
 					log.debug("Successful PAT")
 					resultMessage = "The PAT was successful"
 					scorePAT(game, game['status']['possession'])
+					if utils.isGameOvertime(game):
+						timeMessage = overtimeTurnover(game)
+					else:
+						setStateTouchback(game, utils.reverseHomeAway(game['status']['possession']))
 
 				elif result['result'] == 'touchback':
 					log.debug("Attempt unsuccessful")
@@ -336,7 +407,10 @@ def executePlay(game, play, number, numberMessage):
 						resultMessage = "The PAT attempt was unsuccessful"
 					else:
 						resultMessage = "Conversion unsuccessful"
-					setStateTouchback(game, utils.reverseHomeAway(game['status']['possession']))
+					if utils.isGameOvertime(game):
+						timeMessage = overtimeTurnover(game)
+					else:
+						setStateTouchback(game, utils.reverseHomeAway(game['status']['possession']))
 
 				database.clearDefensiveNumber(game['dataID'])
 
@@ -383,6 +457,10 @@ def executePlay(game, play, number, numberMessage):
 					resultMessage = "The {} yard field goal is good!".format(100 - game['status']['location'] + 17)
 					utils.addStat(game, 'fieldGoalsScored', 1)
 					scoreFieldGoal(game, game['status']['possession'])
+					if utils.isGameOvertime(game):
+						timeMessage = overtimeTurnover(game)
+					else:
+						setStateTouchback(game, utils.reverseHomeAway(game['status']['possession']))
 					actualResult = "fieldGoal"
 
 				elif result['result'] == 'punt':
@@ -390,7 +468,11 @@ def executePlay(game, play, number, numberMessage):
 						log.warning("Result is a punt, but I couldn't find any yards")
 						resultMessage = "Result of play is a successful punt, but something went wrong and I couldn't find how long a punt"
 					log.debug("Successful punt of {} yards".format(result['yards']))
-					resultMessage = executePunt(game, result['yards'])
+					if utils.isGameOvertime(game):
+						log.warning("A punt happened in overtime, this shouldn't have happened")
+						resultMessage = "A punt happened, but it's overtime. This shouldn't be possible."
+					else:
+						resultMessage = executePunt(game, result['yards'])
 					actualResult = "punt"
 
 				elif result['result'] == 'turnover':
@@ -407,7 +489,10 @@ def executePlay(game, play, number, numberMessage):
 					else:
 						utils.addStat(game, 'turnoverFumble', 1)
 						resultMessage = "It's a turnover!"
-					turnover(game)
+					if utils.isGameOvertime(game):
+						timeMessage = overtimeTurnover(game)
+					else:
+						turnover(game)
 					actualResult = "turnover"
 
 				elif result['result'] == 'turnoverTouchdown':
@@ -422,6 +507,10 @@ def executePlay(game, play, number, numberMessage):
 						resultMessage = "It's a turnover and run back for a touchdown!"
 					scoreTouchdown(game, utils.reverseHomeAway(game['status']['possession']))
 					actualResult = "turnoverTouchdown"
+					if utils.isGameOvertime(game):
+						timeMessage = "Game over! {} wins!".format(utils.flair(game[game['status']['possession']]['name'], game[game['status']['possession']]['tag']))
+						game['status']['quarterType'] = 'end'
+						game['waitingAction'] = 'end'
 
 				if success and play == 'fieldGoal':
 					utils.addStat(game, 'fieldGoalsAttempted', 1)
@@ -435,7 +524,10 @@ def executePlay(game, play, number, numberMessage):
 				game['status']['down'] += 1
 				if game['status']['down'] > 4:
 					log.debug("Turnover on downs")
-					turnover(game)
+					if utils.isGameOvertime(game):
+						timeMessage = overtimeTurnover(game)
+					else:
+						turnover(game)
 					resultMessage = "Turnover on downs"
 				else:
 					resultMessage = "The quarterback takes a knee"
@@ -446,7 +538,10 @@ def executePlay(game, play, number, numberMessage):
 				game['status']['down'] += 1
 				if game['status']['down'] > 4:
 					log.debug("Turnover on downs")
-					turnover(game)
+					if utils.isGameOvertime(game):
+						timeMessage = overtimeTurnover(game)
+					else:
+						turnover(game)
 					resultMessage = "Turnover on downs"
 				else:
 					resultMessage = "The quarterback spikes the ball"
@@ -457,7 +552,8 @@ def executePlay(game, play, number, numberMessage):
 
 	messages = [resultMessage]
 	if actualResult is not None:
-		timeMessage = updateTime(game, play, actualResult, yards, startingPossessionHomeAway)
+		if timeMessage is not None:
+			timeMessage = updateTime(game, play, actualResult, yards, startingPossessionHomeAway)
 
 		messages.append(timeMessage)
 

@@ -73,8 +73,7 @@ def startGame(homeCoach, awayCoach, startTime=None, location=None, station=None,
 
 	log.debug("Game started, posting coin toss comment")
 	message = "The game has started! {}, you're home. {}, you're away, call **heads** or **tails** in the air.".format(getCoachString(game, 'home'), getCoachString(game, 'away'))
-	comment = sendGameComment(game, message, {'action': 'coin'})
-	game['waitingId'] = comment.fullname
+	sendGameComment(game, message, {'action': 'coin'})
 	log.debug("Comment posted, now waiting on: {}".format(game['waitingId']))
 	updateGameThread(game)
 
@@ -341,18 +340,25 @@ def getCoachString(game, homeAway):
 	return " and ".join(bldr)
 
 
-def getDownString(down):
-	if down == 1:
+def getNthWord(number):
+	if number == 1:
 		return "1st"
-	elif down == 2:
+	elif number == 2:
 		return "2nd"
-	elif down == 3:
+	elif number == 3:
 		return "3rd"
-	elif down == 4:
+	elif number == 4:
 		return "4th"
 	else:
+		return "{}th".format(number)
+
+
+def getDownString(down):
+	if down >= 1 and down <= 4:
+		return getNthWord(down)
+	else:
 		log.warning("Hit a bad down number: {}".format(down))
-		return ""
+		return "{}".format(down)
 
 
 def getLocationString(location, offenseTeam, defenseTeam):
@@ -498,9 +504,14 @@ def addStat(game, stat, amount, offenseHomeAway=None):
 		game[offenseHomeAway]['yardsTotal'] += amount
 
 
+def isGameOvertime(game):
+	return str.startswith(game['status']['quarterType'], 'overtime')
+
+
 def newGameObject(home, away):
 	status = {'clock': globals.quarterLength, 'quarter': 1, 'location': -1, 'possession': 'home', 'down': 1, 'yards': 10,
-	          'timeouts': {'home': 3, 'away': 3}, 'requestedTimeout': {'home': 'none', 'away': 'none'}, 'conversion': False}
+	          'timeouts': {'home': 3, 'away': 3}, 'requestedTimeout': {'home': 'none', 'away': 'none'}, 'conversion': False,
+	          'quarterType': 'normal', 'overtimePossession': None}
 	score = {'quarters': [{'home': 0, 'away': 0}, {'home': 0, 'away': 0}, {'home': 0, 'away': 0}, {'home': 0, 'away': 0}], 'home': 0, 'away': 0}
 	game = {'home': home, 'away': away, 'drives': [], 'status': status, 'score': score, 'errored': 0, 'waitingId': None,
 	        'waitingAction': 'coin', 'waitingOn': 'away', 'dataID': -1, 'thread': "empty", "receivingNext": "home",
