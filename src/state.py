@@ -60,7 +60,7 @@ def scoreFieldGoal(game, homeAway):
 
 
 def scoreTwoPoint(game, homeAway):
-	scoreForTeam(game, 1, homeAway)
+	scoreForTeam(game, 2, homeAway)
 
 
 def scorePAT(game, homeAway):
