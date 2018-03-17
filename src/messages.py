@@ -299,6 +299,25 @@ def processMessageKickGame(body):
 		return "Couldn't kick game {}".format(str(numbers[0]))
 
 
+def processMessagePauseGame(body):
+	log.debug("Processing pause game message")
+	threadIds = re.findall('([\da-z]{6})', body)
+	if len(threadIds) < 1:
+		log.debug("Couldn't find a thread id in message")
+		return "Couldn't find a thread id in message"
+	log.debug("Found thread id: {}".format(threadIds[0]))
+
+	hours = re.findall('(\d{1,3})', body)
+	if len(hours) < 1:
+		log.debug("Couldn't find a number of hours in message")
+		return "Couldn't find a number of hours in message"
+	log.debug("Found hours: {}".format(hours[0]))
+
+	database.pauseGame(threadIds[0], hours[0])
+
+	return "Game {} paused for {} hours".format(threadIds[0], hours[0])
+
+
 def processMessage(message):
 	if isinstance(message, praw.models.Message):
 		isMessage = True
@@ -385,7 +404,9 @@ def processMessage(message):
 		if "newgame" in body and isMessage:
 			response = processMessageNewGame(message.body, str(message.author))
 		if "kick" in body and isMessage and str(message.author).lower() == globals.OWNER:
-			response = processMessageKickGame(body)
+			response = processMessageKickGame(message.body)
+		if "pause" in body and isMessage and str(message.author).lower() in wiki.admins:
+			response = processMessagePauseGame(message.body)
 
 	message.mark_read()
 	if response is not None:

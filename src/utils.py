@@ -3,6 +3,8 @@ import json
 import random
 import re
 import math
+from datetime import datetime
+from datetime import timedelta
 
 import globals
 import database
@@ -36,6 +38,7 @@ def startGame(homeCoach, awayCoach, startTime=None, location=None, station=None,
 		team['fieldGoalsAttempted'] = 0
 		team['posTime'] = 0
 		team['record'] = None
+		team['playclockPenalties'] = 0
 
 	game = newGameObject(homeTeam, awayTeam)
 	if startTime is not None:
@@ -82,7 +85,10 @@ def startGame(homeCoach, awayCoach, startTime=None, location=None, station=None,
 
 
 def embedTableInMessage(message, table):
-	return "{}{}{})".format(message, globals.datatag, json.dumps(table))
+	if table is None:
+		return message
+	else:
+		return "{}{}{})".format(message, globals.datatag, json.dumps(table))
 
 
 def extractTableFromMessage(message):
@@ -119,8 +125,8 @@ def verifyCoaches(coaches):
 	return -1, None
 
 
-def flair(team, flair):
-	return "[{}](#f/{})".format(team, flair)
+def flair(team):
+	return "[{}](#f/{})".format(team['name'], team['tag'])
 
 
 def renderTime(time):
@@ -130,11 +136,11 @@ def renderTime(time):
 def renderGame(game):
 	bldr = []
 
-	bldr.append(flair(game['away']['name'], game['away']['tag']))
+	bldr.append(flair(game['away']))
 	bldr.append(" **")
 	bldr.append(game['away']['name'])
 	bldr.append("** @ ")
-	bldr.append(flair(game['home']['name'], game['home']['tag']))
+	bldr.append(flair(game['home']))
 	bldr.append(" **")
 	bldr.append(game['home']['name'])
 	bldr.append("**\n\n")
@@ -158,7 +164,7 @@ def renderGame(game):
 	bldr.append("\n\n")
 
 	for team in ['away', 'home']:
-		bldr.append(flair(game[team]['name'], game[team]['tag']))
+		bldr.append(flair(game[team]))
 		bldr.append("\n\n")
 		bldr.append("Total Passing Yards|Total Rushing Yards|Total Yards|Interceptions Lost|Fumbles Lost|Field Goals|Time of Possession\n")
 		bldr.append(":-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:\n")
@@ -194,21 +200,21 @@ def renderGame(game):
 		bldr.append(str(game['status']['location']))
 		bldr.append(" ")
 		team = game[game['status']['possession']]
-		bldr.append(flair(team['name'], team['tag']))
+		bldr.append(flair(team['name']))
 	elif game['status']['location'] > 50:
 		bldr.append(str(100 - game['status']['location']))
 		bldr.append(" ")
 		team = game[reverseHomeAway(game['status']['possession'])]
-		bldr.append(flair(team['name'], team['tag']))
+		bldr.append(flair(team['name']))
 	else:
 		bldr.append(str(game['status']['location']))
 	bldr.append("|")
 	team = game[game['status']['possession']]
-	bldr.append(flair(team['name'], team['tag']))
+	bldr.append(flair(team['name']))
 	bldr.append("|")
 	for team in ['away', 'home']:
 		bldr.append(str(game['status']['timeouts'][team]))
-		bldr.append(flair(game[team]['name'], game[team]['tag']))
+		bldr.append(flair(game[team]))
 
 	bldr.append("\n\n___\n\n")
 
@@ -222,7 +228,7 @@ def renderGame(game):
 	bldr.append((":-:|"*(numQuarters + 2))[:-1])
 	bldr.append("\n")
 	for team in ['home', 'away']:
-		bldr.append(flair(game[team]['name'], game[team]['tag']))
+		bldr.append(flair(game[team]))
 		bldr.append("|")
 		for quarter in game['score']['quarters']:
 			bldr.append(str(quarter[team]))
@@ -264,6 +270,7 @@ def getGameThreadText(game):
 
 
 def updateGameThread(game):
+	updateGameTimes(game)
 	if 'thread' not in game:
 		log.error("No thread ID in game when trying to update")
 	game['dirty'] = False
@@ -287,7 +294,7 @@ def sendGameMessage(isHome, game, message, dataTable):
 	return reddit.getRecentSentMessage().id
 
 
-def sendGameComment(game, message, dataTable):
+def sendGameComment(game, message, dataTable=None):
 	commentResult = reddit.replySubmission(game['thread'], embedTableInMessage(message, dataTable))
 	game['waitingId'] = commentResult.fullname
 	log.debug("Game comment sent, now waiting on: {}".format(game['waitingId']))
@@ -508,6 +515,11 @@ def isGameOvertime(game):
 	return str.startswith(game['status']['quarterType'], 'overtime')
 
 
+def updateGameTimes(game):
+	game['playclock'] = database.getGamePlayed(game['dataID'])
+	game['dirty'] = database.getGameDeadline(game['dataID'])
+
+
 def newGameObject(home, away):
 	status = {'clock': globals.quarterLength, 'quarter': 1, 'location': -1, 'possession': 'home', 'down': 1, 'yards': 10,
 	          'timeouts': {'home': 3, 'away': 3}, 'requestedTimeout': {'home': 'none', 'away': 'none'}, 'conversion': False,
@@ -515,10 +527,13 @@ def newGameObject(home, away):
 	score = {'quarters': [{'home': 0, 'away': 0}, {'home': 0, 'away': 0}, {'home': 0, 'away': 0}, {'home': 0, 'away': 0}], 'home': 0, 'away': 0}
 	game = {'home': home, 'away': away, 'drives': [], 'status': status, 'score': score, 'errored': 0, 'waitingId': None,
 	        'waitingAction': 'coin', 'waitingOn': 'away', 'dataID': -1, 'thread': "empty", "receivingNext": "home",
-	        'dirty': False, 'startTime': None, 'location': None, 'station': None}
+	        'dirty': False, 'startTime': None, 'location': None, 'station': None, 'playclock': datetime.utcnow() + timedelta(hours=24),
+	        'deadline': datetime.utcnow() + timedelta(days=10)}
 	return game
 
 
+# team = {'tag': items[0], 'name': items[1], 'offense': items[2].lower(), 'defense': items[3].lower(),
+#         'coaches': []}
 # team['yardsPassing'] = 0
 # team['yardsRushing'] = 0
 # team['yardsTotal'] = 0
@@ -527,3 +542,5 @@ def newGameObject(home, away):
 # team['fieldGoalsScored'] = 0
 # team['fieldGoalsAttempted'] = 0
 # team['posTime'] = 0
+# team['record'] = None
+# team['playclockPenalties'] = 0

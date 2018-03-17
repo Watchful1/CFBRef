@@ -1,4 +1,5 @@
 import logging.handlers
+from datetime import datetime
 
 import wiki
 import utils
@@ -39,6 +40,10 @@ def setStateOvertimeDrive(game, homeAway):
 	game['status']['location'] = 75
 
 
+def forceTouchdown(game, homeAway):
+	scoreForTeam(game, 7, homeAway)
+
+
 def scoreTouchdown(game, homeAway):
 	scoreForTeam(game, 6, homeAway)
 	game['status']['location'] = 97
@@ -77,7 +82,7 @@ def overtimeTurnover(game):
 		log.debug("End of first overtime possession, starting second")
 		game['status']['overtimePossession'] = 2
 		setStateOvertimeDrive(game, utils.reverseHomeAway(game['status']['possession']))
-		return "End of the drive. {} has possession now".format(utils.flair(game[game['status']['possession']]['name'], game[game['status']['possession']]['tag']))
+		return "End of the drive. {} has possession now".format(utils.flair(game[game['status']['possession']]))
 	elif game['status']['overtimePossession'] == 2:
 		if game['score']['home'] == game['score']['away']:
 			if game['status']['quarterType'] == 'overtimeTime' and game['status']['quarter'] >= 6:
@@ -92,7 +97,7 @@ def overtimeTurnover(game):
 					victor = 'away'
 
 				return "It is the end of the 6th quarter in an overtime forced by the game clock and the score is still tied. " \
-				       "I'm flipping a coin to determine the victor. {} has won!".format(utils.flair(game[victor]['name'], game[victor]['tag']))
+				       "I'm flipping a coin to determine the victor. {} has won!".format(utils.flair(game[victor]))
 			else:
 				log.debug("End of second overtime possession, still tied, starting new quarter")
 				game['status']['overtimePossession'] = 1
@@ -109,7 +114,7 @@ def overtimeTurnover(game):
 				victor = 'home'
 			else:
 				victor = 'away'
-			return "That's the end of the game. {} has won!".format(utils.flair(game[victor]['name'], game[victor]['tag']))
+			return "That's the end of the game. {} has won!".format(utils.flair(game[victor]))
 
 	else:
 		log.warning("Something went wrong. Invalid overtime possession: {}".format(game['status']['overtimePossession']))
@@ -260,7 +265,10 @@ def updateTime(game, play, result, yards, offenseHomeAway):
 				if game['score']['home'] == game['score']['away']:
 					log.debug("Score tied at end of 4th, going to overtime")
 					timeMessage = "end of regulation. The score is tied, we're going to overtime!"
-					game['status']['quarterType'] = 'overtimeNormal'
+					if database.getGameDeadline(game['dataID']) > datetime.utcnow():
+						game['status']['quarterType'] = 'overtimeTime'
+					else:
+						game['status']['quarterType'] = 'overtimeNormal'
 					game['waitingAction'] = 'overtime'
 				else:
 					log.debug("End of game")
@@ -268,7 +276,7 @@ def updateTime(game, play, result, yards, offenseHomeAway):
 						victor = 'home'
 					else:
 						victor = 'away'
-					timeMessage = "that's the end of the game! {} has won!".format(utils.flair(game[victor]['name'], game[victor]['tag']))
+					timeMessage = "that's the end of the game! {} has won!".format(utils.flair(game[victor]))
 					game['status']['quarterType'] = 'end'
 				game['status']['clock'] = 0
 				game['waitingAction'] = 'end'
@@ -508,7 +516,7 @@ def executePlay(game, play, number, numberMessage):
 					scoreTouchdown(game, utils.reverseHomeAway(game['status']['possession']))
 					actualResult = "turnoverTouchdown"
 					if utils.isGameOvertime(game):
-						timeMessage = "Game over! {} wins!".format(utils.flair(game[game['status']['possession']]['name'], game[game['status']['possession']]['tag']))
+						timeMessage = "Game over! {} wins!".format(utils.flair(game[game['status']['possession']]))
 						game['status']['quarterType'] = 'end'
 						game['waitingAction'] = 'end'
 

@@ -178,14 +178,14 @@ def clearDefensiveNumber(gameID):
 	dbConn.commit()
 
 
-def pauseGame(gameID, hours):
+def pauseGame(threadID, hours):
 	c = dbConn.cursor()
 	c.execute('''
 		UPDATE games
 		SET Playclock = DATETIME(CURRENT_TIMESTAMP, '+' || ? || ' hours')
 			,Deadline = DATETIME(Deadline, '+' || ? || ' hours')
-		WHERE ID = ?
-	''', (str(hours), str(hours), gameID))
+		WHERE ThreadID = ?
+	''', (str(hours), str(hours), threadID))
 	dbConn.commit()
 
 
@@ -238,21 +238,6 @@ def getGamesPastPlayclock():
 		SELECT ThreadID
 		FROM games
 		WHERE Playclock < CURRENT_TIMESTAMP
-			and Complete = 0
-			and Errored = 0
-		'''):
-		results.append(row[0])
-
-	return results
-
-
-def getGamesPastDeadline():
-	c = dbConn.cursor()
-	results = []
-	for row in c.execute('''
-		SELECT ThreadID
-		FROM games
-		WHERE Deadline < CURRENT_TIMESTAMP
 			and Complete = 0
 			and Errored = 0
 		'''):
