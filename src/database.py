@@ -124,14 +124,14 @@ def getGameByID(id):
 		        "coaches": resultTuple[3].split(',')}
 
 
-def endGameByID(id):
+def endGame(threadId):
 	c = dbConn.cursor()
 	c.execute('''
 		UPDATE games
 		SET Complete = 0
-			,Playclock = DATETIME(CURRENT_TIMESTAMP, '+24 hours')
-		WHERE ID = ?
-	''', (id,))
+			,Playclock = CURRENT_TIMESTAMP
+		WHERE ThreadID = ?
+	''', (threadId,))
 	dbConn.commit()
 
 	if c.rowcount == 1:
