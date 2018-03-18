@@ -31,6 +31,10 @@ def loadPages():
 		log.debug("Done loading pages in: %d", int(time.perf_counter() - startTime))
 
 
+def validateItem(playItem, regex):
+	return re.match(regex, playItem) is not None
+
+
 def loadTeams():
 	teamsPage = reddit.getWikiPage(globals.CONFIG_SUBREDDIT, "teams")
 
@@ -41,15 +45,22 @@ def loadTeams():
 			continue
 		team = {'tag': items[0], 'name': items[1], 'offense': items[2].lower(), 'defense': items[3].lower(),
 		        'coaches': []}
+		requirements = {
+			'tag': "[a-z]+",
+			'name': "[\w -]+",
+			'offense': "(option|spread|pro style)",
+			'defense': "(3-4|4-3|5-2)",
+		}
+		for requirement in requirements:
+			if not validateItem(team[requirement], requirements[requirement]):
+				log.debug("Could not validate team on {}: {}".format(requirement, team))
+				continue
+
 		for coach in items[4].lower().split(','):
 			coach = coach.strip()
 			team['coaches'].append(coach)
 			coaches[coach] = team
 		teams[team['tag']] = team
-
-
-def validateItem(playItem, regex):
-	return re.match(regex, playItem) is not None
 
 
 def initOffenseDefense(play, offense, defense, range):
