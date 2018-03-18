@@ -431,15 +431,20 @@ def processMessage(message):
 			if updateWaiting and game is not None:
 				game['waitingId'] = 'return'
 		resultMessage = reddit.replyMessage(message, response)
-		if game is not None and game['waitingId'] == 'return':
+		if resultMessage is None:
+			log.warning("Could not send message")
+
+		elif game is not None and game['waitingId'] == 'return':
 			game['waitingId'] = resultMessage.fullname
 			game['dirty'] = True
 			log.debug("Message/comment replied, now waiting on: {}".format(game['waitingId']))
 	else:
 		if isMessage:
 			log.debug("Couldn't understand message")
-			reddit.replyMessage(message,
+			resultMessage = reddit.replyMessage(message,
 			                    "I couldn't understand your message, please try again or message /u/Watchful1 if you need help.")
+		if resultMessage is None:
+			log.warning("Could not send message")
 
 	if game is not None and game['dirty']:
 		log.debug("Game is dirty, updating thread")
