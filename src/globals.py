@@ -16,7 +16,7 @@ movementPlays = ['run', 'pass']
 normalPlays = ['run', 'pass', 'punt', 'punt', 'fieldGoal']
 timePlays = ['kneel', 'spike']
 conversionPlays = ['pat', 'twoPoint']
-datatag = "[](#datatag"
+datatag = " [](#datatag"
 quarterLength = 7*60
 
 ### Log ###
