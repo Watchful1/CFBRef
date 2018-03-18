@@ -227,7 +227,7 @@ def updateTime(game, play, result, yards, offenseHomeAway):
 	else:
 		actualResult = result
 	if result == 'spike':
-		timeOffClock = 1
+		timeOffClock = 3
 	else:
 		if result == 'kneel':
 			timeOffClock = 1
