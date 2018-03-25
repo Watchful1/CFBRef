@@ -231,7 +231,7 @@ def getTimeByPlay(play, result, yards):
 		return timeObject['time']
 
 
-def updateTime(game, play, result, yards, offenseHomeAway):
+def updateTime(game, play, result, yards, offenseHomeAway, timeOption):
 	if result in ['touchdown', 'touchback']:
 		actualResult = "gain"
 	else:
@@ -257,7 +257,12 @@ def updateTime(game, play, result, yards, offenseHomeAway):
 				if result == 'kneel':
 					timeOffClock += 39
 				else:
-					timeOffClock += getTimeAfterForOffense(game, offenseHomeAway)
+					if timeOption == 'chew':
+						timeOffClock += 35
+					elif timeOption == 'hurry':
+						timeOffClock += 5
+					else:
+						timeOffClock += getTimeAfterForOffense(game, offenseHomeAway)
 		log.debug("Time off clock: {} : {}".format(game['status']['clock'], timeOffClock))
 
 	game['status']['clock'] -= timeOffClock
@@ -389,7 +394,7 @@ def executePunt(game, yards):
 		return "It's a {} yard punt".format(yards)
 
 
-def executePlay(game, play, number, numberMessage):
+def executePlay(game, play, number, numberMessage, timeOption):
 	startingPossessionHomeAway = game['status']['possession']
 	actualResult = None
 	yards = None
@@ -663,7 +668,7 @@ def executePlay(game, play, number, numberMessage):
 	messages = [resultMessage]
 	if actualResult is not None:
 		if timeMessage is not None:
-			timeMessage = updateTime(game, play, actualResult, yards, startingPossessionHomeAway)
+			timeMessage = updateTime(game, play, actualResult, yards, startingPossessionHomeAway, timeOption)
 
 		messages.append(timeMessage)
 

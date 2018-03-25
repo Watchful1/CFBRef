@@ -216,11 +216,17 @@ def processMessageOffensePlay(game, message, author):
 
 	timeoutMessageOffense = None
 	timeoutMessageDefense = None
-	if message.find("timeout") > 0:
+	if "timeout" in message:
 		if game['status']['timeouts'][game['status']['possession']] > 0:
 			game['status']['requestedTimeout'][game['status']['possession']] = 'requested'
 		else:
 			timeoutMessageOffense = "The offense requested a timeout, but they don't have any left"
+
+	timeOption = None
+	if any(x in message for x in ['chew the clock']):
+		timeOption = 'chew'
+	elif any(x in message for x in ['hurry up', 'no huddle', 'no-huddle']):
+		timeOption = 'hurry'
 
 	playOptions = ['run', 'pass', 'punt', 'field goal', 'kneel', 'spike', 'two point', 'pat']
 	playSelected = utils.findKeywordInMessage(playOptions, message)
@@ -248,7 +254,7 @@ def processMessageOffensePlay(game, message, author):
 		log.debug("Didn't find any plays")
 		return False, "I couldn't find a play in your message"
 
-	success, resultMessage = state.executePlay(game, play, number, numberMessage)
+	success, resultMessage = state.executePlay(game, play, number, numberMessage, timeOption)
 
 	if game['status']['requestedTimeout'][game['status']['possession']] == 'used':
 		timeoutMessageOffense = "The offense is charged a timeout"
