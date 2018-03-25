@@ -183,8 +183,8 @@ def processMessageDefenseNumber(game, message, author):
 
 	timeoutMessage = None
 	if message.find("timeout") > 0:
-		if game['status']['timeouts'][utils.reverseHomeAway(game['status']['possession'])] > 0:
-			game['status']['requestedTimeout'][utils.reverseHomeAway(game['status']['possession'])] = 'requested'
+		if game[utils.reverseHomeAway(game['status']['possession'])]['timeouts'] > 0:
+			game[utils.reverseHomeAway(game['status']['possession'])]['requestedTimeout'] = 'requested'
 			timeoutMessage = "Timeout requested successfully"
 		else:
 			timeoutMessage = "You requested a timeout, but you don't have any left"
@@ -217,8 +217,8 @@ def processMessageOffensePlay(game, message, author):
 	timeoutMessageOffense = None
 	timeoutMessageDefense = None
 	if "timeout" in message:
-		if game['status']['timeouts'][game['status']['possession']] > 0:
-			game['status']['requestedTimeout'][game['status']['possession']] = 'requested'
+		if game[game['status']['possession']]['timeouts'] > 0:
+			game[game['status']['possession']]['requestedTimeout'] = 'requested'
 		else:
 			timeoutMessageOffense = "The offense requested a timeout, but they don't have any left"
 
@@ -256,17 +256,17 @@ def processMessageOffensePlay(game, message, author):
 
 	success, resultMessage = state.executePlay(game, play, number, numberMessage, timeOption)
 
-	if game['status']['requestedTimeout'][game['status']['possession']] == 'used':
+	if game[game['status']['possession']]['requestedTimeout'] == 'used':
 		timeoutMessageOffense = "The offense is charged a timeout"
-	elif game['status']['requestedTimeout'][game['status']['possession']] == 'requested':
+	elif game[game['status']['possession']]['requestedTimeout'] == 'requested':
 		timeoutMessageOffense = "The offense requested a timeout, but it was not used"
-	game['status']['requestedTimeout'][game['status']['possession']] = 'none'
+	game[game['status']['possession']]['requestedTimeout'] = 'none'
 
-	if game['status']['requestedTimeout'][utils.reverseHomeAway(game['status']['possession'])] == 'used':
+	if game[utils.reverseHomeAway(game['status']['possession'])]['requestedTimeout'] == 'used':
 		timeoutMessageDefense = "The defense is charged a timeout"
-	elif game['status']['requestedTimeout'][utils.reverseHomeAway(game['status']['possession'])] == 'requested':
+	elif game[utils.reverseHomeAway(game['status']['possession'])]['requestedTimeout'] == 'requested':
 		timeoutMessageDefense = "The defense requested a timeout, but it was not used"
-	game['status']['requestedTimeout'][utils.reverseHomeAway(game['status']['possession'])] = 'none'
+	game[utils.reverseHomeAway(game['status']['possession'])]['requestedTimeout'] = 'none'
 
 	result = [resultMessage]
 	if timeoutMessageOffense is not None:

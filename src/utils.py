@@ -39,6 +39,8 @@ def startGame(homeCoach, awayCoach, startTime=None, location=None, station=None,
 		team['posTime'] = 0
 		team['record'] = None
 		team['playclockPenalties'] = 0
+		team['timeouts'] = 3
+		team['requestedTimeout'] = 'none'
 
 	game = newGameObject(homeTeam, awayTeam)
 	if startTime is not None:
@@ -166,9 +168,9 @@ def renderGame(game):
 	for team in ['away', 'home']:
 		bldr.append(flair(game[team]))
 		bldr.append("\n\n")
-		bldr.append("Total Passing Yards|Total Rushing Yards|Total Yards|Interceptions Lost|Fumbles Lost|Field Goals|Time of Possession\n")
-		bldr.append(":-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:\n")
-		bldr.append("{} yards|{} yards|{} yards|{}|{}|{}/{}|{}".format(
+		bldr.append("Total Passing Yards|Total Rushing Yards|Total Yards|Interceptions Lost|Fumbles Lost|Field Goals|Time of Possession|Timeouts\n")
+		bldr.append(":-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:\n")
+		bldr.append("{} yards|{} yards|{} yards|{}|{}|{}/{}|{}|{}".format(
 			game[team]['yardsPassing'],
 			game[team]['yardsRushing'],
 			game[team]['yardsTotal'],
@@ -176,7 +178,8 @@ def renderGame(game):
 			game[team]['turnoverFumble'],
 			game[team]['fieldGoalsScored'],
 			game[team]['fieldGoalsAttempted'],
-			renderTime(game[team]['yardsPassing'])))
+			renderTime(game[team]['yardsPassing']),
+			game[team]['timeouts']))
 		bldr.append("\n\n___\n")
 
 	bldr.append("Game Summary|Time\n")
@@ -186,8 +189,8 @@ def renderGame(game):
 
 	bldr.append("\n___\n\n")
 
-	bldr.append("Playclock|Quarter|Down|Ball Location|Possession|Timeouts\n")
-	bldr.append(":-:|:-:|:-:|:-:|:-:|:-:\n")
+	bldr.append("Playclock|Quarter|Down|Ball Location|Possession\n")
+	bldr.append(":-:|:-:|:-:|:-:|:-:\n")
 	bldr.append(renderTime(game['status']['clock']))
 	bldr.append("|")
 	bldr.append(str(game['status']['quarter']))
@@ -211,10 +214,6 @@ def renderGame(game):
 	bldr.append("|")
 	team = game[game['status']['possession']]
 	bldr.append(flair(team['name']))
-	bldr.append("|")
-	for team in ['away', 'home']:
-		bldr.append(str(game['status']['timeouts'][team]))
-		bldr.append(flair(game[team]))
 
 	bldr.append("\n\n___\n\n")
 
@@ -542,7 +541,6 @@ def updateGameTimes(game):
 
 def newGameObject(home, away):
 	status = {'clock': globals.quarterLength, 'quarter': 1, 'location': -1, 'possession': 'home', 'down': 1, 'yards': 10,
-	          'timeouts': {'home': 3, 'away': 3}, 'requestedTimeout': {'home': 'none', 'away': 'none'},
 	          'quarterType': 'normal', 'overtimePossession': None}
 	score = {'quarters': [{'home': 0, 'away': 0}, {'home': 0, 'away': 0}, {'home': 0, 'away': 0}, {'home': 0, 'away': 0}], 'home': 0, 'away': 0}
 	game = {'home': home, 'away': away, 'drives': [], 'status': status, 'score': score, 'errored': 0, 'waitingId': None,
@@ -564,3 +562,5 @@ def newGameObject(home, away):
 # team['posTime'] = 0
 # team['record'] = None
 # team['playclockPenalties'] = 0
+# team['timeouts'] = 3
+# team['requestedTimeout'] = 'none'

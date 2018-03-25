@@ -245,14 +245,14 @@ def updateTime(game, play, result, yards, offenseHomeAway, timeOption):
 			timeOffClock = getTimeByPlay(play, actualResult, yards)
 
 		if result in ["gain", "kneel"]:
-			if game['status']['requestedTimeout'][offenseHomeAway] == 'requested':
+			if game[offenseHomeAway]['requestedTimeout'] == 'requested':
 				log.debug("Using offensive timeout")
-				game['status']['requestedTimeout'][offenseHomeAway] = 'used'
-				game['status']['timeouts'][offenseHomeAway] -= 1
-			elif game['status']['requestedTimeout'][utils.reverseHomeAway(offenseHomeAway)] == 'requested':
+				game[offenseHomeAway]['requestedTimeout'] = 'used'
+				game[offenseHomeAway]['timeouts'] -= 1
+			elif game[utils.reverseHomeAway(offenseHomeAway)]['requestedTimeout'] == 'requested':
 				log.debug("Using defensive timeout")
-				game['status']['requestedTimeout'][utils.reverseHomeAway(offenseHomeAway)] = 'used'
-				game['status']['timeouts'][utils.reverseHomeAway(offenseHomeAway)] -= 1
+				game[utils.reverseHomeAway(offenseHomeAway)]['requestedTimeout'] = 'used'
+				game[utils.reverseHomeAway(offenseHomeAway)]['timeouts'] -= 1
 			else:
 				if result == 'kneel':
 					timeOffClock += 39
@@ -302,7 +302,8 @@ def updateTime(game, play, result, yards, offenseHomeAway, timeOption):
 
 				setStateKickoff(game, utils.reverseHomeAway(game['receivingNext']))
 				game['receivingNext'] = utils.reverseHomeAway(game['receivingNext'])
-				game['status']['timeouts'] = {'home': 3, 'away': 3}
+				game['home']['timeouts'] = 3
+				game['away']['timeouts'] = 3
 
 		if game['status']['quarterType'] != 'end':
 			game['status']['quarter'] += 1
