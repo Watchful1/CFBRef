@@ -90,7 +90,7 @@ def embedTableInMessage(message, table):
 	if table is None:
 		return message
 	else:
-		return "{}{}{})".format(message, globals.datatag, json.dumps(table))
+		return "{}{}{})".format(message, globals.datatag, json.dumps(table, default=str))
 
 
 def extractTableFromMessage(message):
@@ -203,7 +203,7 @@ def renderGame(game):
 		bldr.append(str(game['status']['location']))
 		bldr.append(" ")
 		team = game[game['status']['possession']]
-		bldr.append(flair(team['name']))
+		bldr.append(flair(team))
 	elif game['status']['location'] > 50:
 		bldr.append(str(100 - game['status']['location']))
 		bldr.append(" ")

@@ -17,8 +17,8 @@ def init():
 			ID INTEGER PRIMARY KEY AUTOINCREMENT,
 			ThreadID VARCHAR(80) NOT NULL,
 			DefenseNumber INTEGER,
-			Deadline TIMESTAMP NOT NULL DEFAULT DATETIME(CURRENT_TIMESTAMP, '+10 days'),
-			Playclock TIMESTAMP NOT NULL DEFAULT DATETIME(CURRENT_TIMESTAMP, '+24 hours'),
+			Deadline TIMESTAMP NOT NULL DEFAULT (DATETIME(CURRENT_TIMESTAMP, '+10 days')),
+			Playclock TIMESTAMP NOT NULL DEFAULT (DATETIME(CURRENT_TIMESTAMP, '+24 hours')),
 			Complete BOOLEAN NOT NULL DEFAULT 0,
 			Errored BOOLEAN NOT NULL DEFAULT 0,
 			UNIQUE (ThreadID)
@@ -202,7 +202,7 @@ def setGamePlayed(gameID):
 def getGamePlayed(gameID):
 	c = dbConn.cursor()
 	result = c.execute('''
-		SELECT LastPlayed
+		SELECT Playclock
 		FROM games
 		WHERE ID = ?
 	''', (gameID,))
