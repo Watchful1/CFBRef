@@ -146,7 +146,7 @@ def processMessageDefer(game, isDefer, author):
 		if isDefer:
 			log.debug("User deferred, {} is receiving".format(utils.reverseHomeAway(authorHomeAway)))
 
-			state.setStateTouchback(game, utils.reverseHomeAway(authorHomeAway))
+			state.setStateKickoff(game, authorHomeAway)
 			game['receivingNext'] = authorHomeAway
 			game['waitingOn'] = utils.reverseHomeAway(game['waitingOn'])
 			game['dirty'] = True
@@ -159,7 +159,7 @@ def processMessageDefer(game, isDefer, author):
 		else:
 			log.debug("User elected to receive, {} is receiving".format(authorHomeAway))
 
-			state.setStateTouchback(game, authorHomeAway)
+			state.setStateKickoff(game, utils.reverseHomeAway(authorHomeAway))
 			game['receivingNext'] = utils.reverseHomeAway(authorHomeAway)
 			game['waitingOn'] = utils.reverseHomeAway(game['waitingOn'])
 			game['dirty'] = True

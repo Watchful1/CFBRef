@@ -368,7 +368,10 @@ def getDownString(down):
 		return "{}".format(down)
 
 
-def getLocationString(location, offenseTeam, defenseTeam):
+def getLocationString(game):
+	location = game['status']['location']
+	offenseTeam = game[game['status']['possession']]['name']
+	defenseTeam = game[reverseHomeAway(game['status']['possession'])]['name']
 	if location < 0 or location > 100:
 		log.warning("Bad location: {}".format(location))
 		return str(location)
@@ -386,13 +389,13 @@ def getLocationString(location, offenseTeam, defenseTeam):
 
 
 def getCurrentPlayString(game):
-	if game['status']['conversion']:
+	if game['waitingAction'] == 'conversion':
 		return "{} just scored.".format(game[game['status']['possession']]['name'])
 	else:
 		return "It's {} and {} on the {}.".format(
 			getDownString(game['status']['down']),
 			"goal" if game['status']['location'] >= 90 else game['status']['yards'],
-			getLocationString(game['status']['location'], game[game['status']['possession']]['name'], game[reverseHomeAway(game['status']['possession'])]['name'])
+			getLocationString(game)
 		)
 
 
@@ -472,7 +475,7 @@ def findKeywordInMessage(keywords, message):
 
 
 def listSuggestedPlays(game):
-	if game['status']['conversion']:
+	if game['waitingAction'] == 'conversion':
 		return "**PAT** or **two point**"
 	else:
 		if game['status']['down'] == 4:
@@ -522,7 +525,7 @@ def updateGameTimes(game):
 
 def newGameObject(home, away):
 	status = {'clock': globals.quarterLength, 'quarter': 1, 'location': -1, 'possession': 'home', 'down': 1, 'yards': 10,
-	          'timeouts': {'home': 3, 'away': 3}, 'requestedTimeout': {'home': 'none', 'away': 'none'}, 'conversion': False,
+	          'timeouts': {'home': 3, 'away': 3}, 'requestedTimeout': {'home': 'none', 'away': 'none'},
 	          'quarterType': 'normal', 'overtimePossession': None}
 	score = {'quarters': [{'home': 0, 'away': 0}, {'home': 0, 'away': 0}, {'home': 0, 'away': 0}, {'home': 0, 'away': 0}], 'home': 0, 'away': 0}
 	game = {'home': home, 'away': away, 'drives': [], 'status': status, 'score': score, 'errored': 0, 'waitingId': None,

@@ -120,6 +120,7 @@ def parsePlayPart(playPart):
 
 def loadPlays():
 	playsPage = reddit.getWikiPage(globals.CONFIG_SUBREDDIT, "plays")
+	playTypes = set()
 
 	for playLine in playsPage.splitlines():
 		items = playLine.split('|')
@@ -142,11 +143,14 @@ def loadPlays():
 			if play is None:
 				continue
 			playParts[range] = play
+			playTypes.add(play)
 
 		if isMovementPlay:
 			plays[items[0]][items[1]][items[2]][items[3]] = playParts
 		else:
 			plays[items[0]][items[1]] = playParts
+
+	log.debug(str(playTypes))
 
 
 def loadTimes():
@@ -159,7 +163,7 @@ def loadTimes():
 
 		for item in items[1:]:
 			timePart = item.split(",")
-			if timePart[0] == "gain":
+			if timePart[0] in ["gain",'kick']:
 				if not validateItem(timePart[1], "-?\d+"):
 					log.warning("Could not validate time yards: {}".format(timePart[1]))
 					continue
