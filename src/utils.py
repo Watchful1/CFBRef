@@ -335,7 +335,24 @@ def isGameWaitingOn(game, user, action, messageId):
 
 	if game['waitingId'] is not None and game['waitingId'] != messageId:
 		log.debug("Not waiting on message id: {} : {}".format(game['waitingId'], messageId))
-		return "I'm not waiting on a reply to this message, be sure to respond to my newest message for this game."
+
+		if game['waitingId'].startswith("t1"):
+			waitingMessageType = "comment"
+			link = getLinkToThread(game['waitingId'][3:])
+		elif game['waitingId'].startswith("t4"):
+			waitingMessageType = "message"
+			link = "{}{}".format(globals.MESSAGE_LINK, game['waitingId'][3:])
+		else:
+			return "Something went wrong. Not valid waiting: {}".format(game['waitingId'])
+
+		if messageId.startswith("t1"):
+			messageType = "comment"
+		elif messageId.startswith("t4"):
+			messageType = "message"
+		else:
+			return "Something went wrong. Not valid: {}".format(game['waitingId'])
+
+		return "I'm not waiting on a reply to this {}. Please respond to this [{}]({})".format(messageType, waitingMessageType, link)
 
 	return None
 
