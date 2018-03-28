@@ -190,7 +190,7 @@ def getTimeAfterForOffense(game, homeAway):
 	offenseType = game[homeAway]['offense']
 	if offenseType == "spread":
 		return 10
-	elif offenseType == "pro style":
+	elif offenseType == "pro":
 		return 15
 	elif offenseType == "option":
 		return 20
@@ -206,7 +206,7 @@ def getTimeByPlay(play, result, yards):
 		return None
 
 	if result not in timePlay:
-		log.warning("Could not get result in timePlay: {} : {}".format(play, result))
+		log.warning("Could not get result in timePlay: {} : {} : {}".format(play, result, timePlay))
 		return None
 
 	timeObject = timePlay[result]
@@ -232,7 +232,7 @@ def getTimeByPlay(play, result, yards):
 
 
 def updateTime(game, play, result, yards, offenseHomeAway, timeOption):
-	if result in ['touchdown', 'touchback']:
+	if result in ['touchdown']:
 		actualResult = "gain"
 	else:
 		actualResult = result
@@ -317,7 +317,7 @@ def updateTime(game, play, result, yards, offenseHomeAway, timeOption):
 
 
 def executeGain(game, play, yards, incomplete=False):
-	if play not in globals.movementPlays:
+	if play not in globals.movementPlays and play not in ['punt']:
 		log.warning("This doesn't look like a valid movement play: {}".format(play))
 		return "error", None, "Something went wrong trying to move the ball"
 
@@ -491,7 +491,7 @@ def executePlay(game, play, number, numberMessage, timeOption):
 						actualResult = "gain"
 
 				elif result['result'] == 'touchback':
-					log.debug("Result is a touchdown")
+					log.debug("Result is a touchback")
 					setStateTouchback(game, utils.reverseHomeAway(game['status']['possession']))
 					resultMessage = "The kick goes into the end zone, touchback."
 					actualResult = "touchback"
@@ -668,7 +668,7 @@ def executePlay(game, play, number, numberMessage, timeOption):
 
 	messages = [resultMessage]
 	if actualResult is not None:
-		if timeMessage is not None:
+		if timeMessage is None:
 			timeMessage = updateTime(game, play, actualResult, yards, startingPossessionHomeAway, timeOption)
 
 		messages.append(timeMessage)

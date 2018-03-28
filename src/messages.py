@@ -62,19 +62,19 @@ def processMessageNewGame(body, author):
 
 	for match in re.finditer('(?: )(\w+)(?:=")([^"]*)', body):
 		if match.group(1) == "start":
-			startTime = match.group(2)
+			startTime = utils.escapeMarkdown(match.group(2))
 			log.debug("Found start time: {}".format(startTime))
 		elif match.group(1) == "location":
-			location = match.group(2)
+			location = utils.escapeMarkdown(match.group(2))
 			log.debug("Found location: {}".format(location))
 		elif match.group(1) == "station":
-			station = match.group(2)
+			station = utils.escapeMarkdown(match.group(2))
 			log.debug("Found station: {}".format(station))
 		elif match.group(1) == "homeRecord":
-			homeRecord = match.group(2)
+			homeRecord = utils.escapeMarkdown(match.group(2))
 			log.debug("Found home record: {}".format(homeRecord))
 		elif match.group(1) == "awayRecord":
-			awayRecord = match.group(2)
+			awayRecord = utils.escapeMarkdown(match.group(2))
 			log.debug("Found away record: {}".format(awayRecord))
 
 	return utils.startGame(homeCoach, awayCoach, startTime, location, station, homeRecord, awayRecord)
@@ -107,7 +107,7 @@ def processMessageCoin(game, isHeads, author):
 			questionString = "do you want to **defend** or **attack**?"
 		else:
 			questionString = "do you want to **receive** or **defer**?"
-		message = "{}, {} won the toss, {}".format(utils.getCoachString(game, 'home'), game['away']['home'], questionString)
+		message = "{}, {} won the toss, {}".format(utils.getCoachString(game, 'home'), game['home']['name'], questionString)
 		return True, utils.embedTableInMessage(message, {'action': 'defer'})
 
 
@@ -201,7 +201,7 @@ def processMessageDefenseNumber(game, message, author):
 		utils.listSuggestedPlays(game),
 		"https://www.reddit.com/r/FakeCollegeFootball/wiki/refbot"
 	)
-	utils.sendGameComment(game, resultMessage, {'action': 'play'})
+	utils.sendGameComment(game, resultMessage, {'action': game['waitingAction']})
 
 	result = ["I've got {} as your number.".format(number)]
 	if timeoutMessage is not None:
@@ -223,12 +223,12 @@ def processMessageOffensePlay(game, message, author):
 			timeoutMessageOffense = "The offense requested a timeout, but they don't have any left"
 
 	timeOption = None
-	if any(x in message for x in ['chew the clock']):
+	if any(x in message for x in ['chew the clock', 'milk the clock']):
 		timeOption = 'chew'
 	elif any(x in message for x in ['hurry up', 'no huddle', 'no-huddle']):
 		timeOption = 'hurry'
 
-	playOptions = ['run', 'pass', 'punt', 'field goal', 'kneel', 'spike', 'two point', 'pat']
+	playOptions = ['run', 'pass', 'punt', 'field goal', 'kneel', 'spike', 'two point', 'pat', 'normal', 'squib', 'onside']
 	playSelected = utils.findKeywordInMessage(playOptions, message)
 	play = "default"
 	if playSelected == "run":
@@ -247,6 +247,12 @@ def processMessageOffensePlay(game, message, author):
 		play = "twoPoint"
 	elif playSelected == "pat":
 		play = "pat"
+	elif playSelected == "normal":
+		play = "kickoffNormal"
+	elif playSelected == "squib":
+		play = "kickoffSquib"
+	elif playSelected == "onside":
+		play = "kickoffOnside"
 	elif playSelected == "mult":
 		log.debug("Found multiple plays")
 		return False, "I found multiple plays in your message. Please repost it with just the play and number."
@@ -276,7 +282,7 @@ def processMessageOffensePlay(game, message, author):
 
 	game['waitingOn'] = utils.reverseHomeAway(game['waitingOn'])
 	game['dirty'] = True
-	if game['waitingAction'] == 'play':
+	if game['waitingAction'] in ['play', 'conversion', 'kickoff']:
 		utils.sendDefensiveNumberMessage(game)
 	elif game['waitingAction'] == 'overtime':
 		log.debug("Starting overtime, posting coin toss comment")
@@ -326,7 +332,7 @@ def processMessagePauseGame(body):
 
 def processMessageAbandonGame(body):
 	log.debug("Processing abandon game message")
-	threadIds = re.findall('([\da-z]{6})', body)
+	threadIds = re.findall('(?: )([\da-z]{6})', body)
 	if len(threadIds) < 1:
 		log.debug("Couldn't find a thread id in message")
 		return "Couldn't find a thread id in message"
@@ -411,10 +417,10 @@ def processMessage(message):
 						success = False
 						response = "I found both {} in your message. Please reply with just one of them.".format(' and '.join(keywords))
 
-				elif dataTable['action'] == 'play' and isMessage:
+				elif dataTable['action'] in ['play', 'kickoff'] and isMessage:
 					success, response = processMessageDefenseNumber(game, body, str(message.author))
 
-				elif dataTable['action'] == 'play' and not isMessage:
+				elif dataTable['action'] in ['play', 'kickoff'] and not isMessage:
 					success, response = processMessageOffensePlay(game, body, str(message.author))
 		else:
 			log.debug("Couldn't get a game for /u/{}".format(author))
@@ -449,8 +455,8 @@ def processMessage(message):
 			log.debug("Couldn't understand message")
 			resultMessage = reddit.replyMessage(message,
 			                    "I couldn't understand your message, please try again or message /u/Watchful1 if you need help.")
-		if resultMessage is None:
-			log.warning("Could not send message")
+			if resultMessage is None:
+				log.warning("Could not send message")
 
 	if game is not None and game['dirty']:
 		log.debug("Game is dirty, updating thread")

@@ -28,6 +28,7 @@ def loadPages():
 		loadTeams()
 		loadPlays()
 		loadTimes()
+		loadAdmins()
 		log.debug("Done loading pages in: %d", int(time.perf_counter() - startTime))
 
 
@@ -45,10 +46,13 @@ def loadTeams():
 			continue
 		team = {'tag': items[0], 'name': items[1], 'offense': items[2].lower(), 'defense': items[3].lower(),
 		        'coaches': []}
+		if "pro" in team['offense']:
+			team['offense'] = "pro"
+
 		requirements = {
 			'tag': "[a-z]+",
 			'name': "[\w -]+",
-			'offense': "(option|spread|pro style)",
+			'offense': "(option|spread|pro)",
 			'defense': "(3-4|4-3|5-2)",
 		}
 		for requirement in requirements:
@@ -120,7 +124,6 @@ def parsePlayPart(playPart):
 
 def loadPlays():
 	playsPage = reddit.getWikiPage(globals.CONFIG_SUBREDDIT, "plays")
-	playTypes = set()
 
 	for playLine in playsPage.splitlines():
 		items = playLine.split('|')
@@ -143,14 +146,11 @@ def loadPlays():
 			if play is None:
 				continue
 			playParts[range] = play
-			playTypes.add(play)
 
 		if isMovementPlay:
 			plays[items[0]][items[1]][items[2]][items[3]] = playParts
 		else:
 			plays[items[0]][items[1]] = playParts
-
-	log.debug(str(playTypes))
 
 
 def loadTimes():
@@ -163,7 +163,7 @@ def loadTimes():
 
 		for item in items[1:]:
 			timePart = item.split(",")
-			if timePart[0] in ["gain",'kick']:
+			if timePart[0] in ["gain", 'kick']:
 				if not validateItem(timePart[1], "-?\d+"):
 					log.warning("Could not validate time yards: {}".format(timePart[1]))
 					continue
@@ -171,8 +171,8 @@ def loadTimes():
 					log.warning("Could not validate time: {}".format(timePart[2]))
 					continue
 
-				if "gain" not in times[items[0]]:
-					times[items[0]]["gain"] = []
+				if timePart[0] not in times[items[0]]:
+					times[items[0]][timePart[0]] = []
 				timeObject = {"yards": int(timePart[1]), "time": int(timePart[2])}
 				times[items[0]][timePart[0]].append(timeObject)
 			else:

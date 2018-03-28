@@ -57,9 +57,9 @@ def startGame(homeCoach, awayCoach, startTime=None, location=None, station=None,
 	gameThread = getGameThreadText(game)
 	gameTitle = "[GAME THREAD] {}{} @ {}{}".format(
 		game['away']['name'],
-		" {}".format(awayRecord) if awayRecord is not None else "",
+		" {}".format(unescapeMarkdown(awayRecord)) if awayRecord is not None else "",
 		game['home']['name'],
-		" {}".format(homeRecord) if homeRecord is not None else "")
+		" {}".format(unescapeMarkdown(homeRecord)) if homeRecord is not None else "")
 
 	threadID = str(reddit.submitSelfPost(globals.SUBREDDIT, gameTitle, gameThread))
 	game['thread'] = threadID
@@ -127,6 +127,26 @@ def verifyCoaches(coaches):
 	return -1, None
 
 
+markdown = [
+	{'value': "[", 'result': "%5B"},
+	{'value': "]", 'result': "%5D"},
+	{'value': "(", 'result': "%28"},
+	{'value': ")", 'result': "%29"},
+]
+
+
+def escapeMarkdown(value):
+	for replacement in markdown:
+		value = value.replace(replacement['value'], replacement['result'])
+	return value
+
+
+def unescapeMarkdown(value):
+	for replacement in markdown:
+		value = value.replace(replacement['result'], replacement['value'])
+	return value
+
+
 def flair(team):
 	return "[{}](#f/{})".format(team['name'], team['tag'])
 
@@ -149,17 +169,17 @@ def renderGame(game):
 
 	if game['startTime'] is not None:
 		bldr.append(" **Game Start Time:** ")
-		bldr.append(game['startTime'])
+		bldr.append(unescapeMarkdown(game['startTime']))
 		bldr.append("\n\n")
 
 	if game['location'] is not None:
 		bldr.append(" **Location:** ")
-		bldr.append(game['location'])
+		bldr.append(unescapeMarkdown(game['location']))
 		bldr.append("\n\n")
 
 	if game['station'] is not None:
 		bldr.append(" **Watch:** ")
-		bldr.append(game['station'])
+		bldr.append(unescapeMarkdown(game['station']))
 		bldr.append("\n\n")
 
 
@@ -208,12 +228,12 @@ def renderGame(game):
 		bldr.append(str(100 - game['status']['location']))
 		bldr.append(" ")
 		team = game[reverseHomeAway(game['status']['possession'])]
-		bldr.append(flair(team['name']))
+		bldr.append(flair(team))
 	else:
 		bldr.append(str(game['status']['location']))
 	bldr.append("|")
 	team = game[game['status']['possession']]
-	bldr.append(flair(team['name']))
+	bldr.append(flair(team))
 
 	bldr.append("\n\n___\n\n")
 
@@ -338,6 +358,7 @@ def isGameWaitingOn(game, user, action, messageId):
 		if game['waitingId'].startswith("t1"):
 			waitingMessageType = "comment"
 			link = getLinkToThread(game['waitingId'][3:])
+			link = "{}//{}".format(getLinkToThread(game['thread']), game['waitingId'][3:])
 		elif game['waitingId'].startswith("t4"):
 			waitingMessageType = "message"
 			link = "{}{}".format(globals.MESSAGE_LINK, game['waitingId'][3:])
@@ -407,6 +428,8 @@ def getLocationString(game):
 def getCurrentPlayString(game):
 	if game['waitingAction'] == 'conversion':
 		return "{} just scored.".format(game[game['status']['possession']]['name'])
+	elif game['waitingAction'] == 'kickoff':
+		return "{} is kicking off".format(game[game['status']['possession']]['name'])
 	else:
 		return "It's {} and {} on the {}.".format(
 			getDownString(game['status']['down']),
@@ -421,6 +444,8 @@ def getWaitingOnString(game):
 		string = "Waiting on {} for coin toss".format(game[game['waitingOn']]['name'])
 	elif game['waitingAction'] == 'defer':
 		string = "Waiting on {} for receive/defer".format(game[game['waitingOn']]['name'])
+	elif game['waitingAction'] == 'kickoff':
+		string = "Waiting on {} for kickoff number".format(game[game['waitingOn']]['name'])
 	elif game['waitingAction'] == 'play':
 		if game['waitingOn'] == game['status']['possession']:
 			string = "Waiting on {} for an offensive play".format(game[game['waitingOn']]['name'])
@@ -436,7 +461,7 @@ def sendDefensiveNumberMessage(game):
 	reddit.sendMessage(game[defenseHomeAway]['coaches'],
 	                   "{} vs {}".format(game['away']['name'], game['home']['name']),
 	                   embedTableInMessage("{}\n\nReply with a number between **1** and **1500**, inclusive."
-	                                       .format(getCurrentPlayString(game)), {'action': 'play'}))
+	                                       .format(getCurrentPlayString(game)), {'action': game['waitingAction']}))
 	messageResult = reddit.getRecentSentMessage()
 	game['waitingId'] = messageResult.fullname
 	log.debug("Defensive number sent, now waiting on: {}".format(game['waitingId']))
@@ -493,6 +518,8 @@ def findKeywordInMessage(keywords, message):
 def listSuggestedPlays(game):
 	if game['waitingAction'] == 'conversion':
 		return "**PAT** or **two point**"
+	elif game['waitingAction'] == 'kickoff':
+		return "**normal**, **squib** or **onside**"
 	else:
 		if game['status']['down'] == 4:
 			if game['status']['location'] > 62:

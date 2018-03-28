@@ -128,7 +128,7 @@ def endGame(threadId):
 	c = dbConn.cursor()
 	c.execute('''
 		UPDATE games
-		SET Complete = 0
+		SET Complete = 1
 			,Playclock = CURRENT_TIMESTAMP
 		WHERE ThreadID = ?
 	''', (threadId,))
@@ -252,7 +252,7 @@ def clearGameErrored(gameID):
 		c.execute('''
 			UPDATE games
 			SET Errored = 0
-				,Deadline = DATETIME(Deadline, '+' || (julianday(CURRENT_TIMESTAMP) - julianday(Playclock) * 86400.0) || ' seconds')
+				,Deadline = DATETIME(Deadline, '+' || ((julianday(CURRENT_TIMESTAMP) - julianday(Playclock)) * 86400.0) || ' seconds')
 				,Playclock = DATETIME(CURRENT_TIMESTAMP, '+24 hours')
 			WHERE ID = ?
 		''', (gameID,))
