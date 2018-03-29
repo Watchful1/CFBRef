@@ -417,10 +417,10 @@ def processMessage(message):
 						success = False
 						response = "I found both {} in your message. Please reply with just one of them.".format(' and '.join(keywords))
 
-				elif dataTable['action'] in ['play', 'kickoff'] and isMessage:
+				elif dataTable['action'] in ['play', 'kickoff', 'conversion'] and isMessage:
 					success, response = processMessageDefenseNumber(game, body, str(message.author))
 
-				elif dataTable['action'] in ['play', 'kickoff'] and not isMessage:
+				elif dataTable['action'] in ['play', 'kickoff', 'conversion'] and not isMessage:
 					success, response = processMessageOffensePlay(game, body, str(message.author))
 		else:
 			log.debug("Couldn't get a game for /u/{}".format(author))

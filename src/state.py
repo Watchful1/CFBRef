@@ -489,6 +489,7 @@ def executePlay(game, play, number, numberMessage, timeOption):
 						game['status']['location'] = game['status']['location'] + yards
 						resultMessage = "It's dropped! Recovered by {} on the {}".format(game[game['status']['possession']]['name'], utils.getLocationString(game))
 						actualResult = "gain"
+						game['waitingAction'] = 'play'
 
 				elif result['result'] == 'touchback':
 					log.debug("Result is a touchback")
