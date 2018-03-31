@@ -313,9 +313,10 @@ def sendGameMessage(isHome, game, message, dataTable):
 	return reddit.getRecentSentMessage().id
 
 
-def sendGameComment(game, message, dataTable=None):
+def sendGameComment(game, message, dataTable=None, saveWaiting=True):
 	commentResult = reddit.replySubmission(game['thread'], embedTableInMessage(message, dataTable))
-	game['waitingId'] = commentResult.fullname
+	if saveWaiting:
+		game['waitingId'] = commentResult.fullname
 	log.debug("Game comment sent, now waiting on: {}".format(game['waitingId']))
 	return commentResult
 

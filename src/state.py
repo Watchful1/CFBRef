@@ -25,7 +25,7 @@ def setStateTouchback(game, homeAway):
 	game['status']['yards'] = 10
 	game['status']['possession'] = homeAway
 	game['waitingAction'] = 'play'
-	game['waitingOn'] = homeAway
+	game['waitingOn'] = utils.reverseHomeAway(homeAway)
 
 
 def setStateKickoff(game, homeAway):

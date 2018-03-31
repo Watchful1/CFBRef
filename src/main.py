@@ -144,7 +144,7 @@ while True:
 						utils.sendDefensiveNumberMessage(game)
 						resultMessage = "Automatic 7 point touchdown, {} has the ball.".format(utils.flair(game[game['waitingOn']]))
 
-				utils.sendGameComment(game, "{}\n\n{}".format(penaltyMessage, resultMessage))
+				utils.sendGameComment(game, "{}\n\n{}".format(penaltyMessage, resultMessage), False)
 				database.setGamePlayed(game['dataID'])
 				utils.updateGameThread(game)
 
