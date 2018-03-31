@@ -566,7 +566,7 @@ def executePlay(game, play, number, numberMessage, timeOption):
 					if utils.isGameOvertime(game):
 						timeMessage = overtimeTurnover(game)
 					else:
-						setStateKickoff(game, utils.reverseHomeAway(game['status']['possession']))
+						setStateKickoff(game, game['status']['possession'])
 					actualResult = "fieldGoal"
 
 				elif result['result'] == 'punt':
