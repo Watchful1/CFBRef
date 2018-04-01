@@ -388,7 +388,7 @@ def executePunt(game, yards):
 		return "It's a {} yard punt".format(yards)
 
 
-def executePlay(game, play, number, numberMessage, timeOption):
+def executePlay(game, play, number, timeOption):
 	startingPossessionHomeAway = game.status.possession
 	actualResult = None
 	yards = None
@@ -396,268 +396,237 @@ def executePlay(game, play, number, numberMessage, timeOption):
 	diffMessage = None
 	success = True
 	timeMessage = None
-	if game.status.waitingAction == 'conversion':
-		if play in globals.conversionPlays:
-			if number == -1:
-				log.debug("Trying to execute a conversion play, but didn't have a number")
-				resultMessage = numberMessage
-				success = False
 
+	if play in globals.conversionPlays:
+		numberResult, diffMessage = getNumberDiffForGame(game, number)
+
+		log.debug("Executing conversion play: {}".format(play))
+		result = getPlayResult(game, play, numberResult)
+		if result['result'] == 'twoPoint':
+			log.debug("Successful two point conversion")
+			resultMessage = "The two point conversion is successful"
+			scoreTwoPoint(game, game.status.possession)
+			if utils.isGameOvertime(game):
+				timeMessage = overtimeTurnover(game)
 			else:
-				numberResult, diffMessage = getNumberDiffForGame(game, number)
+				setStateKickoff(game, game.status.possession)
 
-				log.debug("Executing conversion play: {}".format(play))
-				result = getPlayResult(game, play, numberResult)
-				if result['result'] == 'twoPoint':
-					log.debug("Successful two point conversion")
-					resultMessage = "The two point conversion is successful"
-					scoreTwoPoint(game, game.status.possession)
-					if utils.isGameOvertime(game):
-						timeMessage = overtimeTurnover(game)
-					else:
-						setStateKickoff(game, game.status.possession)
-
-				elif result['result'] == 'pat':
-					log.debug("Successful PAT")
-					resultMessage = "The PAT was successful"
-					scorePAT(game, game.status.possession)
-					if utils.isGameOvertime(game):
-						timeMessage = overtimeTurnover(game)
-					else:
-						setStateKickoff(game, game.status.possession)
-
-				elif result['result'] == 'kickoff':
-					log.debug("Attempt unsuccessful")
-					if play == "twoPoint":
-						resultMessage = "The two point conversion attempt was unsuccessful"
-					elif play == "pat":
-						resultMessage = "The PAT attempt was unsuccessful"
-					else:
-						resultMessage = "Conversion unsuccessful"
-					if utils.isGameOvertime(game):
-						timeMessage = overtimeTurnover(game)
-					else:
-						setStateKickoff(game, game.status.possession)
-
-				database.clearDefensiveNumber(game.dataID)
-
-		else:
-			resultMessage = "It looks like you're trying to get the extra point after a touchdown, but this isn't a valid play"
-			success = False
-
-	elif game.status.waitingAction == 'kickoff':
-		if play in globals.kickoffPlays:
-			if number == -1:
-				log.debug("Trying to execute a kickoff play, but didn't have a number")
-				resultMessage = numberMessage
-				success = False
-
+		elif result['result'] == 'pat':
+			log.debug("Successful PAT")
+			resultMessage = "The PAT was successful"
+			scorePAT(game, game.status.possession)
+			if utils.isGameOvertime(game):
+				timeMessage = overtimeTurnover(game)
 			else:
-				numberResult, diffMessage = getNumberDiffForGame(game, number)
+				setStateKickoff(game, game.status.possession)
 
-				log.debug("Executing kickoff play: {}".format(play))
-				result = getPlayResult(game, play, numberResult)
-
-				if result['result'] == 'kick':
-					if 'yards' not in result:
-						log.warning("Result is a successful kick, but I couldn't find any yards")
-						resultMessage = "Result of kick is a number of yards, but something went wrong and I couldn't find what number"
-						success = False
-					else:
-						log.debug("Result is a kick of {} yards".format(result['yards']))
-						yards = result['yards']
-						game.status.location = game.status.location + yards
-						turnover(game)
-						resultMessage = "{} yard kick.".format(yards)
-						actualResult = "kick"
-
-				elif result['result'] == 'gain':
-					if 'yards' not in result:
-						log.warning("Result is a dropped kick, but I couldn't find any yards")
-						resultMessage = "The receiver drops the kick, but something went wrong and I couldn't find where"
-						success = False
-					else:
-						log.debug("Result is a dropped kick of {} yards".format(result['yards']))
-						yards = result['yards']
-						game.status.location = game.status.location + yards
-						resultMessage = "It's dropped! Recovered by {} on the {}".format(game.team(game.status.possession).name, utils.getLocationString(game))
-						actualResult = "gain"
-						game.status.waitingAction = 'play'
-
-				elif result['result'] == 'touchback':
-					log.debug("Result is a touchback")
-					setStateTouchback(game, game.status.possession.negate())
-					resultMessage = "The kick goes into the end zone, touchback."
-					actualResult = "touchback"
-
-				elif result['result'] == 'touchdown':
-					log.debug("Result is a touchdown")
-					resultMessage = "It's dropped! The kicking team recovers and runs it into the end zone! Touchdown {}!".format(game.team(game.status.possession).name)
-					scoreTouchdown(game, game.status.possession)
-					actualResult = "touchdown"
-
-				elif result['result'] == 'turnoverTouchdown':
-					log.debug("Result is a run back for touchdown")
-					resultMessage = "It's run all the way back! Touchdown {}!".format(game.team(game.status.possession.negate()).name)
-					scoreTouchdown(game, game.status.possession.negate())
-					actualResult = "turnoverTouchdown"
-
-		else:
-			resultMessage = "It looks like you're trying to kickoff, but this isn't a valid play"
-			success = False
-
-	elif game.status.waitingAction == 'play':
-		if play in globals.normalPlays:
-			if number == -1:
-				log.debug("Trying to execute a normal play, but didn't have a number")
-				resultMessage = numberMessage
-				success = False
-
+		elif result['result'] == 'kickoff':
+			log.debug("Attempt unsuccessful")
+			if play == "twoPoint":
+				resultMessage = "The two point conversion attempt was unsuccessful"
+			elif play == "pat":
+				resultMessage = "The PAT attempt was unsuccessful"
 			else:
-				numberResult, diffMessage = getNumberDiffForGame(game, number)
+				resultMessage = "Conversion unsuccessful"
+			if utils.isGameOvertime(game):
+				timeMessage = overtimeTurnover(game)
+			else:
+				setStateKickoff(game, game.status.possession)
 
-				log.debug("Executing normal play: {}".format(play))
-				result = getPlayResult(game, play, numberResult)
+		database.clearDefensiveNumber(game.dataID)
 
-				if play == 'punt' and result['result'] == 'gain':
-					if game.status.location + result['yards'] > 100:
-						result['result'] = 'punt'
+	elif play in globals.kickoffPlays:
+		numberResult, diffMessage = getNumberDiffForGame(game, number)
 
-				if result['result'] == 'gain':
-					if 'yards' not in result:
-						log.warning("Result is a gain, but I couldn't find any yards")
-						resultMessage = "Result of play is a number of yards, but something went wrong and I couldn't find what number"
-						success = False
-					else:
-						log.debug("Result is a gain of {} yards".format(result['yards']))
-						gainResult, yards, resultMessage = executeGain(game, play, result['yards'])
-						if gainResult != "error":
-							if yards is not None:
-								actualResult = gainResult
-						else:
-							success = False
+		log.debug("Executing kickoff play: {}".format(play))
+		result = getPlayResult(game, play, numberResult)
 
-				elif result['result'] == 'incomplete':
-					log.debug("Result is an incomplete pass")
-					actualResult = "incomplete"
-					gainResult, yards, resultMessage = executeGain(game, play, 0, True)
+		if result['result'] == 'kick':
+			if 'yards' not in result:
+				log.warning("Result is a successful kick, but I couldn't find any yards")
+				resultMessage = "Result of kick is a number of yards, but something went wrong and I couldn't find what number"
+				success = False
+			else:
+				log.debug("Result is a kick of {} yards".format(result['yards']))
+				yards = result['yards']
+				game.status.location = game.status.location + yards
+				turnover(game)
+				resultMessage = "{} yard kick.".format(yards)
+				actualResult = "kick"
 
-				elif result['result'] == 'touchdown':
-					log.debug("Result is a touchdown")
-					resultMessage = "It's a {} into the endzone! Touchdown {}!".format(play, game.team(game.status.possession).name)
-					previousLocation = game.status.location
-					utils.addStatRunPass(game, play, 100 - previousLocation)
-					scoreTouchdown(game, game.status.possession)
-					actualResult = "touchdown"
-					yards = 100 - previousLocation
+		elif result['result'] == 'gain':
+			if 'yards' not in result:
+				log.warning("Result is a dropped kick, but I couldn't find any yards")
+				resultMessage = "The receiver drops the kick, but something went wrong and I couldn't find where"
+				success = False
+			else:
+				log.debug("Result is a dropped kick of {} yards".format(result['yards']))
+				yards = result['yards']
+				game.status.location = game.status.location + yards
+				resultMessage = "It's dropped! Recovered by {} on the {}".format(game.team(game.status.possession).name, utils.getLocationString(game))
+				actualResult = "gain"
+				game.status.waitingAction = 'play'
 
-				elif result['result'] == 'fieldGoal':
-					log.debug("Result is a field goal")
-					resultMessage = "The {} yard field goal is good!".format(100 - game.status.location + 17)
-					utils.addStat(game, 'fieldGoalsScored', 1)
-					scoreFieldGoal(game, game.status.possession)
-					if utils.isGameOvertime(game):
-						timeMessage = overtimeTurnover(game)
-					else:
-						setStateKickoff(game, game.status.possession)
-					actualResult = "fieldGoal"
+		elif result['result'] == 'touchback':
+			log.debug("Result is a touchback")
+			setStateTouchback(game, game.status.possession.negate())
+			resultMessage = "The kick goes into the end zone, touchback."
+			actualResult = "touchback"
 
-				elif result['result'] == 'punt':
-					if 'yards' not in result:
-						log.warning("Result is a punt, but I couldn't find any yards")
-						resultMessage = "Result of play is a successful punt, but something went wrong and I couldn't find how long a punt"
-					else:
-						log.debug("Successful punt of {} yards".format(result['yards']))
-						if utils.isGameOvertime(game):
-							log.warning("A punt happened in overtime, this shouldn't have happened")
-							resultMessage = "A punt happened, but it's overtime. This shouldn't be possible."
-						else:
-							resultMessage = executePunt(game, result['yards'])
-						actualResult = "punt"
+		elif result['result'] == 'touchdown':
+			log.debug("Result is a touchdown")
+			resultMessage = "It's dropped! The kicking team recovers and runs it into the end zone! Touchdown {}!".format(game.team(game.status.possession).name)
+			scoreTouchdown(game, game.status.possession)
+			actualResult = "touchdown"
 
-				elif result['result'] in ['turnover', 'miss']:
-					log.debug("Play results in a turnover")
-					if play == "run":
-						utils.addStat(game, 'turnoverInterceptions', 1)
-						resultMessage = "Fumble! The ball is dropped, {} recovers!".format(game.team(game.status.possession.negate()).name)
-					elif play == "pass":
-						utils.addStat(game, 'turnoverFumble', 1)
-						resultMessage = "Picked off! The pass is intercepted, {} ball!".format(game.team(game.status.possession.negate()).name)
-					elif play == "fieldGoal":
-						if result['result'] == 'turnover':
-							utils.addStat(game, 'turnoverFumble', 1)
-							resultMessage = "It's blocked!"
+		elif result['result'] == 'turnoverTouchdown':
+			log.debug("Result is a run back for touchdown")
+			resultMessage = "It's run all the way back! Touchdown {}!".format(game.team(game.status.possession.negate()).name)
+			scoreTouchdown(game, game.status.possession.negate())
+			actualResult = "turnoverTouchdown"
 
-						else:
-							utils.addStat(game, 'fieldGoalsAttempted', 1)
-							resultMessage = "The kick is wide."
+	elif play in globals.normalPlays:
+		numberResult, diffMessage = getNumberDiffForGame(game, number)
 
-					elif play == "punt":
-						utils.addStat(game, 'turnoverFumble', 1)
-						resultMessage = "It's blocked!"
-					else:
-						utils.addStat(game, 'turnoverFumble', 1)
-						resultMessage = "It's a turnover!"
-					if utils.isGameOvertime(game):
-						timeMessage = overtimeTurnover(game)
-					else:
-						turnover(game)
-					actualResult = "turnover"
+		log.debug("Executing normal play: {}".format(play))
+		result = getPlayResult(game, play, numberResult)
 
-				elif result['result'] == 'turnoverTouchdown':
-					log.debug("Play results in a turnover and run back")
-					if play == "run":
-						resultMessage = "Fumble! The ball is dropped and it's run all the way back. Touchdown {}!".format(game.team(game.status.possession.negate()).name)
-					elif play == "pass":
-						resultMessage = "Picked off! The pass is intercepted and it's run all the way back. Touchdown {}!".format(game.team(game.status.possession.negate()).name)
-					elif play == "fieldGoal" or play == "punt":
-						resultMessage = "It's blocked! The ball is picked up and run all the back. Touchdown {}!".format(game.team(game.status.possession.negate()).name)
-					else:
-						resultMessage = "It's a turnover and run back for a touchdown!"
-					scoreTouchdown(game, game.status.possession.negate())
-					actualResult = "turnoverTouchdown"
-					if utils.isGameOvertime(game):
-						timeMessage = "Game over! {} wins!".format(utils.flair(game.team(game.status.possession)))
-						game.status.quarterType = 'end'
-						game.status.waitingAction = 'end'
+		if play == 'punt' and result['result'] == 'gain':
+			if game.status.location + result['yards'] > 100:
+				result['result'] = 'punt'
 
-				database.clearDefensiveNumber(game.dataID)
-
-		elif play in globals.timePlays:
-			if play == 'kneel':
-				log.debug("Running kneel play")
-				actualResult = "kneel"
-				game.status.down += 1
-				if game.status.down > 4:
-					log.debug("Turnover on downs")
-					if utils.isGameOvertime(game):
-						timeMessage = overtimeTurnover(game)
-					else:
-						turnover(game)
-					resultMessage = "Turnover on downs"
+		if result['result'] == 'gain':
+			if 'yards' not in result:
+				log.warning("Result is a gain, but I couldn't find any yards")
+				resultMessage = "Result of play is a number of yards, but something went wrong and I couldn't find what number"
+				success = False
+			else:
+				log.debug("Result is a gain of {} yards".format(result['yards']))
+				gainResult, yards, resultMessage = executeGain(game, play, result['yards'])
+				if gainResult != "error":
+					if yards is not None:
+						actualResult = gainResult
 				else:
-					resultMessage = "The quarterback takes a knee"
+					success = False
 
-			elif play == 'spike':
-				log.debug("Running spike play")
-				actualResult = "spike"
-				game.status.down += 1
-				if game.status.down > 4:
-					log.debug("Turnover on downs")
-					if utils.isGameOvertime(game):
-						timeMessage = overtimeTurnover(game)
-					else:
-						turnover(game)
-					resultMessage = "Turnover on downs"
+		elif result['result'] == 'incomplete':
+			log.debug("Result is an incomplete pass")
+			actualResult = "incomplete"
+			gainResult, yards, resultMessage = executeGain(game, play, 0, True)
+
+		elif result['result'] == 'touchdown':
+			log.debug("Result is a touchdown")
+			resultMessage = "It's a {} into the endzone! Touchdown {}!".format(play, game.team(game.status.possession).name)
+			previousLocation = game.status.location
+			utils.addStatRunPass(game, play, 100 - previousLocation)
+			scoreTouchdown(game, game.status.possession)
+			actualResult = "touchdown"
+			yards = 100 - previousLocation
+
+		elif result['result'] == 'fieldGoal':
+			log.debug("Result is a field goal")
+			resultMessage = "The {} yard field goal is good!".format(100 - game.status.location + 17)
+			utils.addStat(game, 'fieldGoalsScored', 1)
+			scoreFieldGoal(game, game.status.possession)
+			if utils.isGameOvertime(game):
+				timeMessage = overtimeTurnover(game)
+			else:
+				setStateKickoff(game, game.status.possession)
+			actualResult = "fieldGoal"
+
+		elif result['result'] == 'punt':
+			if 'yards' not in result:
+				log.warning("Result is a punt, but I couldn't find any yards")
+				resultMessage = "Result of play is a successful punt, but something went wrong and I couldn't find how long a punt"
+			else:
+				log.debug("Successful punt of {} yards".format(result['yards']))
+				if utils.isGameOvertime(game):
+					log.warning("A punt happened in overtime, this shouldn't have happened")
+					resultMessage = "A punt happened, but it's overtime. This shouldn't be possible."
 				else:
-					resultMessage = "The quarterback spikes the ball"
+					resultMessage = executePunt(game, result['yards'])
+				actualResult = "punt"
 
-		else:
-			resultMessage = "{} isn't a valid play at the moment".format(play)
-			success = False
+		elif result['result'] in ['turnover', 'miss']:
+			log.debug("Play results in a turnover")
+			if play == "run":
+				utils.addStat(game, 'turnoverInterceptions', 1)
+				resultMessage = "Fumble! The ball is dropped, {} recovers!".format(game.team(game.status.possession.negate()).name)
+			elif play == "pass":
+				utils.addStat(game, 'turnoverFumble', 1)
+				resultMessage = "Picked off! The pass is intercepted, {} ball!".format(game.team(game.status.possession.negate()).name)
+			elif play == "fieldGoal":
+				if result['result'] == 'turnover':
+					utils.addStat(game, 'turnoverFumble', 1)
+					resultMessage = "It's blocked!"
+
+				else:
+					utils.addStat(game, 'fieldGoalsAttempted', 1)
+					resultMessage = "The kick is wide."
+
+			elif play == "punt":
+				utils.addStat(game, 'turnoverFumble', 1)
+				resultMessage = "It's blocked!"
+			else:
+				utils.addStat(game, 'turnoverFumble', 1)
+				resultMessage = "It's a turnover!"
+			if utils.isGameOvertime(game):
+				timeMessage = overtimeTurnover(game)
+			else:
+				turnover(game)
+			actualResult = "turnover"
+
+		elif result['result'] == 'turnoverTouchdown':
+			log.debug("Play results in a turnover and run back")
+			if play == "run":
+				resultMessage = "Fumble! The ball is dropped and it's run all the way back. Touchdown {}!".format(game.team(game.status.possession.negate()).name)
+			elif play == "pass":
+				resultMessage = "Picked off! The pass is intercepted and it's run all the way back. Touchdown {}!".format(game.team(game.status.possession.negate()).name)
+			elif play == "fieldGoal" or play == "punt":
+				resultMessage = "It's blocked! The ball is picked up and run all the back. Touchdown {}!".format(game.team(game.status.possession.negate()).name)
+			else:
+				resultMessage = "It's a turnover and run back for a touchdown!"
+			scoreTouchdown(game, game.status.possession.negate())
+			actualResult = "turnoverTouchdown"
+			if utils.isGameOvertime(game):
+				timeMessage = "Game over! {} wins!".format(utils.flair(game.team(game.status.possession)))
+				game.status.quarterType = 'end'
+				game.status.waitingAction = 'end'
+
+		database.clearDefensiveNumber(game.dataID)
+
+	elif play in globals.timePlays:
+		if play == 'kneel':
+			log.debug("Running kneel play")
+			actualResult = "kneel"
+			game.status.down += 1
+			if game.status.down > 4:
+				log.debug("Turnover on downs")
+				if utils.isGameOvertime(game):
+					timeMessage = overtimeTurnover(game)
+				else:
+					turnover(game)
+				resultMessage = "Turnover on downs"
+			else:
+				resultMessage = "The quarterback takes a knee"
+
+		elif play == 'spike':
+			log.debug("Running spike play")
+			actualResult = "spike"
+			game.status.down += 1
+			if game.status.down > 4:
+				log.debug("Turnover on downs")
+				if utils.isGameOvertime(game):
+					timeMessage = overtimeTurnover(game)
+				else:
+					turnover(game)
+				resultMessage = "Turnover on downs"
+			else:
+				resultMessage = "The quarterback spikes the ball"
 
 	else:
-		resultMessage = "Something went wrong, invalid waiting action: {}".format(game.status.waitingAction)
+		log.debug("Something went wrong, invalid play: {}".format(play))
+		resultMessage = "Something went wrong, invalid play: {}".format(play)
 		success = False
 
 	messages = [resultMessage]

@@ -213,8 +213,6 @@ def processMessageDefenseNumber(game, message, author):
 def processMessageOffensePlay(game, message, author):
 	log.debug("Processing offense number message")
 
-	number, numberMessage = utils.extractPlayNumber(message)
-
 	timeoutMessageOffense = None
 	timeoutMessageDefense = None
 	if "timeout" in message:
@@ -229,9 +227,18 @@ def processMessageOffensePlay(game, message, author):
 	elif any(x in message for x in ['hurry up', 'no huddle', 'no-huddle']):
 		timeOption = 'hurry'
 
-	playOptions = ['run', 'pass', 'punt', 'field goal', 'kneel', 'spike', 'two point', 'pat', 'normal', 'squib', 'onside']
-	playSelected = utils.findKeywordInMessage(playOptions, message)
-	play = "default"
+	normalOptions = ['run', 'pass', 'punt', 'field goal', 'kneel', 'spike']
+	conversionOptions = ['two point', 'pat']
+	kickoffOptions = ['normal', 'squib', 'onside']
+	if game.status.waitingAction == 'play':
+		playSelected = utils.findKeywordInMessage(normalOptions, message)
+	elif game.status.waitingAction == 'conversion':
+		playSelected = utils.findKeywordInMessage(conversionOptions, message)
+	elif game.status.waitingAction == 'kickoff':
+		playSelected = utils.findKeywordInMessage(kickoffOptions, message)
+	else:
+		return False, "Something went wrong, invalid waiting action: {}".format(game.status.waitingAction)
+
 	if playSelected == "run":
 		play = "run"
 	elif playSelected == "pass":
@@ -261,7 +268,12 @@ def processMessageOffensePlay(game, message, author):
 		log.debug("Didn't find any plays")
 		return False, "I couldn't find a play in your message"
 
-	success, resultMessage = state.executePlay(game, play, number, numberMessage, timeOption)
+	number, numberMessage = utils.extractPlayNumber(message)
+	if play not in globals.timePlays and number == -1:
+		log.debug("Trying to execute a {} play, but didn't have a number".format(play))
+		return False, numberMessage
+
+	success, resultMessage = state.executePlay(game, play, number, timeOption)
 
 	if game.status.state(game.status.possession).requestedTimeout == 'used':
 		timeoutMessageOffense = "The offense is charged a timeout"
