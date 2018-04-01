@@ -8,6 +8,7 @@ import wiki
 import globals
 import database
 import state
+import classes
 
 log = logging.getLogger("bot")
 
@@ -85,88 +86,88 @@ def processMessageCoin(game, isHeads, author):
 
 	if isHeads == utils.coinToss():
 		log.debug("User won coin toss, asking if they want to defer")
-		game['waitingAction'] = 'defer'
-		game['waitingOn'] = 'away'
-		game['waitingId'] = 'return'
-		game['dirty'] = True
+		game.status.waitingAction = 'defer'
+		game.status.waitingOn.set(False)
+		game.status.waitingId = 'return'
+		game.dirty = True
 
 		if utils.isGameOvertime(game):
 			questionString = "do you want to **defend** or **attack**?"
 		else:
 			questionString = "do you want to **receive** or **defer**?"
-		message = "{}, {} won the toss, {}".format(utils.getCoachString(game, 'away'), game['away']['name'], questionString)
+		message = "{}, {} won the toss, {}".format(utils.getCoachString(game, False), game.away.name, questionString)
 		return True, utils.embedTableInMessage(message, {'action': 'defer'})
 	else:
 		log.debug("User lost coin toss, asking other team if they want to defer")
-		game['waitingAction'] = 'defer'
-		game['waitingOn'] = 'home'
-		game['waitingId'] = 'return'
-		game['dirty'] = True
+		game.status.waitingAction = 'defer'
+		game.status.waitingOn.set(True)
+		game.status.waitingId = 'return'
+		game.dirty = True
 
 		if utils.isGameOvertime(game):
 			questionString = "do you want to **defend** or **attack**?"
 		else:
 			questionString = "do you want to **receive** or **defer**?"
-		message = "{}, {} won the toss, {}".format(utils.getCoachString(game, 'home'), game['home']['name'], questionString)
+		message = "{}, {} won the toss, {}".format(utils.getCoachString(game, True), game.home.name, questionString)
 		return True, utils.embedTableInMessage(message, {'action': 'defer'})
 
 
 def processMessageDefer(game, isDefer, author):
 	log.debug("Processing defer message: {}".format(str(isDefer)))
 
-	authorHomeAway = utils.getHomeAwayString(utils.isCoachHome(game, author))
+	authorHomeAway = utils.coachHomeAway(game, author)
 	if utils.isGameOvertime(game):
 		if isDefer:
-			log.debug("User deferred, {} is attacking".format(utils.reverseHomeAway(authorHomeAway)))
+			log.debug("User deferred, {} is attacking".format(authorHomeAway.negate().name()))
 
-			state.setStateOvertimeDrive(game, utils.reverseHomeAway(authorHomeAway))
-			game['receivingNext'] = authorHomeAway
-			game['waitingOn'] = utils.reverseHomeAway(game['waitingOn'])
-			game['dirty'] = True
+			state.setStateOvertimeDrive(game, authorHomeAway.negate())
+			game.status.receivingNext = authorHomeAway
+			game.status.waitingOn.reverse()
+			game.dirty = True
 			utils.sendDefensiveNumberMessage(game)
 
 			return True, "{} deferred and will attack next. Overtime has started!\n\n{}\n\n{}".format(
-				game[authorHomeAway]['name'],
+				game.team(authorHomeAway).name,
 			    utils.getCurrentPlayString(game),
 			    utils.getWaitingOnString(game))
 		else:
 			log.debug("User elected to attack, {} is attacking".format(authorHomeAway))
 
 			state.setStateOvertimeDrive(game, authorHomeAway)
-			game['receivingNext'] = utils.reverseHomeAway(authorHomeAway)
-			game['waitingOn'] = utils.reverseHomeAway(game['waitingOn'])
-			game['dirty'] = True
+			game.status.receivingNext = authorHomeAway.negate()
+			game.status.waitingOn.reverse()
+			game.dirty = True
 			utils.sendDefensiveNumberMessage(game)
 
 			return True, "{} elected to attack. Overtime has started!\n\n{}\n\n{}".format(
-				game[authorHomeAway]['name'],
+				game.team(authorHomeAway).name,
 			    utils.getCurrentPlayString(game),
 			    utils.getWaitingOnString(game))
 	else:
 		if isDefer:
-			log.debug("User deferred, {} is receiving".format(utils.reverseHomeAway(authorHomeAway)))
+			log.debug("User deferred, {} is receiving".format(authorHomeAway.negate()))
 
 			state.setStateKickoff(game, authorHomeAway)
-			game['receivingNext'] = authorHomeAway
-			game['waitingOn'] = utils.reverseHomeAway(game['waitingOn'])
-			game['dirty'] = True
+			game.status.receivingNext = authorHomeAway
+			game.status.waitingOn.reverse()
+			game.dirty = True
 			utils.sendDefensiveNumberMessage(game)
 
 			return True, "{} deferred and will receive the ball in the second half. The game has started!\n\n{}\n\n{}".format(
-				game[authorHomeAway]['name'],
+				game.team(authorHomeAway).name,
 			    utils.getCurrentPlayString(game),
 			    utils.getWaitingOnString(game))
 		else:
 			log.debug("User elected to receive, {} is receiving".format(authorHomeAway))
 
-			state.setStateKickoff(game, utils.reverseHomeAway(authorHomeAway))
-			game['receivingNext'] = utils.reverseHomeAway(authorHomeAway)
-			game['waitingOn'] = utils.reverseHomeAway(game['waitingOn'])
-			game['dirty'] = True
+			state.setStateKickoff(game, authorHomeAway.negate())
+			game.status.receivingNext = authorHomeAway.negate()
+			game.status.waitingOn.reverse()
+			game.dirty = True
 			utils.sendDefensiveNumberMessage(game)
 
 			return True, "{} elected to receive. The game has started!\n\n{}\n\n{}".format(
-				game[authorHomeAway]['name'],
+				game.team(authorHomeAway).name,
 			    utils.getCurrentPlayString(game),
 			    utils.getWaitingOnString(game))
 
@@ -179,29 +180,29 @@ def processMessageDefenseNumber(game, message, author):
 		return False, resultMessage
 
 	log.debug("Saving defense number: {}".format(number))
-	database.saveDefensiveNumber(game['dataID'], number)
+	database.saveDefensiveNumber(game.dataID, number)
 
 	timeoutMessage = None
 	if message.find("timeout") > 0:
-		if game[utils.reverseHomeAway(game['status']['possession'])]['timeouts'] > 0:
-			game[utils.reverseHomeAway(game['status']['possession'])]['requestedTimeout'] = 'requested'
+		if game.status.state(game.status.possession.negate()).timeouts > 0:
+			game.status.state(game.status.possession.negate()).requestedTimeout = 'requested'
 			timeoutMessage = "Timeout requested successfully"
 		else:
 			timeoutMessage = "You requested a timeout, but you don't have any left"
 
-	game['waitingOn'] = utils.reverseHomeAway(game['waitingOn'])
-	game['dirty'] = True
+	game.status.waitingOn.reverse()
+	game.dirty = True
 
 	log.debug("Sending offense play comment")
 	resultMessage = "{} has submitted their number. {} you're up.\n\n{}\n\n{} reply with {} and your number. [Play list]({})".format(
-		game[utils.reverseHomeAway(game['waitingOn'])]['name'],
-		game[game['waitingOn']]['name'],
+		game.team(game.status.waitingOn.negate()).name,
+		game.team(game.status.waitingOn).name,
 		utils.getCurrentPlayString(game),
-		utils.getCoachString(game, game['waitingOn']),
+		utils.getCoachString(game, game.status.waitingOn),
 		utils.listSuggestedPlays(game),
 		"https://www.reddit.com/r/FakeCollegeFootball/wiki/refbot"
 	)
-	utils.sendGameComment(game, resultMessage, {'action': game['waitingAction']})
+	utils.sendGameComment(game, resultMessage, {'action': game.status.waitingAction})
 
 	result = ["I've got {} as your number.".format(number)]
 	if timeoutMessage is not None:
@@ -217,8 +218,8 @@ def processMessageOffensePlay(game, message, author):
 	timeoutMessageOffense = None
 	timeoutMessageDefense = None
 	if "timeout" in message:
-		if game[game['status']['possession']]['timeouts'] > 0:
-			game[game['status']['possession']]['requestedTimeout'] = 'requested'
+		if game.status.state(game.status.possession).timeouts > 0:
+			game.status.state(game.status.possession).requestedTimeout = 'requested'
 		else:
 			timeoutMessageOffense = "The offense requested a timeout, but they don't have any left"
 
@@ -262,17 +263,17 @@ def processMessageOffensePlay(game, message, author):
 
 	success, resultMessage = state.executePlay(game, play, number, numberMessage, timeOption)
 
-	if game[game['status']['possession']]['requestedTimeout'] == 'used':
+	if game.status.state(game.status.possession).requestedTimeout == 'used':
 		timeoutMessageOffense = "The offense is charged a timeout"
-	elif game[game['status']['possession']]['requestedTimeout'] == 'requested':
+	elif game.status.state(game.status.possession).requestedTimeout == 'requested':
 		timeoutMessageOffense = "The offense requested a timeout, but it was not used"
-	game[game['status']['possession']]['requestedTimeout'] = 'none'
+		game.status.state(game.status.possession).requestedTimeout = 'none'
 
-	if game[utils.reverseHomeAway(game['status']['possession'])]['requestedTimeout'] == 'used':
+	if game.status.state(game.status.possession.negate()).requestedTimeout == 'used':
 		timeoutMessageDefense = "The defense is charged a timeout"
-	elif game[utils.reverseHomeAway(game['status']['possession'])]['requestedTimeout'] == 'requested':
+	elif game.status.state(game.status.possession.negate()).requestedTimeout == 'requested':
 		timeoutMessageDefense = "The defense requested a timeout, but it was not used"
-	game[utils.reverseHomeAway(game['status']['possession'])]['requestedTimeout'] = 'none'
+		game.status.state(game.status.possession.negate()).requestedTimeout = 'none'
 
 	result = [resultMessage]
 	if timeoutMessageOffense is not None:
@@ -280,19 +281,19 @@ def processMessageOffensePlay(game, message, author):
 	if timeoutMessageDefense is not None:
 		result.append(timeoutMessageDefense)
 
-	game['waitingOn'] = utils.reverseHomeAway(game['waitingOn'])
-	game['dirty'] = True
-	if game['waitingAction'] in ['play', 'conversion', 'kickoff']:
+	game.status.waitingOn.reverse()
+	game.dirty = True
+	if game.status.waitingAction in ['play', 'conversion', 'kickoff']:
 		utils.sendDefensiveNumberMessage(game)
-	elif game['waitingAction'] == 'overtime':
+	elif game.status.waitingAction == 'overtime':
 		log.debug("Starting overtime, posting coin toss comment")
 		message = "Overtime has started! {}, you're away, call **heads** or **tails** in the air.".format(
-			utils.getCoachString(game, 'away'))
+			utils.getCoachString(game, False))
 		comment = utils.sendGameComment(game, message, {'action': 'coin'})
-		game['waitingId'] = comment.fullname
-		game['waitingAction'] = 'coin'
+		game.status.waitingId = comment.fullname
+		game.status.waitingAction = 'coin'
 
-	return success, utils.embedTableInMessage('\n\n'.join(result), {'action': game['waitingAction']})
+	return success, utils.embedTableInMessage('\n\n'.join(result), {'action': game.status.waitingAction})
 
 
 def processMessageKickGame(body):
@@ -377,7 +378,7 @@ def processMessage(message):
 	if dataTable is not None:
 		game = utils.getGameByUser(author)
 		if game is not None:
-			utils.setLogGameID(game['thread'], game['dataID'])
+			utils.setLogGameID(game.thread, game.dataID)
 
 			waitingOn = utils.isGameWaitingOn(game, author, dataTable['action'], dataTable['source'])
 			if waitingOn is not None:
@@ -385,7 +386,7 @@ def processMessage(message):
 				success = False
 				updateWaiting = False
 
-			elif game['errored']:
+			elif game.errored:
 				log.debug("Game is errored, skipping")
 				response = "This game is currently in an error state, /u/{} has been contacted to take a look".format(globals.OWNER)
 				success = False
@@ -441,15 +442,15 @@ def processMessage(message):
 			log.debug("Embedding datatable in reply on failure")
 			response = utils.embedTableInMessage(response, dataTable)
 			if updateWaiting and game is not None:
-				game['waitingId'] = 'return'
+				game.status.waitingId = 'return'
 		resultMessage = reddit.replyMessage(message, response)
 		if resultMessage is None:
 			log.warning("Could not send message")
 
-		elif game is not None and game['waitingId'] == 'return':
-			game['waitingId'] = resultMessage.fullname
-			game['dirty'] = True
-			log.debug("Message/comment replied, now waiting on: {}".format(game['waitingId']))
+		elif game is not None and game.status.waitingId == 'return':
+			game.status.waitingId = resultMessage.fullname
+			game.dirty = True
+			log.debug("Message/comment replied, now waiting on: {}".format(game.status.waitingId))
 	else:
 		if isMessage:
 			log.debug("Couldn't understand message")
@@ -458,6 +459,6 @@ def processMessage(message):
 			if resultMessage is None:
 				log.warning("Could not send message")
 
-	if game is not None and game['dirty']:
+	if game is not None and game.dirty:
 		log.debug("Game is dirty, updating thread")
 		utils.updateGameThread(game)

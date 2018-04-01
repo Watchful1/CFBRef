@@ -6,7 +6,7 @@ from datetime import timedelta
 
 import reddit
 import globals
-import utils
+import classes
 
 log = logging.getLogger("bot")
 
@@ -39,32 +39,31 @@ def validateItem(playItem, regex):
 def loadTeams():
 	teamsPage = reddit.getWikiPage(globals.CONFIG_SUBREDDIT, "teams")
 
+	requirements = {
+		'tag': "[a-z]+",
+		'name': "[\w -]+",
+		'offense': "(option|spread|pro)",
+		'defense': "(3-4|4-3|5-2)",
+	}
 	for teamLine in teamsPage.splitlines():
 		items = teamLine.split('|')
 		if len(items) < 5:
 			log.warning("Could not parse team line: {}".format(teamLine))
 			continue
-		team = {'tag': items[0], 'name': items[1], 'offense': items[2].lower(), 'defense': items[3].lower(),
-		        'coaches': []}
-		if "pro" in team['offense']:
-			team['offense'] = "pro"
+		team = classes.Team(tag=items[0], name=items[1], offense=items[2].lower(), defense=items[3].lower())
+		if "pro" in team.offense:
+			team.offense = "pro"
 
-		requirements = {
-			'tag': "[a-z]+",
-			'name': "[\w -]+",
-			'offense': "(option|spread|pro)",
-			'defense': "(3-4|4-3|5-2)",
-		}
 		for requirement in requirements:
-			if not validateItem(team[requirement], requirements[requirement]):
+			if not validateItem(getattr(team, requirement), requirements[requirement]):
 				log.debug("Could not validate team on {}: {}".format(requirement, team))
 				continue
 
 		for coach in items[4].lower().split(','):
 			coach = coach.strip()
-			team['coaches'].append(coach)
+			team.coaches.append(coach)
 			coaches[coach] = team
-		teams[team['tag']] = team
+		teams[team.tag] = team
 
 
 def initOffenseDefense(play, offense, defense, range):

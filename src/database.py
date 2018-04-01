@@ -96,7 +96,7 @@ def getGameByCoach(coach):
 	if not resultTuple:
 		return None
 	else:
-		return {"id": resultTuple[0], "thread": resultTuple[1], "defenseNumber": resultTuple[2], "errored": resultTuple[3],
+		return {"id": resultTuple[0], "thread": resultTuple[1], "defenseNumber": resultTuple[2], "errored": resultTuple[3] == 1,
 		        "coaches": resultTuple[4].split(',')}
 
 
@@ -120,7 +120,7 @@ def getGameByID(id):
 	if not resultTuple:
 		return None
 	else:
-		return {"id": id, "thread": resultTuple[0], "defenseNumber": resultTuple[1], "errored": resultTuple[2],
+		return {"id": id, "thread": resultTuple[0], "defenseNumber": resultTuple[1], "errored": resultTuple[2] == 1,
 		        "coaches": resultTuple[3].split(',')}
 
 
