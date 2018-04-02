@@ -239,29 +239,29 @@ def processMessageOffensePlay(game, message, author):
 	else:
 		return False, "Something went wrong, invalid waiting action: {}".format(game.status.waitingAction)
 
-	if playSelected == "run":
-		play = "run"
-	elif playSelected == "pass":
-		play = "pass"
-	elif playSelected == "punt":
-		play = "punt"
-	elif playSelected == "field goal":
-		play = "fieldGoal"
-	elif playSelected == "kneel":
-		play = "kneel"
-	elif playSelected == "spike":
-		play = "spike"
-	elif playSelected == "two point":
-		play = "twoPoint"
-	elif playSelected == "pat":
-		play = "pat"
-	elif playSelected == "normal":
-		play = "kickoffNormal"
-	elif playSelected == "squib":
-		play = "kickoffSquib"
-	elif playSelected == "onside":
-		play = "kickoffOnside"
-	elif playSelected == "mult":
+	if playSelected == 'run':
+		play = 'run'
+	elif playSelected == 'pass':
+		play = 'pass'
+	elif playSelected == 'punt':
+		play = 'punt'
+	elif playSelected == 'field goal':
+		play = 'fieldGoal'
+	elif playSelected == 'kneel':
+		play = 'kneel'
+	elif playSelected == 'spike':
+		play = 'spike'
+	elif playSelected == 'two point':
+		play = 'twoPoint'
+	elif playSelected == 'pat':
+		play = 'pat'
+	elif playSelected == 'normal':
+		play = 'kickoffNormal'
+	elif playSelected == 'squib':
+		play = 'kickoffSquib'
+	elif playSelected == 'onside':
+		play = 'kickoffOnside'
+	elif playSelected == 'mult':
 		log.debug("Found multiple plays")
 		return False, "I found multiple plays in your message. Please repost it with just the play and number."
 	else:
@@ -387,9 +387,11 @@ def processMessage(message):
 	body = message.body.lower()
 	author = str(message.author)
 	game = None
+	previousStatus = None
 	if dataTable is not None:
 		game = utils.getGameByUser(author)
 		if game is not None:
+			utils.cycleStatus(game)
 			utils.setLogGameID(game.thread, game.dataID)
 
 			waitingOn = utils.isGameWaitingOn(game, author, dataTable['action'], dataTable['source'])
@@ -408,9 +410,9 @@ def processMessage(message):
 				if dataTable['action'] == 'coin' and not isMessage:
 					keywords = ['heads', 'tails']
 					keyword = utils.findKeywordInMessage(keywords, body)
-					if keyword == "heads":
+					if keyword == 'heads':
 						success, response = processMessageCoin(game, True, str(message.author))
-					elif keyword == "tails":
+					elif keyword == 'tails':
 						success, response = processMessageCoin(game, False, str(message.author))
 					elif keyword == 'mult':
 						success = False
@@ -422,9 +424,9 @@ def processMessage(message):
 					else:
 						keywords = ['defer', 'receive']
 					keyword = utils.findKeywordInMessage(keywords, body)
-					if keyword == "defer" or keyword == "defend":
+					if keyword == 'defer' or keyword == 'defend':
 						success, response = processMessageDefer(game, True, str(message.author))
-					elif keyword == "receive" or keyword == "attack":
+					elif keyword == 'receive' or keyword == 'attack':
 						success, response = processMessageDefer(game, False, str(message.author))
 					elif keyword == 'mult':
 						success = False

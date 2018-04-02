@@ -3,6 +3,7 @@ import json
 import random
 import re
 import math
+import copy
 from datetime import datetime
 from datetime import timedelta
 
@@ -535,6 +536,13 @@ def isGameOvertime(game):
 def updateGameTimes(game):
 	game.playclock = database.getGamePlayed(game.dataID)
 	game.deadline = database.getGameDeadline(game.dataID)
+
+
+def cycleStatus(game):
+	oldStatus = copy.deepcopy(game.status)
+	game.previousStatus.insert(0, oldStatus)
+	if len(game.previousStatus) > 3:
+		game.previousStatus.pop()
 
 
 def newGameObject(home, away):

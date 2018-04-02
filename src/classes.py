@@ -9,6 +9,15 @@ class T:
 	away = False
 
 
+class Play:
+	play = None
+	result = None
+	yards = None
+	down = None
+	toGo = None
+	location = None
+
+
 class HomeAway:
 	isHome = None
 
@@ -29,6 +38,9 @@ class HomeAway:
 
 	def reverse(self):
 		self.isHome = not self.isHome
+
+	def copy(self):
+		return HomeAway(self.isHome)
 
 	def __eq__(self, value):
 		if isinstance(value, bool):

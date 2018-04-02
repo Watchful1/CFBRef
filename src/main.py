@@ -112,6 +112,7 @@ while True:
 			for threadId in database.getGamesPastPlayclock():
 				log.debug("Game past playclock: {}".format(threadId))
 				game = utils.getGameByThread(threadId)
+				utils.cycleStatus(game)
 				game.state(game.status.waitingOn).playclockPenalties += 1
 				penaltyMessage = "{} has not sent their number in over 24 hours, playclock penalty. This is their {} penalty.".format(
 					utils.getCoachString(game, game.status.waitingOn), utils.getNthWord(game.state(game.status.waitingOn).playclockPenalties))

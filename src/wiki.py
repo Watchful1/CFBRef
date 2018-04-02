@@ -162,7 +162,7 @@ def loadTimes():
 
 		for item in items[1:]:
 			timePart = item.split(",")
-			if timePart[0] in ["gain", 'kick']:
+			if timePart[0] in ['gain', 'kick']:
 				if not validateItem(timePart[1], "-?\d+"):
 					log.warning("Could not validate time yards: {}".format(timePart[1]))
 					continue
@@ -172,14 +172,14 @@ def loadTimes():
 
 				if timePart[0] not in times[items[0]]:
 					times[items[0]][timePart[0]] = []
-				timeObject = {"yards": int(timePart[1]), "time": int(timePart[2])}
+				timeObject = {'yards': int(timePart[1]), 'time': int(timePart[2])}
 				times[items[0]][timePart[0]].append(timeObject)
 			else:
 				if not validateItem(timePart[1], "\d+"):
 					log.warning("Could not validate time: {}".format(timePart[1]))
 					continue
 
-				timeObject = {"time": int(timePart[1])}
+				timeObject = {'time': int(timePart[1])}
 				times[items[0]][timePart[0]] = timeObject
 
 
