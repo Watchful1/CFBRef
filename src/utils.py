@@ -199,8 +199,8 @@ def renderGame(game):
 
 	bldr.append("\n___\n\n")
 
-	bldr.append("Playclock|Quarter|Down|Ball Location|Possession\n")
-	bldr.append(":-:|:-:|:-:|:-:|:-:\n")
+	bldr.append("Clock|Quarter|Down|Ball Location|Possession|Playclock|Deadline\n")
+	bldr.append(":-:|:-:|:-:|:-:|:-:|:-:|:-:\n")
 	bldr.append(renderTime(game.status.clock))
 	bldr.append("|")
 	bldr.append(str(game.status.quarter))
@@ -221,6 +221,10 @@ def renderGame(game):
 		bldr.append(str(game.status.location))
 	bldr.append("|")
 	bldr.append(flair(game.team(game.status.possession)))
+	bldr.append("|")
+	bldr.append(renderDatetime(game.playclock))
+	bldr.append("|")
+	bldr.append(renderDatetime(game.deadline))
 
 	bldr.append("\n\n___\n\n")
 
@@ -536,6 +540,10 @@ def isGameOvertime(game):
 def updateGameTimes(game):
 	game.playclock = database.getGamePlayed(game.dataID)
 	game.deadline = database.getGameDeadline(game.dataID)
+
+
+def renderDatetime(dtTm):
+	return dtTm.strftime("%m/%d %I:%M UTC")
 
 
 def cycleStatus(game):

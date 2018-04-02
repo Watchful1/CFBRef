@@ -194,9 +194,11 @@ def processMessageDefenseNumber(game, message, author):
 	game.dirty = True
 
 	log.debug("Sending offense play comment")
-	resultMessage = "{} has submitted their number. {} you're up.\n\n{}\n\n{} reply with {} and your number. [Play list]({})".format(
+	utils.updateGameTimes(game)
+	resultMessage = "{} has submitted their number. {} you're up. You have until {}.\n\n{}\n\n{} reply with {} and your number. [Play list]({})".format(
 		game.team(game.status.waitingOn.negate()).name,
 		game.team(game.status.waitingOn).name,
+		utils.renderDatetime(game.playclock),
 		utils.getCurrentPlayString(game),
 		utils.getCoachString(game, game.status.waitingOn),
 		utils.listSuggestedPlays(game),
