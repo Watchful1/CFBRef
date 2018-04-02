@@ -8,6 +8,7 @@ import globals
 import database
 from classes import T
 from classes import HomeAway
+from classes import Play
 
 log = logging.getLogger("bot")
 
@@ -144,7 +145,7 @@ def getNumberDiffForGame(game, offenseNumber):
 	numberMessage = "Offense: {}\n\nDefense: {}\n\nDifference: {}".format(offenseNumber, defenseNumber, difference)
 	log.debug("Offense: {} Defense: {} Result: {}".format(offenseNumber, defenseNumber, difference))
 
-	return difference, numberMessage
+	return difference, numberMessage, defenseNumber
 
 
 def findNumberInRangeDict(number, dict):
@@ -307,7 +308,7 @@ def updateTime(game, play, result, yards, offenseHomeAway, timeOption):
 
 	utils.addStat(game, 'posTime', actualTimeOffClock, offenseHomeAway)
 
-	return "The play took {} seconds, {}".format(timeOffClock, timeMessage)
+	return "The play took {} seconds, {}".format(timeOffClock, timeMessage), timeOffClock
 
 
 def executeGain(game, play, yards, incomplete=False):
@@ -398,11 +399,21 @@ def executePlay(game, play, number, timeOption):
 	success = True
 	timeMessage = None
 
+	playSummary = Play()
+	playSummary.down = game.status.down
+	playSummary.toGo = game.status.yards
+	playSummary.location = game.status.location
+	playSummary.offNum = number
+	playSummary.posHome = game.status.possession.isHome
+
 	if play in globals.conversionPlays:
-		numberResult, diffMessage = getNumberDiffForGame(game, number)
+		numberResult, diffMessage, defenseNumber = getNumberDiffForGame(game, number)
+		playSummary.defNum = defenseNumber
 
 		log.debug("Executing conversion play: {}".format(play))
 		result = getPlayResult(game, play, numberResult)
+		actualResult = result['result']
+
 		if result['result'] == 'twoPoint':
 			log.debug("Successful two point conversion")
 			resultMessage = "The two point conversion is successful"
@@ -437,10 +448,12 @@ def executePlay(game, play, number, timeOption):
 		database.clearDefensiveNumber(game.dataID)
 
 	elif play in globals.kickoffPlays:
-		numberResult, diffMessage = getNumberDiffForGame(game, number)
+		numberResult, diffMessage, defenseNumber = getNumberDiffForGame(game, number)
+		playSummary.defNum = defenseNumber
 
 		log.debug("Executing kickoff play: {}".format(play))
 		result = getPlayResult(game, play, numberResult)
+		actualResult = result['result']
 
 		if result['result'] == 'kick':
 			if 'yards' not in result:
@@ -453,7 +466,6 @@ def executePlay(game, play, number, timeOption):
 				game.status.location = game.status.location + yards
 				turnover(game)
 				resultMessage = "{} yard kick.".format(yards)
-				actualResult = 'kick'
 
 		elif result['result'] == 'gain':
 			if 'yards' not in result:
@@ -465,29 +477,26 @@ def executePlay(game, play, number, timeOption):
 				yards = result['yards']
 				game.status.location = game.status.location + yards
 				resultMessage = "It's dropped! Recovered by {} on the {}".format(game.team(game.status.possession).name, utils.getLocationString(game))
-				actualResult = 'gain'
 				game.status.waitingAction = 'play'
 
 		elif result['result'] == 'touchback':
 			log.debug("Result is a touchback")
 			setStateTouchback(game, game.status.possession.negate())
 			resultMessage = "The kick goes into the end zone, touchback."
-			actualResult = 'touchback'
 
 		elif result['result'] == 'touchdown':
 			log.debug("Result is a touchdown")
 			resultMessage = "It's dropped! The kicking team recovers and runs it into the end zone! Touchdown {}!".format(game.team(game.status.possession).name)
 			scoreTouchdown(game, game.status.possession)
-			actualResult = 'touchdown'
 
 		elif result['result'] == 'turnoverTouchdown':
 			log.debug("Result is a run back for touchdown")
 			resultMessage = "It's run all the way back! Touchdown {}!".format(game.team(game.status.possession.negate()).name)
 			scoreTouchdown(game, game.status.possession.negate())
-			actualResult = 'turnoverTouchdown'
 
 	elif play in globals.normalPlays:
-		numberResult, diffMessage = getNumberDiffForGame(game, number)
+		numberResult, diffMessage, defenseNumber = getNumberDiffForGame(game, number)
+		playSummary.defNum = defenseNumber
 
 		log.debug("Executing normal play: {}".format(play))
 		result = getPlayResult(game, play, numberResult)
@@ -495,6 +504,8 @@ def executePlay(game, play, number, timeOption):
 		if play == 'punt' and result['result'] == 'gain':
 			if game.status.location + result['yards'] > 100:
 				result['result'] = 'punt'
+
+		actualResult = result['result']
 
 		if result['result'] == 'gain':
 			if 'yards' not in result:
@@ -512,7 +523,6 @@ def executePlay(game, play, number, timeOption):
 
 		elif result['result'] == 'incomplete':
 			log.debug("Result is an incomplete pass")
-			actualResult = 'incomplete'
 			gainResult, yards, resultMessage = executeGain(game, play, 0, True)
 
 		elif result['result'] == 'touchdown':
@@ -521,7 +531,6 @@ def executePlay(game, play, number, timeOption):
 			previousLocation = game.status.location
 			utils.addStatRunPass(game, play, 100 - previousLocation)
 			scoreTouchdown(game, game.status.possession)
-			actualResult = 'touchdown'
 			yards = 100 - previousLocation
 
 		elif result['result'] == 'fieldGoal':
@@ -533,7 +542,6 @@ def executePlay(game, play, number, timeOption):
 				timeMessage = overtimeTurnover(game)
 			else:
 				setStateKickoff(game, game.status.possession)
-			actualResult = 'fieldGoal'
 
 		elif result['result'] == 'punt':
 			if 'yards' not in result:
@@ -546,7 +554,7 @@ def executePlay(game, play, number, timeOption):
 					resultMessage = "A punt happened, but it's overtime. This shouldn't be possible."
 				else:
 					resultMessage = executePunt(game, result['yards'])
-				actualResult = 'punt'
+					yards = result['yards']
 
 		elif result['result'] in ['turnover', 'miss']:
 			log.debug("Play results in a turnover")
@@ -575,7 +583,6 @@ def executePlay(game, play, number, timeOption):
 				timeMessage = overtimeTurnover(game)
 			else:
 				turnover(game)
-			actualResult = 'turnover'
 
 		elif result['result'] == 'turnoverTouchdown':
 			log.debug("Play results in a turnover and run back")
@@ -587,8 +594,8 @@ def executePlay(game, play, number, timeOption):
 				resultMessage = "It's blocked! The ball is picked up and run all the back. Touchdown {}!".format(game.team(game.status.possession.negate()).name)
 			else:
 				resultMessage = "It's a turnover and run back for a touchdown!"
+			yards = game.status.location
 			scoreTouchdown(game, game.status.possession.negate())
-			actualResult = 'turnoverTouchdown'
 			if utils.isGameOvertime(game):
 				timeMessage = "Game over! {} wins!".format(utils.flair(game.team(game.status.possession)))
 				game.status.quarterType = 'end'
@@ -631,13 +638,22 @@ def executePlay(game, play, number, timeOption):
 		success = False
 
 	messages = [resultMessage]
+	timeOffClock = None
 	if actualResult is not None:
 		if timeMessage is None:
-			timeMessage = updateTime(game, play, actualResult, yards, startingPossessionHomeAway, timeOption)
+			timeMessage, timeOffClock = updateTime(game, play, actualResult, yards, startingPossessionHomeAway, timeOption)
 
 		messages.append(timeMessage)
 
 	if diffMessage is not None:
 		messages.append(diffMessage)
+
+	playSummary.play = play
+	playSummary.result = actualResult
+	playSummary.yards = yards
+	playSummary.time = timeOffClock
+
+	if success:
+		game.plays.append(playSummary)
 
 	return success, '\n\n'.join(messages)

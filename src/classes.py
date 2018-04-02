@@ -16,6 +16,10 @@ class Play:
 	down = None
 	toGo = None
 	location = None
+	time = None
+	offNum = None
+	defNum = None
+	posHome = None
 
 
 class HomeAway:
@@ -137,6 +141,8 @@ class Game:
 
 	status = GameStatus()
 	previousStatus = []
+
+	plays = []
 
 	startTime = None
 	location = None
