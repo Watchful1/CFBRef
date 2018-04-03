@@ -254,7 +254,7 @@ def loadTimes():
 				log.warning("Could not validate result: {}".format(result))
 				continue
 
-			if result in ['gain', 'kick']:
+			if result in [Result.GAIN, Result.KICK]:
 				if not validateItem(timePart[1], "-?\d+"):
 					log.warning("Could not validate time yards: {}".format(timePart[1]))
 					continue
