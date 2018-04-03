@@ -13,6 +13,9 @@ import wiki
 import reddit
 import classes
 from classes import HomeAway
+from classes import Action
+from classes import Play
+from classes import QuarterType
 
 log = logging.getLogger("bot")
 
@@ -40,9 +43,9 @@ def startGame(homeCoach, awayCoach, startTime=None, location=None, station=None,
 	if station is not None:
 		game.station = station
 	if homeRecord is not None:
-		homeTeam['record'] = homeRecord
+		homeTeam.record = homeRecord
 	if awayRecord is not None:
-		awayTeam['record'] = awayRecord
+		awayTeam.record = awayRecord
 
 	gameThread = getGameThreadText(game)
 	gameTitle = "[GAME THREAD] {}{} @ {}{}".format(
@@ -68,7 +71,7 @@ def startGame(homeCoach, awayCoach, startTime=None, location=None, station=None,
 
 	log.debug("Game started, posting coin toss comment")
 	message = "The game has started! {}, you're home. {}, you're away, call **heads** or **tails** in the air.".format(getCoachString(game, True), getCoachString(game, False))
-	sendGameComment(game, message, {'action': 'coin'})
+	sendGameComment(game, message, {'action': Action.COIN})
 	log.debug("Comment posted, now waiting on: {}".format(game.status.waitingId))
 	updateGameThread(game)
 
@@ -106,9 +109,9 @@ def verifyCoaches(coaches):
 		team = wiki.getTeamByCoach(coach)
 		if team is None:
 			return i, 'team'
-		if team['name'] in teamSet:
+		if team.name in teamSet:
 			return i, 'same'
-		teamSet.add(team['name'])
+		teamSet.add(team.name)
 
 		game = database.getGameByCoach(coach)
 		if game is not None:
@@ -138,7 +141,7 @@ def unescapeMarkdown(value):
 
 
 def flair(team):
-	return "[{}](#f/{})".format(team['name'], team['tag'])
+	return "[{}](#f/{})".format(team.name, team.tag)
 
 
 def renderTime(time):
@@ -281,7 +284,7 @@ def getGameThreadText(game):
 
 def updateGameThread(game):
 	updateGameTimes(game)
-	if 'thread' not in game:
+	if game.thread is None:
 		log.error("No thread ID in game when trying to update")
 	game.dirty = False
 	threadText = getGameThreadText(game)
@@ -402,9 +405,9 @@ def getLocationString(game):
 
 
 def getCurrentPlayString(game):
-	if game.status.waitingAction == 'conversion':
+	if game.status.waitingAction == Action.CONVERSION:
 		return "{} just scored.".format(game.team(game.status.possession).name)
-	elif game.status.waitingAction == 'kickoff':
+	elif game.status.waitingAction == Action.KICKOFF:
 		return "{} is kicking off".format(game.team(game.status.possession).name)
 	else:
 		return "It's {} and {} on the {}.".format(
@@ -416,13 +419,13 @@ def getCurrentPlayString(game):
 
 def getWaitingOnString(game):
 	string = "Error, no action"
-	if game.status.waitingAction == 'coin':
+	if game.status.waitingAction == Action.COIN:
 		string = "Waiting on {} for coin toss".format(game.team(game.status.waitingOn).name)
-	elif game.status.waitingAction == 'defer':
+	elif game.status.waitingAction == Action.DEFER:
 		string = "Waiting on {} for receive/defer".format(game.team(game.status.waitingOn).name)
-	elif game.status.waitingAction == 'kickoff':
+	elif game.status.waitingAction == Action.KICKOFF:
 		string = "Waiting on {} for kickoff number".format(game.team(game.status.waitingOn).name)
-	elif game.status.waitingAction == 'play':
+	elif game.status.waitingAction == Action.PLAY:
 		if game.status.waitingOn == game.status.possession:
 			string = "Waiting on {} for an offensive play".format(game.team(game.status.waitingOn).name)
 		else:
@@ -492,9 +495,9 @@ def findKeywordInMessage(keywords, message):
 
 
 def listSuggestedPlays(game):
-	if game.status.waitingAction == 'conversion':
+	if game.status.waitingAction == Action.CONVERSION:
 		return "**PAT** or **two point**"
-	elif game.status.waitingAction == 'kickoff':
+	elif game.status.waitingAction == Action.KICKOFF:
 		return "**normal**, **squib** or **onside**"
 	else:
 		if game.status.down == 4:
@@ -517,9 +520,9 @@ def buildMessageLink(recipient, subject, content):
 
 
 def addStatRunPass(game, runPass, amount):
-	if runPass == 'run':
+	if runPass == Play.RUN:
 		addStat(game, 'yardsRushing', amount)
-	elif runPass == 'pass':
+	elif runPass == Play.PASS:
 		addStat(game, 'yardsPassing', amount)
 	else:
 		log.warning("Error in addStatRunPass, invalid play: {}".format(runPass))
@@ -534,7 +537,7 @@ def addStat(game, stat, amount, offenseHomeAway=None):
 
 
 def isGameOvertime(game):
-	return str.startswith(game.status.quarterType, 'overtime')
+	return game.status.quarterType in [QuarterType.OVERTIME_NORMAL, QuarterType.OVERTIME_TIME]
 
 
 def updateGameTimes(game):

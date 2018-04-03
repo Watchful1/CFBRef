@@ -7,6 +7,10 @@ from datetime import timedelta
 import reddit
 import globals
 import classes
+from classes import OffenseType
+from classes import DefenseType
+from classes import Result
+from classes import Play
 
 log = logging.getLogger("bot")
 
@@ -36,23 +40,54 @@ def validateItem(playItem, regex):
 	return re.match(regex, playItem) is not None
 
 
+def parseOffense(offenseString):
+	offenseString = offenseString.lower()
+	if "option" in offenseString:
+		return OffenseType.OPTION
+	elif "spread" in offenseString:
+		return OffenseType.SPREAD
+	elif "pro" in offenseString:
+		return OffenseType.PRO
+	else:
+		return None
+
+
+def parseDefense(defenseString):
+	defenseString = defenseString.lower()
+	if "3-4" in defenseString:
+		return DefenseType.THREE_FOUR
+	elif "4-3" in defenseString:
+		return DefenseType.FOUR_THREE
+	elif "5-2" in defenseString:
+		return DefenseType.FIVE_TWO
+	else:
+		return None
+
+
 def loadTeams():
 	teamsPage = reddit.getWikiPage(globals.CONFIG_SUBREDDIT, "teams")
 
 	requirements = {
 		'tag': "[a-z]+",
 		'name': "[\w -]+",
-		'offense': "(option|spread|pro)",
-		'defense': "(3-4|4-3|5-2)",
 	}
 	for teamLine in teamsPage.splitlines():
 		items = teamLine.split('|')
 		if len(items) < 5:
 			log.warning("Could not parse team line: {}".format(teamLine))
 			continue
-		team = classes.Team(tag=items[0], name=items[1], offense=items[2].lower(), defense=items[3].lower())
-		if "pro" in team.offense:
-			team.offense = "pro"
+
+		offense = parseOffense(items[2].lower())
+		if offense is None:
+			log.warning("Invalid offense type for team {}: {}".format(items[0], items[2]))
+			continue
+
+		defense = parseDefense(items[3].lower())
+		if defense is None:
+			log.warning("Invalid defense type for team {}: {}".format(items[0], items[2]))
+			continue
+
+		team = classes.Team(tag=items[0], name=items[1], offense=offense, defense=defense)
 
 		for requirement in requirements:
 			if not validateItem(getattr(team, requirement), requirements[requirement]):
@@ -69,14 +104,10 @@ def loadTeams():
 def initOffenseDefense(play, offense, defense, range):
 	if not initRange(play, range):
 		return False
-	if not validateItem(offense, "\w{3,7}"):
-		log.warning("Bad offense item: {}".format(offense))
-		return False
+
 	if offense not in plays[play]:
 		plays[play][offense] = {}
-	if not validateItem(defense, "\d-\d"):
-		log.warning("Bad defense item: {}".format(defense))
-		return False
+
 	if defense not in plays[play][offense]:
 		plays[play][offense][defense] = {}
 	return True
@@ -106,7 +137,33 @@ def parsePlayPart(playPart):
 		return None, None
 
 	result = parts[1]
-	if not validateItem(result, "\w{3,20}"):
+	if result == "gain":
+		result = Result.GAIN
+	elif result == "turnover":
+		result = Result.TURNOVER
+	elif result == "touchdown":
+		result = Result.TOUCHDOWN
+	elif result == "turnoverTouchdown":
+		result = Result.TURNOVER_TOUCHDOWN
+	elif result == "incomplete":
+		result = Result.INCOMPLETE
+	elif result == "touchback":
+		result = Result.TOUCHBACK
+	elif result == "fieldGoal":
+		result = Result.FIELD_GOAL
+	elif result == "miss":
+		result = Result.MISS
+	elif result == "pat":
+		result = Result.PAT
+	elif result == "twoPoint":
+		result = Result.TWO_POINT
+	elif result == "kickoff":
+		result = Result.KICKOFF
+	elif result == "punt":
+		result = Result.PUNT
+	elif result == "kick":
+		result = Result.KICK
+	else:
 		log.warning("Could not validate result: {}".format(result))
 		return None, None
 
@@ -128,9 +185,22 @@ def loadPlays():
 		items = playLine.split('|')
 		isMovementPlay = items[0] in globals.movementPlays
 
+		offense = None
+		defense = None
 		if isMovementPlay:
 			startIndex = 4
-			if not initOffenseDefense(items[0], items[1], items[2], items[3]):
+
+			offense = parseOffense(items[1])
+			if offense is None:
+				log.warning("Bad offense item: {}".format(items[1]))
+				continue
+
+			defense = parseDefense(items[2])
+			if defense is None:
+				log.warning("Bad defense item: {}".format(items[2]))
+				continue
+
+			if not initOffenseDefense(items[0], offense, defense, items[3]):
 				log.warning("Could not parse play: {}".format(playLine))
 				continue
 		else:
@@ -147,7 +217,7 @@ def loadPlays():
 			playParts[range] = play
 
 		if isMovementPlay:
-			plays[items[0]][items[1]][items[2]][items[3]] = playParts
+			plays[items[0]][offense][defense][items[3]] = playParts
 		else:
 			plays[items[0]][items[1]] = playParts
 
@@ -162,7 +232,29 @@ def loadTimes():
 
 		for item in items[1:]:
 			timePart = item.split(",")
-			if timePart[0] in ['gain', 'kick']:
+
+			result = timePart[0]
+			if result == "gain":
+				result = Result.GAIN
+			if result == "turnover":
+				result = Result.TURNOVER
+			if result == "turnoverTouchdown":
+				result = Result.TURNOVER_TOUCHDOWN
+			if result == "touchdown":
+				result = Result.TOUCHDOWN
+			if result == "incomplete":
+				result = Result.INCOMPLETE
+			if result == "fieldGoal":
+				result = Result.FIELD_GOAL
+			if result == "kick":
+				result = Result.KICK
+			if result == "touchback":
+				result = Result.TOUCHBACK
+			else:
+				log.warning("Could not validate result: {}".format(result))
+				continue
+
+			if result in ['gain', 'kick']:
 				if not validateItem(timePart[1], "-?\d+"):
 					log.warning("Could not validate time yards: {}".format(timePart[1]))
 					continue
@@ -170,17 +262,17 @@ def loadTimes():
 					log.warning("Could not validate time: {}".format(timePart[2]))
 					continue
 
-				if timePart[0] not in times[items[0]]:
-					times[items[0]][timePart[0]] = []
+				if result not in times[items[0]]:
+					times[items[0]][result] = []
 				timeObject = {'yards': int(timePart[1]), 'time': int(timePart[2])}
-				times[items[0]][timePart[0]].append(timeObject)
+				times[items[0]][result].append(timeObject)
 			else:
 				if not validateItem(timePart[1], "\d+"):
 					log.warning("Could not validate time: {}".format(timePart[1]))
 					continue
 
 				timeObject = {'time': int(timePart[1])}
-				times[items[0]][timePart[0]] = timeObject
+				times[items[0]][result] = timeObject
 
 
 def getTeamByTag(tag):

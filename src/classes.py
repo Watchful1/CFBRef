@@ -1,7 +1,82 @@
 from datetime import datetime
 from datetime import timedelta
+from enum import Enum
 
 import globals
+
+
+class OffenseType(Enum):
+	SPREAD = 1
+	PRO = 2
+	OPTION = 3
+
+
+class DefenseType(Enum):
+	THREE_FOUR = 1
+	FOUR_THREE = 2
+	FIVE_TWO = 3
+
+
+class TimeoutOption(Enum):
+	NONE = 1
+	REQUESTED = 2
+	USED = 3
+
+
+class QuarterType(Enum):
+	NORMAL = 1
+	OVERTIME_NORMAL = 2
+	OVERTIME_TIME = 3
+	END = 3
+
+
+class TimeOption(Enum):
+	NONE = 1
+	CHEW = 2
+	HURRY = 3
+
+
+class Action(Enum):
+	COIN = 1
+	DEFER = 2
+	PLAY = 3
+	CONVERSION = 4
+	KICKOFF = 5
+	OVERTIME = 6
+	END = 6
+
+
+class Play(Enum):
+	RUN = 1
+	PASS = 2
+	PUNT = 3
+	FIELD_GOAL = 4
+	KNEEL = 5
+	SPIKE = 6
+	PAT = 7
+	TWO_POINT = 8
+	KICKOFF_NORMAL = 9
+	KICKOFF_SQUIB = 10
+	KICKOFF_ONSIDE = 11
+
+
+class Result(Enum):
+	GAIN = 1
+	TURNOVER = 2
+	TOUCHDOWN = 3
+	TURNOVER_TOUCHDOWN = 4
+	INCOMPLETE = 5
+	TOUCHBACK = 6
+	FIELD_GOAL = 7
+	MISS = 8
+	PAT = 9
+	TWO_POINT = 10
+	KICKOFF = 11
+	PUNT = 12
+	KICK = 13
+	SPIKE = 14
+	KNEEL = 15
+	ERROR = 16
 
 
 class T:
@@ -9,7 +84,7 @@ class T:
 	away = False
 
 
-class Play:
+class PlaySummary:
 	play = None
 	result = None
 	yards = None
@@ -33,9 +108,9 @@ class HomeAway:
 
 	def name(self):
 		if self.isHome:
-			return 'home'
+			return "home"
 		else:
-			return 'away'
+			return "away"
 
 	def negate(self):
 		return HomeAway(not self.isHome)
@@ -67,7 +142,7 @@ class TeamState:
 
 	playclockPenalties = 0
 	timeouts = 3
-	requestedTimeout = 'none'
+	requestedTimeout = TimeoutOption.NONE
 
 
 class TeamStats:
@@ -88,7 +163,7 @@ class GameStatus:
 	possession = HomeAway(T.home)
 	down = 1
 	yards = 10
-	quarterType = 'normal'
+	quarterType = QuarterType.NORMAL
 
 	overtimePossession = None
 	receivingNext = HomeAway(T.home)
@@ -100,7 +175,7 @@ class GameStatus:
 	awayStats = TeamStats()
 
 	waitingId = None
-	waitingAction = 'coin'
+	waitingAction = Action.COIN
 	waitingOn = HomeAway(T.away)
 
 	def state(self, isHome):

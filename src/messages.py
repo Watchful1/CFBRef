@@ -8,7 +8,10 @@ import wiki
 import globals
 import database
 import state
-import classes
+from classes import Play
+from classes import Action
+from classes import TimeoutOption
+from classes import TimeOption
 
 log = logging.getLogger("bot")
 
@@ -86,7 +89,7 @@ def processMessageCoin(game, isHeads, author):
 
 	if isHeads == utils.coinToss():
 		log.debug("User won coin toss, asking if they want to defer")
-		game.status.waitingAction = 'defer'
+		game.status.waitingAction = Action.DEFER
 		game.status.waitingOn.set(False)
 		game.status.waitingId = 'return'
 		game.dirty = True
@@ -96,10 +99,10 @@ def processMessageCoin(game, isHeads, author):
 		else:
 			questionString = "do you want to **receive** or **defer**?"
 		message = "{}, {} won the toss, {}".format(utils.getCoachString(game, False), game.away.name, questionString)
-		return True, utils.embedTableInMessage(message, {'action': 'defer'})
+		return True, utils.embedTableInMessage(message, {'action': Action.DEFER})
 	else:
 		log.debug("User lost coin toss, asking other team if they want to defer")
-		game.status.waitingAction = 'defer'
+		game.status.waitingAction = Action.DEFER
 		game.status.waitingOn.set(True)
 		game.status.waitingId = 'return'
 		game.dirty = True
@@ -109,7 +112,7 @@ def processMessageCoin(game, isHeads, author):
 		else:
 			questionString = "do you want to **receive** or **defer**?"
 		message = "{}, {} won the toss, {}".format(utils.getCoachString(game, True), game.home.name, questionString)
-		return True, utils.embedTableInMessage(message, {'action': 'defer'})
+		return True, utils.embedTableInMessage(message, {'action': Action.DEFER})
 
 
 def processMessageDefer(game, isDefer, author):
@@ -185,7 +188,7 @@ def processMessageDefenseNumber(game, message, author):
 	timeoutMessage = None
 	if message.find("timeout") > 0:
 		if game.status.state(game.status.possession.negate()).timeouts > 0:
-			game.status.state(game.status.possession.negate()).requestedTimeout = 'requested'
+			game.status.state(game.status.possession.negate()).requestedTimeout = TimeoutOption.REQUESTED
 			timeoutMessage = "Timeout requested successfully"
 		else:
 			timeoutMessage = "You requested a timeout, but you don't have any left"
@@ -219,51 +222,51 @@ def processMessageOffensePlay(game, message, author):
 	timeoutMessageDefense = None
 	if "timeout" in message:
 		if game.status.state(game.status.possession).timeouts > 0:
-			game.status.state(game.status.possession).requestedTimeout = 'requested'
+			game.status.state(game.status.possession).requestedTimeout = TimeoutOption.REQUESTED
 		else:
 			timeoutMessageOffense = "The offense requested a timeout, but they don't have any left"
 
-	timeOption = None
+	timeOption = TimeOption.NONE
 	if any(x in message for x in ['chew the clock', 'milk the clock']):
-		timeOption = 'chew'
+		timeOption = TimeOption.CHEW
 	elif any(x in message for x in ['hurry up', 'no huddle', 'no-huddle']):
-		timeOption = 'hurry'
+		timeOption = TimeOption.HURRY
 
-	normalOptions = ['run', 'pass', 'punt', 'field goal', 'kneel', 'spike']
-	conversionOptions = ['two point', 'pat']
-	kickoffOptions = ['normal', 'squib', 'onside']
-	if game.status.waitingAction == 'play':
+	normalOptions = ["run", "pass", "punt", "field goal", "kneel", "spike"]
+	conversionOptions = ["two point", "pat"]
+	kickoffOptions = ["normal", "squib", "onside"]
+	if game.status.waitingAction == Action.PLAY:
 		playSelected = utils.findKeywordInMessage(normalOptions, message)
-	elif game.status.waitingAction == 'conversion':
+	elif game.status.waitingAction == Action.CONVERSION:
 		playSelected = utils.findKeywordInMessage(conversionOptions, message)
-	elif game.status.waitingAction == 'kickoff':
+	elif game.status.waitingAction == Action.KICKOFF:
 		playSelected = utils.findKeywordInMessage(kickoffOptions, message)
 	else:
 		return False, "Something went wrong, invalid waiting action: {}".format(game.status.waitingAction)
 
-	if playSelected == 'run':
-		play = 'run'
-	elif playSelected == 'pass':
-		play = 'pass'
-	elif playSelected == 'punt':
-		play = 'punt'
-	elif playSelected == 'field goal':
-		play = 'fieldGoal'
-	elif playSelected == 'kneel':
-		play = 'kneel'
-	elif playSelected == 'spike':
-		play = 'spike'
-	elif playSelected == 'two point':
-		play = 'twoPoint'
-	elif playSelected == 'pat':
-		play = 'pat'
-	elif playSelected == 'normal':
-		play = 'kickoffNormal'
-	elif playSelected == 'squib':
-		play = 'kickoffSquib'
-	elif playSelected == 'onside':
-		play = 'kickoffOnside'
-	elif playSelected == 'mult':
+	if playSelected == "run":
+		play = Play.RUN
+	elif playSelected == "pass":
+		play = Play.PASS
+	elif playSelected == "punt":
+		play = Play.PUNT
+	elif playSelected == "field goal":
+		play = Play.FIELD_GOAL
+	elif playSelected == "kneel":
+		play = Play.KNEEL
+	elif playSelected == "spike":
+		play = Play.SPIKE
+	elif playSelected == "two point":
+		play = Play.TWO_POINT
+	elif playSelected == "pat":
+		play = Play.PAT
+	elif playSelected == "normal":
+		play = Play.KICKOFF_NORMAL
+	elif playSelected == "squib":
+		play = Play.KICKOFF_SQUIB
+	elif playSelected == "onside":
+		play = Play.KICKOFF_ONSIDE
+	elif playSelected == "mult":
 		log.debug("Found multiple plays")
 		return False, "I found multiple plays in your message. Please repost it with just the play and number."
 	else:
@@ -277,17 +280,17 @@ def processMessageOffensePlay(game, message, author):
 
 	success, resultMessage = state.executePlay(game, play, number, timeOption)
 
-	if game.status.state(game.status.possession).requestedTimeout == 'used':
+	if game.status.state(game.status.possession).requestedTimeout == TimeoutOption.USED:
 		timeoutMessageOffense = "The offense is charged a timeout"
-	elif game.status.state(game.status.possession).requestedTimeout == 'requested':
+	elif game.status.state(game.status.possession).requestedTimeout == TimeoutOption.REQUESTED:
 		timeoutMessageOffense = "The offense requested a timeout, but it was not used"
-		game.status.state(game.status.possession).requestedTimeout = 'none'
+		game.status.state(game.status.possession).requestedTimeout = TimeoutOption.NONE
 
-	if game.status.state(game.status.possession.negate()).requestedTimeout == 'used':
+	if game.status.state(game.status.possession.negate()).requestedTimeout == TimeoutOption.USED:
 		timeoutMessageDefense = "The defense is charged a timeout"
-	elif game.status.state(game.status.possession.negate()).requestedTimeout == 'requested':
+	elif game.status.state(game.status.possession.negate()).requestedTimeout == TimeoutOption.REQUESTED:
 		timeoutMessageDefense = "The defense requested a timeout, but it was not used"
-		game.status.state(game.status.possession.negate()).requestedTimeout = 'none'
+		game.status.state(game.status.possession.negate()).requestedTimeout = TimeoutOption.NONE
 
 	result = [resultMessage]
 	if timeoutMessageOffense is not None:
@@ -297,15 +300,15 @@ def processMessageOffensePlay(game, message, author):
 
 	game.status.waitingOn.reverse()
 	game.dirty = True
-	if game.status.waitingAction in ['play', 'conversion', 'kickoff']:
+	if game.status.waitingAction in globals.playActions:
 		utils.sendDefensiveNumberMessage(game)
-	elif game.status.waitingAction == 'overtime':
+	elif game.status.waitingAction == Action.OVERTIME:
 		log.debug("Starting overtime, posting coin toss comment")
 		message = "Overtime has started! {}, you're away, call **heads** or **tails** in the air.".format(
 			utils.getCoachString(game, False))
-		comment = utils.sendGameComment(game, message, {'action': 'coin'})
+		comment = utils.sendGameComment(game, message, {'action': Action.COIN})
 		game.status.waitingId = comment.fullname
-		game.status.waitingAction = 'coin'
+		game.status.waitingAction = Action.COIN
 
 	return success, utils.embedTableInMessage('\n\n'.join(result), {'action': game.status.waitingAction})
 
@@ -409,35 +412,35 @@ def processMessage(message):
 				updateWaiting = False
 
 			else:
-				if dataTable['action'] == 'coin' and not isMessage:
-					keywords = ['heads', 'tails']
+				if dataTable['action'] == Action.COIN and not isMessage:
+					keywords = ["heads", "tails"]
 					keyword = utils.findKeywordInMessage(keywords, body)
-					if keyword == 'heads':
+					if keyword == "heads":
 						success, response = processMessageCoin(game, True, str(message.author))
-					elif keyword == 'tails':
+					elif keyword == "tails":
 						success, response = processMessageCoin(game, False, str(message.author))
-					elif keyword == 'mult':
+					elif keyword == "mult":
 						success = False
 						response = "I found both {} in your message. Please reply with just one of them.".format(' and '.join(keywords))
 
-				elif dataTable['action'] == 'defer' and not isMessage:
+				elif dataTable['action'] == Action.DEFER and not isMessage:
 					if utils.isGameOvertime(game):
-						keywords = ['defend', 'attack']
+						keywords = ["defend", "attack"]
 					else:
-						keywords = ['defer', 'receive']
+						keywords = ["defer", "receive"]
 					keyword = utils.findKeywordInMessage(keywords, body)
-					if keyword == 'defer' or keyword == 'defend':
+					if keyword == "defer" or keyword == "defend":
 						success, response = processMessageDefer(game, True, str(message.author))
-					elif keyword == 'receive' or keyword == 'attack':
+					elif keyword == "receive" or keyword == "attack":
 						success, response = processMessageDefer(game, False, str(message.author))
-					elif keyword == 'mult':
+					elif keyword == "mult":
 						success = False
 						response = "I found both {} in your message. Please reply with just one of them.".format(' and '.join(keywords))
 
-				elif dataTable['action'] in ['play', 'kickoff', 'conversion'] and isMessage:
+				elif dataTable['action'] in globals.playActions and isMessage:
 					success, response = processMessageDefenseNumber(game, body, str(message.author))
 
-				elif dataTable['action'] in ['play', 'kickoff', 'conversion'] and not isMessage:
+				elif dataTable['action'] in globals.playActions and not isMessage:
 					success, response = processMessageOffensePlay(game, body, str(message.author))
 		else:
 			log.debug("Couldn't get a game for /u/{}".format(author))

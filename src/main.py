@@ -14,7 +14,8 @@ import database
 import wiki
 import utils
 import state
-import classes
+from classes import QuarterType
+from classes import Action
 
 ### Logging setup ###
 LOG_LEVEL = logging.DEBUG
@@ -118,15 +119,15 @@ while True:
 					utils.getCoachString(game, game.status.waitingOn), utils.getNthWord(game.state(game.status.waitingOn).playclockPenalties))
 				if game.state(game.status.waitingOn).playclockPenalties >= 3:
 					log.debug("3 penalties, game over")
-					game.status.quarterType = 'end'
-					game.status.waitingAction = 'end'
+					game.status.quarterType = QuarterType.END
+					game.status.waitingAction = Action.END
 					resultMessage = "They forfeit the game. {} has won!".format(utils.flair(game.team(game.status.waitingOn.negate())))
 
 				elif game.status.waitingOn == game.status.possession:
 					log.debug("Waiting on offense, turnover")
 					if utils.isGameOvertime(game):
 						resultMessage = state.overtimeTurnover(game)
-						if game.status.waitingAction != 'end':
+						if game.status.waitingAction != Action.END:
 							utils.sendDefensiveNumberMessage(game)
 					else:
 						state.turnover(game)
@@ -138,7 +139,7 @@ while True:
 					if utils.isGameOvertime(game):
 						state.forceTouchdown(game, game.status.possession)
 						resultMessage = state.overtimeTurnover(game)
-						if game.status.waitingAction != 'end':
+						if game.status.waitingAction != Action.END:
 							utils.sendDefensiveNumberMessage(game)
 					else:
 						state.forceTouchdown(game, game.status.possession)
