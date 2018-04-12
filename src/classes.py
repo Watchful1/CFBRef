@@ -85,16 +85,17 @@ class T:
 
 
 class PlaySummary:
-	play = None
-	result = None
-	yards = None
-	down = None
-	toGo = None
-	location = None
-	time = None
-	offNum = None
-	defNum = None
-	posHome = None
+	def __init__(self):
+		self.play = None
+		self.result = None
+		self.yards = None
+		self.down = None
+		self.toGo = None
+		self.location = None
+		self.time = None
+		self.offNum = None
+		self.defNum = None
+		self.posHome = None
 
 
 class HomeAway:
@@ -137,46 +138,45 @@ class HomeAway:
 
 
 class TeamState:
-	points = 0
-	quarters = [0, 0, 0, 0]
+	def __init__(self):
+		self.points = 0
+		self.quarters = [0, 0, 0, 0]
 
-	playclockPenalties = 0
-	timeouts = 3
-	requestedTimeout = TimeoutOption.NONE
+		self.playclockPenalties = 0
+		self.timeouts = 3
+		self.requestedTimeout = TimeoutOption.NONE
 
 
 class TeamStats:
-	yardsPassing = 0
-	yardsRushing = 0
-	yardsTotal = 0
-	turnoverInterceptions = 0
-	turnoverFumble = 0
-	fieldGoalsScored = 0
-	fieldGoalsAttempted = 0
-	posTime = 0
+	def __init__(self):
+		self.yardsPassing = 0
+		self.yardsRushing = 0
+		self.yardsTotal = 0
+		self.turnoverInterceptions = 0
+		self.turnoverFumble = 0
+		self.fieldGoalsScored = 0
+		self.fieldGoalsAttempted = 0
+		self.posTime = 0
 
 
 class GameStatus:
-	clock = globals.quarterLength
-	quarter = 1
-	location = -1
-	possession = HomeAway(T.home)
-	down = 1
-	yards = 10
-	quarterType = QuarterType.NORMAL
-
-	overtimePossession = None
-	receivingNext = HomeAway(T.home)
-
-	homeState = TeamState()
-	awayState = TeamState()
-
-	homeStats = TeamStats()
-	awayStats = TeamStats()
-
-	waitingId = None
-	waitingAction = Action.COIN
-	waitingOn = HomeAway(T.away)
+	def __init__(self):
+		self.clock = globals.quarterLength
+		self.quarter = 1
+		self.location = -1
+		self.possession = HomeAway(T.home)
+		self.down = 1
+		self.yards = 10
+		self.quarterType = QuarterType.NORMAL
+		self.overtimePossession = None
+		self.receivingNext = HomeAway(T.home)
+		self.homeState = TeamState()
+		self.awayState = TeamState()
+		self.homeStats = TeamStats()
+		self.awayStats = TeamStats()
+		self.waitingId = None
+		self.waitingAction = Action.COIN
+		self.waitingOn = HomeAway(T.away)
 
 	def state(self, isHome):
 		if isHome:
@@ -192,45 +192,46 @@ class GameStatus:
 
 
 class Team:
-	tag = None
-	name = None
-	offense = None
-	defense = None
-	coaches = []
-	record = None
-
 	def __init__(self, tag, name, offense, defense):
 		self.tag = tag
 		self.name = name
 		self.offense = offense
 		self.defense = defense
+		self.coaches = []
+		self.record = None
 
 
 class Game:
-	home = None
-	away = None
-	dirty = False
-	errored = False
-	dataID = -1
-	thread = "empty"
-
-	status = GameStatus()
-	previousStatus = []
-
-	plays = []
-
-	startTime = None
-	location = None
-	station = None
-	playclock = datetime.utcnow() + timedelta(hours=24)
-	deadline = datetime.utcnow() + timedelta(days=10)
-
 	def __init__(self, home, away):
 		self.home = home
 		self.away = away
+
+		self.dirty = False
+		self.errored = False
+		self.dataID = -1
+		self.thread = "empty"
+		self.status = GameStatus()
+		self.previousStatus = []
+		self.plays = []
+		self.startTime = None
+		self.location = None
+		self.station = None
+		self.playclock = datetime.utcnow() + timedelta(hours=24)
+		self.deadline = datetime.utcnow() + timedelta(days=10)
 
 	def team(self, isHome):
 		if isHome:
 			return self.home
 		else:
 			return self.away
+
+	def __str__(self):
+		return self.__dict__
+
+
+movementPlays = [Play.RUN, Play.PASS]
+normalPlays = [Play.RUN, Play.PASS, Play.PUNT, Play.FIELD_GOAL]
+timePlays = [Play.KNEEL, Play.SPIKE]
+conversionPlays = [Play.PAT, Play.TWO_POINT]
+kickoffPlays = [Play.KICKOFF_NORMAL, Play.KICKOFF_SQUIB, Play.KICKOFF_ONSIDE]
+playActions = [Action.PLAY, Action.CONVERSION, Action.KICKOFF]

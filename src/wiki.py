@@ -10,7 +10,7 @@ import classes
 from classes import OffenseType
 from classes import DefenseType
 from classes import Result
-from classes import Play
+from classes import Team
 
 log = logging.getLogger("bot")
 
@@ -87,7 +87,7 @@ def loadTeams():
 			log.warning("Invalid defense type for team {}: {}".format(items[0], items[2]))
 			continue
 
-		team = classes.Team(tag=items[0], name=items[1], offense=offense, defense=defense)
+		team = Team(tag=items[0], name=items[1], offense=offense, defense=defense)
 
 		for requirement in requirements:
 			if not validateItem(getattr(team, requirement), requirements[requirement]):
@@ -99,6 +99,18 @@ def loadTeams():
 			team.coaches.append(coach)
 			coaches[coach] = team
 		teams[team.tag] = team
+
+	coach1 = "watchful1"
+	team1 = Team(tag="team1", name="Team 1", offense=OffenseType.OPTION, defense=DefenseType.THREE_FOUR)
+	team1.coaches.append(coach1)
+	coaches[coach1] = team1
+	teams[team1.tag] = team1
+
+	coach2 = "watchful12"
+	team2 = Team(tag="team2", name="Team 2", offense=OffenseType.SPREAD, defense=DefenseType.FOUR_THREE)
+	team2.coaches.append(coach2)
+	coaches[coach2] = team2
+	teams[team2.tag] = team2
 
 
 def initOffenseDefense(play, offense, defense, range):
@@ -183,7 +195,7 @@ def loadPlays():
 
 	for playLine in playsPage.splitlines():
 		items = playLine.split('|')
-		isMovementPlay = items[0] in globals.movementPlays
+		isMovementPlay = items[0] in ["run", "pass"]
 
 		offense = None
 		defense = None
@@ -236,20 +248,22 @@ def loadTimes():
 			result = timePart[0]
 			if result == "gain":
 				result = Result.GAIN
-			if result == "turnover":
+			elif result == "turnover":
 				result = Result.TURNOVER
-			if result == "turnoverTouchdown":
+			elif result == "turnoverTouchdown":
 				result = Result.TURNOVER_TOUCHDOWN
-			if result == "touchdown":
+			elif result == "touchdown":
 				result = Result.TOUCHDOWN
-			if result == "incomplete":
+			elif result == "incomplete":
 				result = Result.INCOMPLETE
-			if result == "fieldGoal":
+			elif result == "fieldGoal":
 				result = Result.FIELD_GOAL
-			if result == "kick":
+			elif result == "kick":
 				result = Result.KICK
-			if result == "touchback":
+			elif result == "touchback":
 				result = Result.TOUCHBACK
+			elif result == "punt":
+				result = Result.PUNT
 			else:
 				log.warning("Could not validate result: {}".format(result))
 				continue

@@ -1,9 +1,11 @@
 import logging.handlers
+import pickle
 import json
 import random
 import re
 import math
 import copy
+import traceback
 from datetime import datetime
 from datetime import timedelta
 
@@ -47,7 +49,7 @@ def startGame(homeCoach, awayCoach, startTime=None, location=None, station=None,
 	if awayRecord is not None:
 		awayTeam.record = awayRecord
 
-	gameThread = getGameThreadText(game)
+	gameThread = renderGame(game)
 	gameTitle = "[GAME THREAD] {}{} @ {}{}".format(
 		game.away.name,
 		" {}".format(unescapeMarkdown(awayRecord)) if awayRecord is not None else "",
@@ -90,11 +92,13 @@ def extractTableFromMessage(message):
 	datatagLocation = message.find(globals.datatag)
 	if datatagLocation == -1:
 		return None
-	data = message[datatagLocation + len(globals.datatag):-1]
+	data = unescapeMarkdown(message[datatagLocation + len(globals.datatag):-1])
+	data = data.encode().decode('unicode-escape').encode()
 	try:
 		table = json.loads(data)
 		return table
 	except Exception:
+		log.debug(traceback.format_exc())
 		return None
 
 
@@ -184,15 +188,17 @@ def renderGame(game):
 		bldr.append("Total Passing Yards|Total Rushing Yards|Total Yards|Interceptions Lost|Fumbles Lost|Field Goals|Time of Possession|Timeouts\n")
 		bldr.append(":-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:\n")
 		bldr.append("{} yards|{} yards|{} yards|{}|{}|{}/{}|{}|{}".format(
-			game.status.stats(homeAway).yardsPassing,
-			game.status.stats(homeAway).yardsRushing,
-			game.status.stats(homeAway).yardsTotal,
-			game.status.stats(homeAway).turnoverInterceptions,
-			game.status.stats(homeAway).turnoverFumble,
-			game.status.stats(homeAway).fieldGoalsScored,
-			game.status.stats(homeAway).fieldGoalsAttempted,
-			renderTime(game.status.stats(homeAway).yardsPassing),
-			game.status.stats(homeAway).timeouts))
+				game.status.stats(homeAway).yardsPassing,
+				game.status.stats(homeAway).yardsRushing,
+				game.status.stats(homeAway).yardsTotal,
+				game.status.stats(homeAway).turnoverInterceptions,
+				game.status.stats(homeAway).turnoverFumble,
+				game.status.stats(homeAway).fieldGoalsScored,
+				game.status.stats(homeAway).fieldGoalsAttempted,
+				renderTime(game.status.stats(homeAway).yardsPassing),
+				game.status.state(homeAway).timeouts
+			)
+		)
 		bldr.append("\n\n___\n")
 
 	bldr.append("Game Summary|Time\n")
@@ -261,25 +267,38 @@ def playNumber():
 	return random.randint(0, 1500)
 
 
-def getGameByThread(thread):
-	threadText = reddit.getSubmission(thread).selftext
-	return extractTableFromMessage(threadText)
+def saveGameObject(game):
+	file = open("{}/{}".format(globals.SAVE_FOLDER_NAME, game.thread), 'wb')
+	pickle.dump(game, file)
+	file.close()
+
+
+def loadGameObject(threadID):
+	file = open("{}/{}".format(globals.SAVE_FOLDER_NAME, threadID), 'rb')
+	game = pickle.load(file)
+	file.close()
+	return game
+
+
+# def getGameByThread(thread):
+# 	threadText = reddit.getSubmission(thread).selftext
+# 	return extractTableFromMessage(threadText)
 
 
 def getGameByUser(user):
 	dataGame = database.getGameByCoach(user)
 	if dataGame is None:
 		return None
-	game = getGameByThread(dataGame['thread'])
+	game = loadGameObject(dataGame['thread'])
 	game.dataID = dataGame['id']
 	game.thread = dataGame['thread']
 	game.errored = dataGame['errored']
 	return game
 
 
-def getGameThreadText(game):
-	threadText = renderGame(game)
-	return embedTableInMessage(threadText, game)
+# def getGameThreadText(game):
+# 	threadText = renderGame(game)
+# 	return embedTableInMessage(threadText, game)
 
 
 def updateGameThread(game):
@@ -287,7 +306,8 @@ def updateGameThread(game):
 	if game.thread is None:
 		log.error("No thread ID in game when trying to update")
 	game.dirty = False
-	threadText = getGameThreadText(game)
+	saveGameObject(game)
+	threadText = renderGame(game)
 	reddit.editThread(game.thread, threadText)
 
 
@@ -557,4 +577,12 @@ def cycleStatus(game):
 
 
 def newGameObject(home, away):
+	return classes.Game(home, away)
+
+
+def newDebugGameObject():
+	home = classes.Team(tag="team1", name="Team 1", offense=classes.OffenseType.OPTION, defense=classes.DefenseType.THREE_FOUR)
+	home.coaches.append("watchful1")
+	away = classes.Team(tag="team2", name="Team 2", offense=classes.OffenseType.SPREAD, defense=classes.DefenseType.FOUR_THREE)
+	away.coaches.append("watchful12")
 	return classes.Game(home, away)

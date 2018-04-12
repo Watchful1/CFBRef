@@ -55,7 +55,6 @@ def sendMessage(recipients, subject, message):
 			log.warning(traceback.format_exc())
 			success = None
 
-
 	return success
 
 

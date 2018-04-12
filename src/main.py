@@ -23,7 +23,7 @@ if not os.path.exists(globals.LOG_FOLDER_NAME):
 	os.makedirs(globals.LOG_FOLDER_NAME)
 LOG_FILENAME = globals.LOG_FOLDER_NAME+"/"+"bot.log"
 LOG_FILE_BACKUPCOUNT = 5
-LOG_FILE_MAXSIZE = 1024 * 256 * 16
+LOG_FILE_MAXSIZE = 1024 * 256 * 64
 
 
 class ContextFilter(logging.Filter):
@@ -43,6 +43,10 @@ if LOG_FILENAME is not None:
 	log_fileHandler = logging.handlers.RotatingFileHandler(LOG_FILENAME, maxBytes=LOG_FILE_MAXSIZE, backupCount=LOG_FILE_BACKUPCOUNT)
 	log_fileHandler.setFormatter(log_formatter)
 	log.addHandler(log_fileHandler)
+
+
+if not os.path.exists(globals.SAVE_FOLDER_NAME):
+	os.makedirs(globals.SAVE_FOLDER_NAME)
 
 
 def signal_handler(signal, frame):
@@ -112,7 +116,7 @@ while True:
 
 			for threadId in database.getGamesPastPlayclock():
 				log.debug("Game past playclock: {}".format(threadId))
-				game = utils.getGameByThread(threadId)
+				game = utils.loadGameObject(threadId)
 				utils.cycleStatus(game)
 				game.state(game.status.waitingOn).playclockPenalties += 1
 				penaltyMessage = "{} has not sent their number in over 24 hours, playclock penalty. This is their {} penalty.".format(

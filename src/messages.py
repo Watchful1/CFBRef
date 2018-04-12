@@ -8,6 +8,7 @@ import wiki
 import globals
 import database
 import state
+import classes
 from classes import Play
 from classes import Action
 from classes import TimeoutOption
@@ -274,7 +275,7 @@ def processMessageOffensePlay(game, message, author):
 		return False, "I couldn't find a play in your message"
 
 	number, numberMessage = utils.extractPlayNumber(message)
-	if play not in globals.timePlays and number == -1:
+	if play not in classes.timePlays and number == -1:
 		log.debug("Trying to execute a {} play, but didn't have a number".format(play))
 		return False, numberMessage
 
@@ -300,7 +301,7 @@ def processMessageOffensePlay(game, message, author):
 
 	game.status.waitingOn.reverse()
 	game.dirty = True
-	if game.status.waitingAction in globals.playActions:
+	if game.status.waitingAction in classes.playActions:
 		utils.sendDefensiveNumberMessage(game)
 	elif game.status.waitingAction == Action.OVERTIME:
 		log.debug("Starting overtime, posting coin toss comment")
@@ -437,10 +438,10 @@ def processMessage(message):
 						success = False
 						response = "I found both {} in your message. Please reply with just one of them.".format(' and '.join(keywords))
 
-				elif dataTable['action'] in globals.playActions and isMessage:
+				elif dataTable['action'] in classes.playActions and isMessage:
 					success, response = processMessageDefenseNumber(game, body, str(message.author))
 
-				elif dataTable['action'] in globals.playActions and not isMessage:
+				elif dataTable['action'] in classes.playActions and not isMessage:
 					success, response = processMessageOffensePlay(game, body, str(message.author))
 		else:
 			log.debug("Couldn't get a game for /u/{}".format(author))

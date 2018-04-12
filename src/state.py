@@ -1,10 +1,9 @@
 import logging.handlers
-import copy
 from datetime import datetime
 
 import wiki
 import utils
-import globals
+import classes
 import database
 from classes import T
 from classes import HomeAway
@@ -15,7 +14,6 @@ from classes import Action
 from classes import TimeoutOption
 from classes import TimeOption
 from classes import OffenseType
-from classes import DefenseType
 from classes import Result
 
 log = logging.getLogger("bot")
@@ -177,7 +175,7 @@ def getPlayResult(game, play, number):
 		return None
 
 	log.debug("Getting play result for: {}".format(play))
-	if play in globals.movementPlays:
+	if play in classes.movementPlays:
 		offense = game.team(game.status.possession).offense
 		defense = game.team(game.status.possession.negate()).defense
 		log.debug("Movement play offense, defense: {} : {}".format(offense, defense))
@@ -310,7 +308,7 @@ def updateTime(game, play, result, yards, offenseHomeAway, timeOption):
 
 		if game.status.quarterType != QuarterType.END:
 			game.status.quarter += 1
-			game.status.clock = globals.quarterLength
+			game.status.clock = classes.quarterLength
 	else:
 		actualTimeOffClock = timeOffClock
 
@@ -320,7 +318,7 @@ def updateTime(game, play, result, yards, offenseHomeAway, timeOption):
 
 
 def executeGain(game, play, yards, incomplete=False):
-	if play not in globals.movementPlays and play not in [Play.PUNT]:
+	if play not in classes.movementPlays and play not in [Play.PUNT]:
 		log.warning("This doesn't look like a valid movement play: {}".format(play))
 		return Result.ERROR, None, "Something went wrong trying to move the ball"
 
@@ -414,7 +412,7 @@ def executePlay(game, play, number, timeOption):
 	playSummary.offNum = number
 	playSummary.posHome = game.status.possession.isHome
 
-	if play in globals.conversionPlays:
+	if play in classes.conversionPlays:
 		numberResult, diffMessage, defenseNumber = getNumberDiffForGame(game, number)
 		playSummary.defNum = defenseNumber
 
@@ -455,7 +453,7 @@ def executePlay(game, play, number, timeOption):
 
 		database.clearDefensiveNumber(game.dataID)
 
-	elif play in globals.kickoffPlays:
+	elif play in classes.kickoffPlays:
 		numberResult, diffMessage, defenseNumber = getNumberDiffForGame(game, number)
 		playSummary.defNum = defenseNumber
 
@@ -502,7 +500,7 @@ def executePlay(game, play, number, timeOption):
 			resultMessage = "It's run all the way back! Touchdown {}!".format(game.team(game.status.possession.negate()).name)
 			scoreTouchdown(game, game.status.possession.negate())
 
-	elif play in globals.normalPlays:
+	elif play in classes.normalPlays:
 		numberResult, diffMessage, defenseNumber = getNumberDiffForGame(game, number)
 		playSummary.defNum = defenseNumber
 
@@ -611,7 +609,7 @@ def executePlay(game, play, number, timeOption):
 
 		database.clearDefensiveNumber(game.dataID)
 
-	elif play in globals.timePlays:
+	elif play in classes.timePlays:
 		if play == Play.KNEEL:
 			log.debug("Running kneel play")
 			actualResult = Result.KNEEL
