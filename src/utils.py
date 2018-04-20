@@ -81,21 +81,41 @@ def startGame(homeCoach, awayCoach, startTime=None, location=None, station=None,
 	return "Game started. Find it [here]({}).".format(getLinkToThread(threadID))
 
 
+PUBLIC_ENUMS = {
+	'Action': Action
+}
+
+
+class EnumEncoder(json.JSONEncoder):
+	def default(self, obj):
+		for enum in PUBLIC_ENUMS.values():
+			if type(obj) is enum:
+				return {"__enum__": str(obj)}
+		return json.JSONEncoder.default(self, obj)
+
+
+def as_enum(d):
+	if "__enum__" in d:
+		name, member = d["__enum__"].split(".")
+		return getattr(PUBLIC_ENUMS[name], member)
+	else:
+		return d
+
+
 def embedTableInMessage(message, table):
 	if table is None:
 		return message
 	else:
-		return "{}{}{})".format(message, globals.datatag, json.dumps(table, default=str))
+		return "{}{}{})".format(message, globals.datatag, json.dumps(table, cls=EnumEncoder).replace(" ", "%20"))
 
 
 def extractTableFromMessage(message):
 	datatagLocation = message.find(globals.datatag)
 	if datatagLocation == -1:
 		return None
-	data = unescapeMarkdown(message[datatagLocation + len(globals.datatag):-1])
-	data = data.encode().decode('unicode-escape').encode()
+	data = message[datatagLocation + len(globals.datatag):-1].replace("%20", " ")
 	try:
-		table = json.loads(data)
+		table = json.loads(data, object_hook=as_enum)
 		return table
 	except Exception:
 		log.debug(traceback.format_exc())

@@ -2,7 +2,7 @@
 ### Config ###
 LOG_FOLDER_NAME = "logs"
 SAVE_FOLDER_NAME = "games"
-SUBREDDIT = "SubTestBot1"
+SUBREDDIT = "FakeCollegeFootball"
 CONFIG_SUBREDDIT = "FakeCollegeFootball"
 USER_AGENT = "FakeCFBRef (by /u/Watchful1)"
 OWNER = "watchful1"

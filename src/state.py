@@ -41,7 +41,7 @@ def setStateKickoff(game, homeAway):
 	game.status.yards = 10
 	game.status.possession = homeAway
 	game.status.waitingAction = Action.KICKOFF
-	game.status.waitingOn = homeAway
+	game.status.waitingOn = homeAway.negate()
 
 
 def setStateOvertimeDrive(game, homeAway):
