@@ -132,8 +132,8 @@ def processMessageDefer(game, isDefer, author):
 
 			return True, "{} deferred and will attack next. Overtime has started!\n\n{}\n\n{}".format(
 				game.team(authorHomeAway).name,
-			    utils.getCurrentPlayString(game),
-			    utils.getWaitingOnString(game))
+				utils.getCurrentPlayString(game),
+				utils.getWaitingOnString(game))
 		else:
 			log.debug("User elected to attack, {} is attacking".format(authorHomeAway))
 
@@ -145,8 +145,8 @@ def processMessageDefer(game, isDefer, author):
 
 			return True, "{} elected to attack. Overtime has started!\n\n{}\n\n{}".format(
 				game.team(authorHomeAway).name,
-			    utils.getCurrentPlayString(game),
-			    utils.getWaitingOnString(game))
+				utils.getCurrentPlayString(game),
+				utils.getWaitingOnString(game))
 	else:
 		if isDefer:
 			log.debug("User deferred, {} is receiving".format(authorHomeAway.negate()))
@@ -159,21 +159,20 @@ def processMessageDefer(game, isDefer, author):
 
 			return True, "{} deferred and will receive the ball in the second half. The game has started!\n\n{}\n\n{}".format(
 				game.team(authorHomeAway).name,
-			    utils.getCurrentPlayString(game),
-			    utils.getWaitingOnString(game))
+				utils.getCurrentPlayString(game),
+				utils.getWaitingOnString(game))
 		else:
 			log.debug("User elected to receive, {} is receiving".format(authorHomeAway))
 
 			state.setStateKickoff(game, authorHomeAway.negate())
 			game.status.receivingNext = authorHomeAway.negate()
-			game.status.waitingOn.reverse()
 			game.dirty = True
 			utils.sendDefensiveNumberMessage(game)
 
 			return True, "{} elected to receive. The game has started!\n\n{}\n\n{}".format(
 				game.team(authorHomeAway).name,
-			    utils.getCurrentPlayString(game),
-			    utils.getWaitingOnString(game))
+				utils.getCurrentPlayString(game),
+				utils.getWaitingOnString(game))
 
 
 def processMessageDefenseNumber(game, message, author):
@@ -408,7 +407,8 @@ def processMessage(message):
 
 			elif game.errored:
 				log.debug("Game is errored, skipping")
-				response = "This game is currently in an error state, /u/{} has been contacted to take a look".format(globals.OWNER)
+				response = "This game is currently in an error state, /u/{} has been contacted to take a look".format(
+					globals.OWNER)
 				success = False
 				updateWaiting = False
 
@@ -422,7 +422,8 @@ def processMessage(message):
 						success, response = processMessageCoin(game, False, str(message.author))
 					elif keyword == "mult":
 						success = False
-						response = "I found both {} in your message. Please reply with just one of them.".format(' and '.join(keywords))
+						response = "I found both {} in your message. Please reply with just one of them.".format(
+							' and '.join(keywords))
 
 				elif dataTable['action'] == Action.DEFER and not isMessage:
 					if utils.isGameOvertime(game):
@@ -436,7 +437,8 @@ def processMessage(message):
 						success, response = processMessageDefer(game, False, str(message.author))
 					elif keyword == "mult":
 						success = False
-						response = "I found both {} in your message. Please reply with just one of them.".format(' and '.join(keywords))
+						response = "I found both {} in your message. Please reply with just one of them.".format(
+							' and '.join(keywords))
 
 				elif dataTable['action'] in classes.playActions and isMessage:
 					success, response = processMessageDefenseNumber(game, body, str(message.author))
@@ -458,7 +460,8 @@ def processMessage(message):
 
 	message.mark_read()
 	if response is not None:
-		if success is not None and not success and dataTable is not None and utils.extractTableFromMessage(response) is None:
+		if success is not None and not success and dataTable is not None and utils.extractTableFromMessage(
+				response) is None:
 			log.debug("Embedding datatable in reply on failure")
 			response = utils.embedTableInMessage(response, dataTable)
 			if updateWaiting and game is not None:
@@ -475,7 +478,7 @@ def processMessage(message):
 		if isMessage:
 			log.debug("Couldn't understand message")
 			resultMessage = reddit.replyMessage(message,
-			                    "I couldn't understand your message, please try again or message /u/Watchful1 if you need help.")
+			                                    "I couldn't understand your message, please try again or message /u/Watchful1 if you need help.")
 			if resultMessage is None:
 				log.warning("Could not send message")
 

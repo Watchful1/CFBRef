@@ -356,7 +356,7 @@ def executeGain(game, play, yards, incomplete=False):
 			log.debug("First down")
 			game.status.yards = 10
 			game.status.down = 1
-			return Result.GAIN, game.status.location - previousLocation, "{} play for {} yards, first down".format(play.capitalize(), yards)
+			return Result.GAIN, game.status.location - previousLocation, "{} play for {} yards, first down".format(play.name.lower().capitalize(), yards)
 		else:
 			log.debug("Not a first down, incrementing down")
 			game.status.down += 1
@@ -366,7 +366,7 @@ def executeGain(game, play, yards, incomplete=False):
 				if incomplete:
 					resultMessage = "The pass is incomplete. Turnover on downs"
 				else:
-					resultMessage = "{} play for {} yards, but that's not enough for the first down. Turnover on downs".format(play.capitalize(), yards)
+					resultMessage = "{} play for {} yards, but that's not enough for the first down. Turnover on downs".format(play.name.lower().capitalize(), yards)
 
 				return Result.TURNOVER, game.status.location - previousLocation, resultMessage
 			else:
@@ -375,7 +375,7 @@ def executeGain(game, play, yards, incomplete=False):
 				if incomplete:
 					resultMessage = "The pass is incomplete. {} and {}".format(utils.getDownString(game.status.down), yardsRemaining)
 				else:
-					resultMessage = "{} play for {} yards, {} and {}".format(play.capitalize(), yards, utils.getDownString(game.status.down), yardsRemaining)
+					resultMessage = "{} play for {} yards, {} and {}".format(play.name.lower().capitalize(), yards, utils.getDownString(game.status.down), yardsRemaining)
 
 				return Result.GAIN, game.status.location - previousLocation, resultMessage
 

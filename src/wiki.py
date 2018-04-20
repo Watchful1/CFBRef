@@ -11,6 +11,7 @@ from classes import OffenseType
 from classes import DefenseType
 from classes import Result
 from classes import Team
+from classes import Play
 
 log = logging.getLogger("bot")
 
@@ -60,6 +61,60 @@ def parseDefense(defenseString):
 		return DefenseType.FOUR_THREE
 	elif "5-2" in defenseString:
 		return DefenseType.FIVE_TWO
+	else:
+		return None
+
+
+def parsePlay(playString):
+	if playString == "run":
+		return Play.RUN
+	elif playString == "pass":
+		return Play.PASS
+	elif playString == "fieldGoal":
+		return Play.FIELD_GOAL
+	elif playString == "pat":
+		return Play.PAT
+	elif playString == "twoPoint":
+		return Play.TWO_POINT
+	elif playString == "punt":
+		return Play.PUNT
+	elif playString == "kickoffNormal":
+		return Play.KICKOFF_NORMAL
+	elif playString == "kickoffSquib":
+		return Play.KICKOFF_SQUIB
+	elif playString == "kickoffOnside":
+		return Play.KICKOFF_ONSIDE
+	else:
+		return None
+
+
+def parseResult(resultString):
+	if resultString == "gain":
+		return Result.GAIN
+	elif resultString == "turnover":
+		return Result.TURNOVER
+	elif resultString == "touchdown":
+		return Result.TOUCHDOWN
+	elif resultString == "turnoverTouchdown":
+		return Result.TURNOVER_TOUCHDOWN
+	elif resultString == "incomplete":
+		return Result.INCOMPLETE
+	elif resultString == "touchback":
+		return Result.TOUCHBACK
+	elif resultString == "fieldGoal":
+		return Result.FIELD_GOAL
+	elif resultString == "miss":
+		return Result.MISS
+	elif resultString == "pat":
+		return Result.PAT
+	elif resultString == "twoPoint":
+		return Result.TWO_POINT
+	elif resultString == "kickoff":
+		return Result.KICKOFF
+	elif resultString == "punt":
+		return Result.PUNT
+	elif resultString == "kick":
+		return Result.KICK
 	else:
 		return None
 
@@ -126,9 +181,6 @@ def initOffenseDefense(play, offense, defense, range):
 
 
 def initRange(play, range):
-	if not validateItem(play, "\w{3,12}"):
-		log.warning("Bad play item: {}".format(play))
-		return False
 	if not validateItem(range, "\d+-\d+"):
 		log.warning("Bad range item: {}".format(range))
 		return False
@@ -148,35 +200,9 @@ def parsePlayPart(playPart):
 		log.warning("Could not validate range: {}".format(range))
 		return None, None
 
-	result = parts[1]
-	if result == "gain":
-		result = Result.GAIN
-	elif result == "turnover":
-		result = Result.TURNOVER
-	elif result == "touchdown":
-		result = Result.TOUCHDOWN
-	elif result == "turnoverTouchdown":
-		result = Result.TURNOVER_TOUCHDOWN
-	elif result == "incomplete":
-		result = Result.INCOMPLETE
-	elif result == "touchback":
-		result = Result.TOUCHBACK
-	elif result == "fieldGoal":
-		result = Result.FIELD_GOAL
-	elif result == "miss":
-		result = Result.MISS
-	elif result == "pat":
-		result = Result.PAT
-	elif result == "twoPoint":
-		result = Result.TWO_POINT
-	elif result == "kickoff":
-		result = Result.KICKOFF
-	elif result == "punt":
-		result = Result.PUNT
-	elif result == "kick":
-		result = Result.KICK
-	else:
-		log.warning("Could not validate result: {}".format(result))
+	result = parseResult(parts[1])
+	if result is None:
+		log.warning("Could not validate result in plays: {}".format(parts[1]))
 		return None, None
 
 	play = {'result': result}
@@ -195,7 +221,13 @@ def loadPlays():
 
 	for playLine in playsPage.splitlines():
 		items = playLine.split('|')
-		isMovementPlay = items[0] in ["run", "pass"]
+
+		playType = parsePlay(items[0])
+		if playType is None:
+			log.warning("Could not parse play: {}".format(playLine))
+			continue
+
+		isMovementPlay = playType in [Play.RUN, Play.PASS]
 
 		offense = None
 		defense = None
@@ -212,12 +244,12 @@ def loadPlays():
 				log.warning("Bad defense item: {}".format(items[2]))
 				continue
 
-			if not initOffenseDefense(items[0], offense, defense, items[3]):
+			if not initOffenseDefense(playType, offense, defense, items[3]):
 				log.warning("Could not parse play: {}".format(playLine))
 				continue
 		else:
 			startIndex = 2
-			if not initRange(items[0], items[1]):
+			if not initRange(playType, items[1]):
 				log.warning("Could not parse play: {}".format(playLine))
 				continue
 
@@ -229,9 +261,9 @@ def loadPlays():
 			playParts[range] = play
 
 		if isMovementPlay:
-			plays[items[0]][offense][defense][items[3]] = playParts
+			plays[playType][offense][defense][items[3]] = playParts
 		else:
-			plays[items[0]][items[1]] = playParts
+			plays[playType][items[1]] = playParts
 
 
 def loadTimes():
@@ -239,33 +271,21 @@ def loadTimes():
 
 	for timeLine in timesPage.splitlines():
 		items = timeLine.split('|')
-		if items[0] not in times:
-			times[items[0]] = {}
+
+		playType = parsePlay(items[0])
+		if playType is None:
+			log.warning("Could not parse play: {}".format(timeLine))
+			continue
+
+		if playType not in times:
+			times[playType] = {}
 
 		for item in items[1:]:
 			timePart = item.split(",")
 
-			result = timePart[0]
-			if result == "gain":
-				result = Result.GAIN
-			elif result == "turnover":
-				result = Result.TURNOVER
-			elif result == "turnoverTouchdown":
-				result = Result.TURNOVER_TOUCHDOWN
-			elif result == "touchdown":
-				result = Result.TOUCHDOWN
-			elif result == "incomplete":
-				result = Result.INCOMPLETE
-			elif result == "fieldGoal":
-				result = Result.FIELD_GOAL
-			elif result == "kick":
-				result = Result.KICK
-			elif result == "touchback":
-				result = Result.TOUCHBACK
-			elif result == "punt":
-				result = Result.PUNT
-			else:
-				log.warning("Could not validate result: {}".format(result))
+			result = parseResult(timePart[0])
+			if result is None:
+				log.warning("Could not validate result in times: {}".format(timePart[1]))
 				continue
 
 			if result in [Result.GAIN, Result.KICK]:
@@ -276,17 +296,17 @@ def loadTimes():
 					log.warning("Could not validate time: {}".format(timePart[2]))
 					continue
 
-				if result not in times[items[0]]:
-					times[items[0]][result] = []
+				if result not in times[playType]:
+					times[playType][result] = []
 				timeObject = {'yards': int(timePart[1]), 'time': int(timePart[2])}
-				times[items[0]][result].append(timeObject)
+				times[playType][result].append(timeObject)
 			else:
 				if not validateItem(timePart[1], "\d+"):
 					log.warning("Could not validate time: {}".format(timePart[1]))
 					continue
 
 				timeObject = {'time': int(timePart[1])}
-				times[items[0]][result] = timeObject
+				times[playType][result] = timeObject
 
 
 def getTeamByTag(tag):
