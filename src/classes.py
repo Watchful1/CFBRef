@@ -97,6 +97,20 @@ class PlaySummary:
 		self.defNum = None
 		self.posHome = None
 
+	def __str__(self):
+		return "{} = {}, {} | {} and {} on {} | {} | {}, {} | {}".format(
+			self.play,
+			self.result,
+			self.yards,
+			self.down,
+			self.toGo,
+			self.location,
+			self.time,
+			self.offNum,
+			self.defNum,
+			"home" if self.posHome else "away"
+		)
+
 
 class HomeAway:
 	def __init__(self, isHome):

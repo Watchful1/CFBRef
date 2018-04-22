@@ -665,7 +665,10 @@ def executePlay(game, play, number, timeOption):
 
 	playSummary.play = play
 	playSummary.result = actualResult
-	playSummary.yards = yards
+	if actualResult in [Result.TURNOVER]:
+		playSummary.yards = None
+	else:
+		playSummary.yards = yards
 	playSummary.time = timeOffClock
 
 	if success:
