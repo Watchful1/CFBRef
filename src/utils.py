@@ -606,3 +606,4 @@ def newDebugGameObject():
 	away = classes.Team(tag="team2", name="Team 2", offense=classes.OffenseType.SPREAD, defense=classes.DefenseType.FOUR_THREE)
 	away.coaches.append("watchful12")
 	return classes.Game(home, away)
+

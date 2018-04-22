@@ -27,24 +27,27 @@ def scoreForTeam(game, points, homeAway):
 
 
 def setStateTouchback(game, homeAway):
+	log.debug("Setting state to touchback for: {}".format(homeAway))
 	game.status.location = 25
 	game.status.down = 1
 	game.status.yards = 10
-	game.status.possession = homeAway
+	game.status.possession = homeAway.copy()
 	game.status.waitingAction = Action.PLAY
 	game.status.waitingOn = homeAway.negate()
 
 
 def setStateKickoff(game, homeAway):
+	log.debug("Setting state to kickoff for: {}".format(homeAway))
 	game.status.location = 35
 	game.status.down = 1
 	game.status.yards = 10
-	game.status.possession = homeAway
+	game.status.possession = homeAway.copy()
 	game.status.waitingAction = Action.KICKOFF
-	game.status.waitingOn = homeAway.negate()
+	game.status.waitingOn = homeAway.copy()
 
 
 def setStateOvertimeDrive(game, homeAway):
+	log.debug("Setting state to overtime drive for: {}".format(homeAway))
 	if game.status.overtimePossession is None:
 		game.status.overtimePossession = 1
 
@@ -53,17 +56,19 @@ def setStateOvertimeDrive(game, homeAway):
 
 
 def forceTouchdown(game, homeAway):
+	log.debug("Forcing touchdown for: {}".format(homeAway))
 	scoreForTeam(game, 7, homeAway)
 
 
 def scoreTouchdown(game, homeAway):
+	log.debug("Scoring touchdown for: {}".format(homeAway))
 	scoreForTeam(game, 6, homeAway)
 	game.status.location = 97
 	game.status.down = 1
 	game.status.yards = 10
-	game.status.possession = homeAway
+	game.status.possession = homeAway.copy()
 	game.status.waitingAction = Action.CONVERSION
-	game.status.waitingOn = homeAway
+	game.status.waitingOn = homeAway.copy()
 
 
 def scoreFieldGoal(game, homeAway):
@@ -239,6 +244,10 @@ def updateTime(game, play, result, yards, offenseHomeAway, timeOption):
 		actualResult = result
 	if result == Result.SPIKE:
 		timeOffClock = 3
+	elif result == Result.PAT:
+		timeOffClock = 0
+	elif result == Result.TWO_POINT:
+		timeOffClock = 0
 	else:
 		if result == Result.KNEEL:
 			timeOffClock = 1
@@ -661,5 +670,7 @@ def executePlay(game, play, number, timeOption):
 
 	if success:
 		game.plays.append(playSummary)
+
+
 
 	return success, '\n\n'.join(messages)

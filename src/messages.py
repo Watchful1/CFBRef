@@ -125,7 +125,7 @@ def processMessageDefer(game, isDefer, author):
 			log.debug("User deferred, {} is attacking".format(authorHomeAway.negate().name()))
 
 			state.setStateOvertimeDrive(game, authorHomeAway.negate())
-			game.status.receivingNext = authorHomeAway
+			game.status.receivingNext = authorHomeAway.copy()
 			game.status.waitingOn.reverse()
 			game.dirty = True
 			utils.sendDefensiveNumberMessage(game)
@@ -152,8 +152,8 @@ def processMessageDefer(game, isDefer, author):
 			log.debug("User deferred, {} is receiving".format(authorHomeAway.negate()))
 
 			state.setStateKickoff(game, authorHomeAway)
-			game.status.receivingNext = authorHomeAway
-			game.status.waitingOn.reverse()
+			game.status.receivingNext = authorHomeAway.copy()
+			game.status.waitingOn.negate()
 			game.dirty = True
 			utils.sendDefensiveNumberMessage(game)
 
@@ -166,6 +166,7 @@ def processMessageDefer(game, isDefer, author):
 
 			state.setStateKickoff(game, authorHomeAway.negate())
 			game.status.receivingNext = authorHomeAway.negate()
+			game.status.waitingOn.negate()
 			game.dirty = True
 			utils.sendDefensiveNumberMessage(game)
 

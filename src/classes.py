@@ -99,8 +99,6 @@ class PlaySummary:
 
 
 class HomeAway:
-	isHome = None
-
 	def __init__(self, isHome):
 		self.isHome = isHome
 
@@ -117,7 +115,9 @@ class HomeAway:
 		return HomeAway(not self.isHome)
 
 	def reverse(self):
-		self.isHome = not self.isHome
+		current = self.isHome
+		reversed = not current
+		self.isHome = reversed
 
 	def copy(self):
 		return HomeAway(self.isHome)
