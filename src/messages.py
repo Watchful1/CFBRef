@@ -184,7 +184,7 @@ def processMessageDefenseNumber(game, message, author):
 		return False, resultMessage
 
 	log.debug("Saving defense number: {}".format(number))
-	database.saveDefensiveNumber(game.dataID, number)
+	game.status.defensiveNumber = number
 
 	timeoutMessage = None
 	if message.find("timeout") > 0:

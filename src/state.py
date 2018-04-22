@@ -142,7 +142,7 @@ def scoreSafety(game, homeAway):
 
 
 def getNumberDiffForGame(game, offenseNumber):
-	defenseNumber = database.getDefensiveNumber(game.dataID)
+	defenseNumber = game.status.defensiveNumber
 	if defenseNumber is None:
 		log.warning("Something went wrong, couldn't get a defensive number for that game")
 		return -1
@@ -460,7 +460,7 @@ def executePlay(game, play, number, timeOption):
 			else:
 				setStateKickoff(game, game.status.possession)
 
-		database.clearDefensiveNumber(game.dataID)
+		game.status.defensiveNumber = None
 
 	elif play in classes.kickoffPlays:
 		numberResult, diffMessage, defenseNumber = getNumberDiffForGame(game, number)
@@ -616,7 +616,7 @@ def executePlay(game, play, number, timeOption):
 				game.status.quarterType = QuarterType.END
 				game.status.waitingAction = Action.END
 
-		database.clearDefensiveNumber(game.dataID)
+		game.status.defensiveNumber = None
 
 	elif play in classes.timePlays:
 		if play == Play.KNEEL:

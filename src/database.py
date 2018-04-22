@@ -16,7 +16,6 @@ def init():
 		CREATE TABLE IF NOT EXISTS games (
 			ID INTEGER PRIMARY KEY AUTOINCREMENT,
 			ThreadID VARCHAR(80) NOT NULL,
-			DefenseNumber INTEGER,
 			Deadline TIMESTAMP NOT NULL DEFAULT (DATETIME(CURRENT_TIMESTAMP, '+10 days')),
 			Playclock TIMESTAMP NOT NULL DEFAULT (DATETIME(CURRENT_TIMESTAMP, '+24 hours')),
 			Complete BOOLEAN NOT NULL DEFAULT 0,
@@ -138,44 +137,6 @@ def endGame(threadId):
 		return True
 	else:
 		return False
-
-
-def saveDefensiveNumber(gameID, number):
-	c = dbConn.cursor()
-	c.execute('''
-		UPDATE games
-		SET Playclock = DATETIME(CURRENT_TIMESTAMP, '+24 hours')
-			,DefenseNumber = ?
-		WHERE ID = ?
-	''', (number, gameID))
-	dbConn.commit()
-
-
-def getDefensiveNumber(gameID):
-	c = dbConn.cursor()
-	result = c.execute('''
-		SELECT DefenseNumber
-		FROM games
-		WHERE ID = ?
-	''', (gameID,))
-
-	resultTuple = result.fetchone()
-
-	if not resultTuple:
-		return None
-
-	return resultTuple[0]
-
-
-def clearDefensiveNumber(gameID):
-	c = dbConn.cursor()
-	c.execute('''
-		UPDATE games
-		SET Playclock = DATETIME(CURRENT_TIMESTAMP, '+24 hours')
-			,DefenseNumber = NULL
-		WHERE ID = ?
-	''', (gameID,))
-	dbConn.commit()
 
 
 def pauseGame(threadID, hours):

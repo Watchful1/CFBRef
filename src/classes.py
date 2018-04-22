@@ -191,6 +191,7 @@ class GameStatus:
 		self.waitingId = None
 		self.waitingAction = Action.COIN
 		self.waitingOn = HomeAway(T.away)
+		self.defensiveNumber = None
 
 	def state(self, isHome):
 		if isHome:
