@@ -94,15 +94,54 @@ while True:
 			except Exception as err:
 				log.warning("Error in main loop")
 				log.warning(traceback.format_exc())
-				if globals.gameId is not None:
-					log.debug("Setting game {} as errored".format(globals.gameId))
-					database.setGameErrored(globals.gameId)
+				if globals.game is not None:
+					log.debug("Setting game {} as errored".format(globals.game.thread))
+					database.setGameErrored(globals.game.dataID)
+					bldr = []
+					bldr.append("[Game](")
+					bldr.append(globals.SUBREDDIT_LINK)
+					bldr.append(globals.logGameId[1:-1])
+					bldr.append(") errored.\n\n")
+					bldr.append("Status|Waiting|Link\n")
+					bldr.append(":-:|:-:|:-:\n")
+
+					for i, status in enumerate(globals.game.previousStatus):
+						bldr.append(status.possession.name())
+						bldr.append("/")
+						bldr.append(globals.game.team(status.possession))
+						bldr.append(" with ")
+						bldr.append(utils.getNthWord(status.down))
+						bldr.append(" & ")
+						bldr.append(status.yards)
+						bldr.append(" on the ")
+						bldr.append(status.location)
+						bldr.append(" with ")
+						bldr.append(utils.renderTime(status.clock))
+						bldr.append(" in the ")
+						bldr.append(utils.getNthWord(status.quarter))
+						bldr.append("|")
+						bldr.append(utils.getLinkFromGameThing(globals.game.thread, status.waitingId))
+						bldr.append(" ")
+						bldr.append(status.waitingOn.name())
+						bldr.append("/")
+						bldr.append(globals.game.team(status.waitingOn))
+						bldr.append(" for ")
+						bldr.append(status.waitingAction.name)
+						bldr.append("|")
+						bldr.append("[Message](")
+						bldr.append(utils.buildMessageLink(
+			                        globals.ACCOUNT_NAME,
+			                        "Kick game",
+			                        "kick {} {}".format(globals.game.thread, i)
+			                    ))
+						bldr.append(")")
+
 					ownerMessage = "[Game]({}) errored. Click [here]({}) to clear."\
 						.format("{}{}".format(globals.SUBREDDIT_LINK, globals.logGameId[1:-1]),
 					            utils.buildMessageLink(
 			                        globals.ACCOUNT_NAME,
 			                        "Kick game",
-			                        "kick {}".format(globals.gameId)
+			                        "kick {}".format(globals.logGameId[1:-1])
 			                    ))
 				else:
 					ownerMessage = "Unable to process message from /u/{}, skipping".format(str(message.author))
@@ -117,7 +156,7 @@ while True:
 			for threadId in database.getGamesPastPlayclock():
 				log.debug("Game past playclock: {}".format(threadId))
 				game = utils.loadGameObject(threadId)
-				utils.cycleStatus(game)
+				utils.cycleStatus(game, None)
 				game.state(game.status.waitingOn).playclockPenalties += 1
 				penaltyMessage = "{} has not sent their number in over 24 hours, playclock penalty. This is their {} penalty.".format(
 					utils.getCoachString(game, game.status.waitingOn), utils.getNthWord(game.state(game.status.waitingOn).playclockPenalties))

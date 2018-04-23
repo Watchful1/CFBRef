@@ -207,7 +207,7 @@ def getGamesPastPlayclock():
 	return results
 
 
-def clearGameErrored(gameID):
+def clearGameErrored(threadID):
 	try:
 		c = dbConn.cursor()
 		c.execute('''
@@ -215,8 +215,8 @@ def clearGameErrored(gameID):
 			SET Errored = 0
 				,Deadline = DATETIME(Deadline, '+' || ((julianday(CURRENT_TIMESTAMP) - julianday(Playclock)) * 86400.0) || ' seconds')
 				,Playclock = DATETIME(CURRENT_TIMESTAMP, '+24 hours')
-			WHERE ID = ?
-		''', (gameID,))
+			WHERE ThreadID = ?
+		''', (threadID,))
 		dbConn.commit()
 	except Exception as err:
 		return False

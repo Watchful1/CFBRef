@@ -316,18 +316,19 @@ def processMessageOffensePlay(game, message, author):
 
 def processMessageKickGame(body):
 	log.debug("Processing kick game message")
-	numbers = re.findall('(\d+)', body)
-	if len(numbers) < 1:
-		log.debug("Couldn't find a game id in message")
-		return "Couldn't find a game id in message"
-	log.debug("Found number: {}".format(str(numbers[0])))
-	success = database.clearGameErrored(numbers[0])
+	threadIds = re.findall('([\da-z]{6})', body)
+	if len(threadIds) < 1:
+		log.debug("Couldn't find a thread id in message")
+		return "Couldn't find a thread id in message"
+	log.debug("Found thread id: {}".format(threadIds[0]))
+
+	success = database.clearGameErrored(threadIds[0])
 	if success:
 		log.debug("Kicked game")
-		return "Game {} kicked".format(str(numbers[0]))
+		return "Game {} kicked".format(str(threadIds[0]))
 	else:
 		log.debug("Couldn't kick game")
-		return "Couldn't kick game {}".format(str(numbers[0]))
+		return "Couldn't kick game {}".format(str(threadIds[0]))
 
 
 def processMessagePauseGame(body):
@@ -393,12 +394,11 @@ def processMessage(message):
 	body = message.body.lower()
 	author = str(message.author)
 	game = None
-	previousStatus = None
 	if dataTable is not None:
 		game = utils.getGameByUser(author)
 		if game is not None:
-			utils.cycleStatus(game)
-			utils.setLogGameID(game.thread, game.dataID)
+			utils.cycleStatus(game, message.fullname)
+			utils.setLogGameID(game.thread, game)
 
 			waitingOn = utils.isGameWaitingOn(game, author, dataTable['action'], dataTable['source'])
 			if waitingOn is not None:

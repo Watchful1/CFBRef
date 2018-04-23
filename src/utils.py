@@ -362,6 +362,19 @@ def getRange(rangeString):
 	return int(rangeEnds[0]), int(rangeEnds[1])
 
 
+def getLinkFromGameThing(threadId, thingId):
+	if thingId.startswith("t1"):
+		waitingMessageType = "comment"
+		link = "{}//{}".format(getLinkToThread(threadId), thingId[3:])
+	elif thingId.startswith("t4"):
+		waitingMessageType = "message"
+		link = "{}{}".format(globals.MESSAGE_LINK, thingId[3:])
+	else:
+		return "Something went wrong. Not valid thingid: {}".format(thingId)
+
+	return "[{}]({})".format(waitingMessageType, link)
+
+
 def isGameWaitingOn(game, user, action, messageId):
 	if game.status.waitingAction != action:
 		log.debug("Not waiting on {}: {}".format(action, game.status.waitingAction))
@@ -374,15 +387,7 @@ def isGameWaitingOn(game, user, action, messageId):
 	if game.status.waitingId is not None and game.status.waitingId != messageId:
 		log.debug("Not waiting on message id: {} : {}".format(game.status.waitingId, messageId))
 
-		if game.status.waitingId.startswith("t1"):
-			waitingMessageType = "comment"
-			link = getLinkToThread(game.status.waitingId[3:])
-			link = "{}//{}".format(getLinkToThread(game.thread), game.status.waitingId[3:])
-		elif game.status.waitingId.startswith("t4"):
-			waitingMessageType = "message"
-			link = "{}{}".format(globals.MESSAGE_LINK, game.status.waitingId[3:])
-		else:
-			return "Something went wrong. Not valid waiting: {}".format(game.status.waitingId)
+		link = getLinkFromGameThing(game.thread, game.status.waitingId)
 
 		if messageId.startswith("t1"):
 			messageType = "comment"
@@ -391,7 +396,7 @@ def isGameWaitingOn(game, user, action, messageId):
 		else:
 			return "Something went wrong. Not valid: {}".format(game.status.waitingId)
 
-		return "I'm not waiting on a reply to this {}. Please respond to this [{}]({})".format(messageType, waitingMessageType, link)
+		return "I'm not waiting on a reply to this {}. Please respond to this {}".format(messageType, link)
 
 	return None
 
@@ -503,13 +508,13 @@ def extractPlayNumber(message):
 	return number, None
 
 
-def setLogGameID(threadId, gameId):
-	globals.gameId = gameId
+def setLogGameID(threadId, game):
+	globals.game = game
 	globals.logGameId = " {}:".format(threadId)
 
 
 def clearLogGameID():
-	globals.gameId = None
+	globals.game = None
 	globals.logGameId = ""
 
 
@@ -589,8 +594,9 @@ def renderDatetime(dtTm):
 	return dtTm.strftime("%m/%d %I:%M UTC")
 
 
-def cycleStatus(game):
+def cycleStatus(game, messageId):
 	oldStatus = copy.deepcopy(game.status)
+	oldStatus.messageId = messageId
 	game.previousStatus.insert(0, oldStatus)
 	if len(game.previousStatus) > 3:
 		game.previousStatus.pop()

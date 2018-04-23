@@ -18,4 +18,4 @@ quarterLength = 7*60
 
 ### Log ###
 logGameId = ""
-gameId = None
+game = None
