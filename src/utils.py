@@ -433,7 +433,7 @@ def getLocationString(game):
 	location = game.status.location
 	offenseTeam = game.team(game.status.possession).name
 	defenseTeam = game.team(game.status.possession.negate()).name
-	if location < 0 or location >= 100:
+	if location <= 0 or location >= 100:
 		log.warning("Bad location: {}".format(location))
 		return str(location)
 

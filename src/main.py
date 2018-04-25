@@ -136,13 +136,7 @@ while True:
 			                    ))
 						bldr.append(")")
 
-					ownerMessage = "[Game]({}) errored. Click [here]({}) to clear."\
-						.format("{}{}".format(globals.SUBREDDIT_LINK, globals.logGameId[1:-1]),
-					            utils.buildMessageLink(
-			                        globals.ACCOUNT_NAME,
-			                        "Kick game",
-			                        "kick {}".format(globals.logGameId[1:-1])
-			                    ))
+					ownerMessage = ''.join(bldr)
 
 					message.reply("This game has errored. Please wait for the bot owner to help.")
 				else:

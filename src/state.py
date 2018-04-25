@@ -5,6 +5,7 @@ import wiki
 import utils
 import classes
 import database
+import globals
 from classes import T
 from classes import HomeAway
 from classes import PlaySummary
@@ -318,7 +319,7 @@ def updateTime(game, play, result, yards, offenseHomeAway, timeOption):
 
 		if game.status.quarterType != QuarterType.END:
 			game.status.quarter += 1
-			game.status.clock = classes.quarterLength
+			game.status.clock = globals.quarterLength
 	else:
 		actualTimeOffClock = timeOffClock
 
@@ -342,7 +343,7 @@ def executeGain(game, play, yards, incomplete=False):
 		scoreTouchdown(game, game.status.possession)
 
 		return Result.TOUCHDOWN, 100 - previousLocation, "{} with a {} yard {} into the end zone for a touchdown!".format(game.team(game.status.possession).name, yards, play.name.lower())
-	elif game.status.location < 0:
+	elif game.status.location <= 0:
 		log.debug("Ball went back over the line, safety for the defense")
 
 		utils.addStatRunPass(game, play, previousLocation * -1)
