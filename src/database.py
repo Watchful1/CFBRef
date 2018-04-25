@@ -77,7 +77,6 @@ def getGameByCoach(coach):
 	result = c.execute('''
 		SELECT g.ID
 			,g.ThreadID
-			,g.DefenseNumber
 			,g.Errored
 			,group_concat(c2.Coach) as Coaches
 		FROM games g
@@ -87,7 +86,7 @@ def getGameByCoach(coach):
 				on g.ID = c2.GameID
 		WHERE c.Coach = ?
 			and g.Complete = 0
-		GROUP BY g.ID, g.ThreadID, g.DefenseNumber
+		GROUP BY g.ID, g.ThreadID
 	''', (coach.lower(),))
 
 	resultTuple = result.fetchone()
@@ -95,15 +94,14 @@ def getGameByCoach(coach):
 	if not resultTuple:
 		return None
 	else:
-		return {'id': resultTuple[0], 'thread': resultTuple[1], 'defenseNumber': resultTuple[2], 'errored': resultTuple[3] == 1,
-		        'coaches': resultTuple[4].split(',')}
+		return {'id': resultTuple[0], 'thread': resultTuple[1], 'errored': resultTuple[2] == 1,
+		        'coaches': resultTuple[3].split(',')}
 
 
 def getGameByID(id):
 	c = dbConn.cursor()
 	result = c.execute('''
 		SELECT g.ThreadID
-			,g.DefenseNumber
 			,g.Errored
 			,group_concat(c.Coach) as Coaches
 		FROM games g
@@ -111,7 +109,7 @@ def getGameByID(id):
 				ON g.ID = c.GameID
 		WHERE g.ID = ?
 			and g.Complete = 0
-		GROUP BY g.ThreadID, g.DefenseNumber
+		GROUP BY g.ThreadID
 	''', (id,))
 
 	resultTuple = result.fetchone()
@@ -119,7 +117,7 @@ def getGameByID(id):
 	if not resultTuple:
 		return None
 	else:
-		return {'id': id, 'thread': resultTuple[0], 'defenseNumber': resultTuple[1], 'errored': resultTuple[2] == 1,
+		return {'id': id, 'thread': resultTuple[0], 'errored': resultTuple[1] == 1,
 		        'coaches': resultTuple[3].split(',')}
 
 

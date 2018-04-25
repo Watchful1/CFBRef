@@ -143,6 +143,8 @@ while True:
 			                        "Kick game",
 			                        "kick {}".format(globals.logGameId[1:-1])
 			                    ))
+
+					message.reply("This game has errored. Please wait for the bot owner to help.")
 				else:
 					ownerMessage = "Unable to process message from /u/{}, skipping".format(str(message.author))
 
@@ -187,6 +189,7 @@ while True:
 					else:
 						state.forceTouchdown(game, game.status.possession)
 						state.setStateTouchback(game, game.status.possession.negate())
+						game.status.waitingOn.reverse()
 						utils.sendDefensiveNumberMessage(game)
 						resultMessage = "Automatic 7 point touchdown, {} has the ball.".format(utils.flair(game.team(game.status.waitingOn)))
 

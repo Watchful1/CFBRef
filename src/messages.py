@@ -153,7 +153,7 @@ def processMessageDefer(game, isDefer, author):
 
 			state.setStateKickoff(game, authorHomeAway)
 			game.status.receivingNext = authorHomeAway.copy()
-			game.status.waitingOn.negate()
+			game.status.waitingOn.reverse()
 			game.dirty = True
 			utils.sendDefensiveNumberMessage(game)
 
@@ -166,7 +166,7 @@ def processMessageDefer(game, isDefer, author):
 
 			state.setStateKickoff(game, authorHomeAway.negate())
 			game.status.receivingNext = authorHomeAway.negate()
-			game.status.waitingOn.negate()
+			game.status.waitingOn.reverse()
 			game.dirty = True
 			utils.sendDefensiveNumberMessage(game)
 
@@ -196,6 +196,7 @@ def processMessageDefenseNumber(game, message, author):
 
 	game.status.waitingOn.reverse()
 	game.dirty = True
+	database.setGamePlayed(game.dataID)
 
 	log.debug("Sending offense play comment")
 	utils.updateGameTimes(game)
@@ -301,6 +302,7 @@ def processMessageOffensePlay(game, message, author):
 
 	game.status.waitingOn.reverse()
 	game.dirty = True
+	database.setGamePlayed(game.dataID)
 	if game.status.waitingAction in classes.playActions:
 		utils.sendDefensiveNumberMessage(game)
 	elif game.status.waitingAction == Action.OVERTIME:

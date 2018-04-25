@@ -433,7 +433,7 @@ def getLocationString(game):
 	location = game.status.location
 	offenseTeam = game.team(game.status.possession).name
 	defenseTeam = game.team(game.status.possession.negate()).name
-	if location < 0 or location > 100:
+	if location < 0 or location >= 100:
 		log.warning("Bad location: {}".format(location))
 		return str(location)
 
@@ -443,8 +443,6 @@ def getLocationString(game):
 		return "{} {}".format(offenseTeam, location)
 	elif location == 50:
 		return str(location)
-	elif location == 100:
-		return "{} goal line".format(defenseTeam)
 	else:
 		return "{} {}".format(defenseTeam, 100 - location)
 
@@ -457,7 +455,7 @@ def getCurrentPlayString(game):
 	else:
 		return "It's {} and {} on the {}.".format(
 			getDownString(game.status.down),
-			"goal" if game.status.location >= 90 else game.status.yards,
+			"goal" if game.status.location + game.status.yards >= 100 else game.status.yards,
 			getLocationString(game)
 		)
 

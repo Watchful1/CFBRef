@@ -33,7 +33,7 @@ def setStateTouchback(game, homeAway):
 	game.status.yards = 10
 	game.status.possession = homeAway.copy()
 	game.status.waitingAction = Action.PLAY
-	game.status.waitingOn = homeAway.negate()
+	game.status.waitingOn = homeAway.copy()
 
 
 def setStateKickoff(game, homeAway):
@@ -52,6 +52,7 @@ def setStateOvertimeDrive(game, homeAway):
 		game.status.overtimePossession = 1
 
 	setStateTouchback(game, homeAway)
+	game.status.waitingOn.reverse()
 	game.status.location = 75
 
 
@@ -334,13 +335,13 @@ def executeGain(game, play, yards, incomplete=False):
 	previousLocation = game.status.location
 	log.debug("Ball moved from {} to {}".format(previousLocation, previousLocation + yards))
 	game.status.location = previousLocation + yards
-	if game.status.location > 100:
+	if game.status.location >= 100:
 		log.debug("Ball passed the line, touchdown offense")
 
 		utils.addStatRunPass(game, play, 100 - previousLocation)
 		scoreTouchdown(game, game.status.possession)
 
-		return Result.TOUCHDOWN, 100 - previousLocation, "{} with a {} yard {} into the end zone for a touchdown!".format(game.team(game.status.possession).name, yards, play)
+		return Result.TOUCHDOWN, 100 - previousLocation, "{} with a {} yard {} into the end zone for a touchdown!".format(game.team(game.status.possession).name, yards, play.name.lower())
 	elif game.status.location < 0:
 		log.debug("Ball went back over the line, safety for the defense")
 
@@ -392,9 +393,10 @@ def executeGain(game, play, yards, incomplete=False):
 def executePunt(game, yards):
 	log.debug("Ball punted for {} yards".format(yards))
 	game.status.location = game.status.location + yards
-	if game.status.location > 100:
+	if game.status.location >= 100:
 		log.debug("Punted into the end zone, touchback")
 		setStateTouchback(game, game.status.possession.negate())
+		game.status.waitingOn.reverse()
 		if game.status.location > 110:
 			return "The punt goes out the back of the end zone, touchback"
 		else:
@@ -517,7 +519,7 @@ def executePlay(game, play, number, timeOption):
 		result = getPlayResult(game, play, numberResult)
 
 		if play == Play.PUNT and result['result'] == Result.GAIN:
-			if game.status.location + result['yards'] > 100:
+			if game.status.location + result['yards'] >= 100:
 				result['result'] = Result.PUNT
 
 		actualResult = result['result']
