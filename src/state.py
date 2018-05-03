@@ -400,7 +400,6 @@ def executePunt(game, yards):
 	if game.status.location >= 100:
 		log.debug("Punted into the end zone, touchback")
 		setStateTouchback(game, game.status.possession.negate())
-		game.status.waitingOn.reverse()
 		if game.status.location > 110:
 			return "The punt goes out the back of the end zone, touchback"
 		else:
