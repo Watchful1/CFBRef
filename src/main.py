@@ -124,7 +124,7 @@ while True:
 						bldr.append(" ")
 						bldr.append(status.waitingOn.name())
 						bldr.append("/")
-						bldr.append(globals.game.team(status.waitingOn))
+						bldr.append(globals.game.team(status.waitingOn).name)
 						bldr.append(" for ")
 						bldr.append(status.waitingAction.name)
 						bldr.append("|")

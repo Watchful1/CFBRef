@@ -240,7 +240,7 @@ def getTimeByPlay(play, result, yards):
 
 
 def updateTime(game, play, result, yards, offenseHomeAway, timeOption):
-	if result in [Result.TOUCHDOWN, Result.TOUCHBACK] and play not in classes.kickoffPlays:
+	if result in [Result.TOUCHDOWN, Result.TOUCHBACK, Result.SAFETY] and play not in classes.kickoffPlays:
 		actualResult = Result.GAIN
 	else:
 		actualResult = result
