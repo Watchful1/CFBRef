@@ -108,13 +108,13 @@ while True:
 					for i, status in enumerate(globals.game.previousStatus):
 						bldr.append(status.possession.name())
 						bldr.append("/")
-						bldr.append(globals.game.team(status.possession))
+						bldr.append(globals.game.team(status.possession).name)
 						bldr.append(" with ")
 						bldr.append(utils.getNthWord(status.down))
 						bldr.append(" & ")
-						bldr.append(status.yards)
+						bldr.append(str(status.yards))
 						bldr.append(" on the ")
-						bldr.append(status.location)
+						bldr.append(str(status.location))
 						bldr.append(" with ")
 						bldr.append(utils.renderTime(status.clock))
 						bldr.append(" in the ")
@@ -136,7 +136,12 @@ while True:
 			                    ))
 						bldr.append(")")
 
-					ownerMessage = ''.join(bldr)
+					try:
+						ownerMessage = ''.join(bldr)
+					except Exception as err:
+						log.debug("Couldn't join game error message: ")
+						log.debug(str(bldr))
+						log.warning(traceback.format_exc())
 
 					message.reply("This game has errored. Please wait for the bot owner to help.")
 				else:
@@ -153,10 +158,10 @@ while True:
 				log.debug("Game past playclock: {}".format(threadId))
 				game = utils.loadGameObject(threadId)
 				utils.cycleStatus(game, None)
-				game.state(game.status.waitingOn).playclockPenalties += 1
+				game.status.state(game.status.waitingOn).playclockPenalties += 1
 				penaltyMessage = "{} has not sent their number in over 24 hours, playclock penalty. This is their {} penalty.".format(
-					utils.getCoachString(game, game.status.waitingOn), utils.getNthWord(game.state(game.status.waitingOn).playclockPenalties))
-				if game.state(game.status.waitingOn).playclockPenalties >= 3:
+					utils.getCoachString(game, game.status.waitingOn), utils.getNthWord(game.status.state(game.status.waitingOn).playclockPenalties))
+				if game.status.state(game.status.waitingOn).playclockPenalties >= 3:
 					log.debug("3 penalties, game over")
 					game.status.quarterType = QuarterType.END
 					game.status.waitingAction = Action.END

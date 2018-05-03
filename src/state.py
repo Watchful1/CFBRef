@@ -240,15 +240,15 @@ def getTimeByPlay(play, result, yards):
 
 
 def updateTime(game, play, result, yards, offenseHomeAway, timeOption):
-	if result in [Result.TOUCHDOWN]:
+	if result in [Result.TOUCHDOWN, Result.TOUCHBACK] and play not in classes.kickoffPlays:
 		actualResult = Result.GAIN
 	else:
 		actualResult = result
 	if result == Result.SPIKE:
 		timeOffClock = 3
-	elif result == Result.PAT:
+	elif play == Play.PAT:
 		timeOffClock = 0
-	elif result == Result.TWO_POINT:
+	elif play == Play.TWO_POINT:
 		timeOffClock = 0
 	else:
 		if result == Result.KNEEL:
@@ -280,7 +280,7 @@ def updateTime(game, play, result, yards, offenseHomeAway, timeOption):
 	game.status.clock -= timeOffClock
 	timeMessage = "{} left".format(utils.renderTime(game.status.clock))
 
-	if game.status.clock < 0:
+	if game.status.clock <= 0 and game.status.waitingAction not in [Action.CONVERSION]:
 		log.debug("End of quarter: {}".format(game.status.quarter))
 		actualTimeOffClock = timeOffClock + game.status.clock
 		if game.status.quarter == 1:
@@ -356,7 +356,7 @@ def executeGain(game, play, yards, incomplete=False):
 		else:
 			resultMessage = "It's a safety!"
 
-		return Result.TOUCHBACK, 0 - previousLocation, resultMessage
+		return Result.SAFETY, 0 - previousLocation, resultMessage
 	else:
 		log.debug("Ball moved, but didn't enter an endzone, checking and updating play status")
 
@@ -386,7 +386,10 @@ def executeGain(game, play, yards, incomplete=False):
 				if incomplete:
 					resultMessage = "The pass is incomplete. {} and {}".format(utils.getDownString(game.status.down), yardsRemaining)
 				else:
-					resultMessage = "{} play for {} yards, {} and {}".format(play.name.lower().capitalize(), yards, utils.getDownString(game.status.down), yardsRemaining)
+					resultMessage = "{} play for {} yards, {} and {}".format(
+						play.name.lower().capitalize(),
+						yards, utils.getDownString(game.status.down),
+						"goal" if game.status.location + yardsRemaining >= 100 else yardsRemaining)
 
 				return Result.GAIN, game.status.location - previousLocation, resultMessage
 
@@ -411,6 +414,7 @@ def executePunt(game, yards):
 def executePlay(game, play, number, timeOption):
 	startingPossessionHomeAway = game.status.possession.copy()
 	actualResult = None
+	result = None
 	yards = None
 	resultMessage = "Something went wrong, I should never have reached this"
 	diffMessage = None
@@ -545,7 +549,7 @@ def executePlay(game, play, number, timeOption):
 
 		elif result['result'] == Result.TOUCHDOWN:
 			log.debug("Result is a touchdown")
-			resultMessage = "It's a {} into the endzone! Touchdown {}!".format(play, game.team(game.status.possession).name)
+			resultMessage = "It's a {} into the endzone! Touchdown {}!".format(play.name.lower(), game.team(game.status.possession).name)
 			previousLocation = game.status.location
 			utils.addStatRunPass(game, play, 100 - previousLocation)
 			scoreTouchdown(game, game.status.possession)
@@ -577,10 +581,10 @@ def executePlay(game, play, number, timeOption):
 		elif result['result'] in [Result.TURNOVER, Result.MISS]:
 			log.debug("Play results in a turnover")
 			if play == Play.RUN:
-				utils.addStat(game, 'turnoverInterceptions', 1)
+				utils.addStat(game, 'turnoverFumble', 1)
 				resultMessage = "Fumble! The ball is dropped, {} recovers!".format(game.team(game.status.possession.negate()).name)
 			elif play == Play.PASS:
-				utils.addStat(game, 'turnoverFumble', 1)
+				utils.addStat(game, 'turnoverInterceptions', 1)
 				resultMessage = "Picked off! The pass is intercepted, {} ball!".format(game.team(game.status.possession.negate()).name)
 			elif play == Play.FIELD_GOAL:
 				if result['result'] == Result.TURNOVER:
@@ -667,7 +671,8 @@ def executePlay(game, play, number, timeOption):
 		messages.append(diffMessage)
 
 	playSummary.play = play
-	playSummary.result = actualResult
+	playSummary.result = result['result'] if result is not None else None
+	playSummary.actualResult = actualResult
 	if actualResult in [Result.TURNOVER]:
 		playSummary.yards = None
 	else:

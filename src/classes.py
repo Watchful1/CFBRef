@@ -76,7 +76,8 @@ class Result(Enum):
 	KICK = 13
 	SPIKE = 14
 	KNEEL = 15
-	ERROR = 16
+	SAFETY = 16
+	ERROR = 17
 
 
 class T:
@@ -84,10 +85,27 @@ class T:
 	away = False
 
 
+class DriveSummary:
+	def __init__(self):
+		self.result = None
+		self.yards = 0
+		self.time = 0
+		self.posHome = None
+
+	def __str__(self):
+		return "{} in {} for {} ending in {}".format(
+			self.yards,
+			self.time,
+			"home" if self.posHome else "away",
+			self.result
+		)
+
+
 class PlaySummary:
 	def __init__(self):
 		self.play = None
 		self.result = None
+		self.actualResult = None
 		self.yards = None
 		self.down = None
 		self.toGo = None
@@ -98,9 +116,10 @@ class PlaySummary:
 		self.posHome = None
 
 	def __str__(self):
-		return "{} = {}, {} | {} and {} on {} | {} | {}, {} | {}".format(
+		return "{} = {} = {}, {} | {} and {} on {} | {} | {}, {} | {}".format(
 			self.play,
 			self.result,
+			self.actualResult,
 			self.yards,
 			self.down,
 			self.toGo,

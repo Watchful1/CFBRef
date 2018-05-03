@@ -17,7 +17,9 @@ import classes
 from classes import HomeAway
 from classes import Action
 from classes import Play
+from classes import Result
 from classes import QuarterType
+from classes import DriveSummary
 
 log = logging.getLogger("bot")
 
@@ -215,7 +217,7 @@ def renderGame(game):
 				game.status.stats(homeAway).turnoverFumble,
 				game.status.stats(homeAway).fieldGoalsScored,
 				game.status.stats(homeAway).fieldGoalsAttempted,
-				renderTime(game.status.stats(homeAway).yardsPassing),
+				renderTime(game.status.stats(homeAway).posTime),
 				game.status.state(homeAway).timeouts
 			)
 		)
@@ -574,6 +576,7 @@ def addStatRunPass(game, runPass, amount):
 def addStat(game, stat, amount, offenseHomeAway=None):
 	if offenseHomeAway is None:
 		offenseHomeAway = game.status.possession
+	log.debug("Adding stat {} : {} : {} : {}".format(stat, offenseHomeAway, getattr(game.status.stats(offenseHomeAway), stat), amount))
 	setattr(game.status.stats(offenseHomeAway), stat, getattr(game.status.stats(offenseHomeAway), stat) + amount)
 	if stat in ['yardsPassing', 'yardsRushing']:
 		game.status.stats(offenseHomeAway).yardsTotal += amount
@@ -611,3 +614,31 @@ def newDebugGameObject():
 	away.coaches.append("watchful12")
 	return classes.Game(home, away)
 
+
+driveEnders = [Result.TURNOVER, Result.TOUCHDOWN, Result.TURNOVER_TOUCHDOWN, Result.FIELD_GOAL, Result.PUNT]
+
+
+# def getDrives(game):
+# 	drives = []
+# 	drive = None
+# 	for i, playSummary in enumerate(game.plays):
+# 		if playSummary in classes.kickoffPlays:
+#
+#
+# 		if playSummary not in classes.kickoffPlays and playSummary.posHome != previousPlay.posHome:
+#
+#
+# 		if drive is None:
+# 			drive = DriveSummary()
+# 			drive.posHome = playSummary.posHome
+# 		if playSummary.yards is not None:
+# 			drive.yards += playSummary.yards
+# 		drive.time += playSummary.time
+#
+#
+# 		if playSummary.result in driveEnders:
+# 			drives.append(drive)
+# 			print(drive)
+# 			drive = None
+#
+# 		previousPlay = playSummary
