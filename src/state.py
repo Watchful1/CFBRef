@@ -305,8 +305,8 @@ def updateTime(game, play, result, yards, offenseHomeAway, timeOption):
 						victor = HomeAway(T.away)
 					timeMessage = "that's the end of the game! {} has won!".format(utils.flair(game.team(victor)))
 					game.status.quarterType = QuarterType.END
+					game.status.waitingAction = Action.END
 				game.status.clock = 0
-				game.status.waitingAction = Action.END
 			else:
 				if game.status.quarter == 2:
 					log.debug("End of half")
@@ -522,13 +522,20 @@ def executePlay(game, play, number, timeOption):
 		log.debug("Executing normal play: {}".format(play))
 		result = getPlayResult(game, play, numberResult)
 
+		actualResult = result['result']
 		if play == Play.PUNT and result['result'] == Result.GAIN:
 			if game.status.location + result['yards'] >= 100:
 				result['result'] = Result.PUNT
+				actualResult = Result.PUNT
+			else:
+				log.debug("Muffed punt. Ball moved from {} to {}".format(game.status.location, game.status.location + result['yards']))
+				game.status.location = game.status.location + result['yards']
+				game.status.yards = 10
+				game.status.down = 1
+				yards = result['yards']
+				resultMessage = "The receiver drops the ball! {} recovers on the {}.".format(game.team(game.status.possession).name, utils.getLocationString(game))
 
-		actualResult = result['result']
-
-		if result['result'] == Result.GAIN:
+		elif result['result'] == Result.GAIN:
 			if 'yards' not in result:
 				log.warning("Result is a gain, but I couldn't find any yards")
 				resultMessage = "Result of play is a number of yards, but something went wrong and I couldn't find what number"
