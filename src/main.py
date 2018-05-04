@@ -154,6 +154,9 @@ while True:
 					log.warning("Error sending error message")
 					log.warning(traceback.format_exc())
 
+			log.debug("Message processed after: %d", int(time.perf_counter() - startTime))
+			utils.clearLogGameID()
+
 			for threadId in database.getGamesPastPlayclock():
 				log.debug("Game past playclock: {}".format(threadId))
 				game = utils.loadGameObject(threadId)
@@ -192,11 +195,10 @@ while True:
 						utils.sendDefensiveNumberMessage(game)
 						resultMessage = "Automatic 7 point touchdown, {} has the ball.".format(utils.flair(game.team(game.status.waitingOn)))
 
-				utils.sendGameComment(game, "{}\n\n{}".format(penaltyMessage, resultMessage), False)
+				utils.sendGameComment(game, "{}\n\n{}".format(penaltyMessage, resultMessage), None, False)
 				database.setGamePlayed(game.dataID)
 				utils.updateGameThread(game)
 
-			log.debug("Message processed after: %d", int(time.perf_counter() - startTime))
 			utils.clearLogGameID()
 			if once:
 				database.close()

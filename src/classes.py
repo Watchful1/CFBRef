@@ -160,6 +160,8 @@ class HomeAway:
 			return self.isHome == value
 		elif isinstance(value, str):
 			return self.name() == value
+		elif isinstance(value, HomeAway):
+			return self.isHome == value.isHome
 		else:
 			return NotImplemented
 
