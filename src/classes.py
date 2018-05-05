@@ -43,7 +43,7 @@ class Action(Enum):
 	CONVERSION = 4
 	KICKOFF = 5
 	OVERTIME = 6
-	END = 6
+	END = 7
 
 
 class Play(Enum):
