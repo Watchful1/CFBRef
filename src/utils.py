@@ -623,15 +623,15 @@ def renderGameStatusMessage(game):
 	bldr = []
 	bldr.append("[Game](")
 	bldr.append(globals.SUBREDDIT_LINK)
-	bldr.append(globals.logGameId[1:-1])
+	bldr.append(game.thread)
 	bldr.append(") errored.\n\n")
 	bldr.append("Status|Waiting|Link\n")
 	bldr.append(":-:|:-:|:-:\n")
 
-	for i, status in enumerate(globals.game.previousStatus):
+	for i, status in enumerate(game.previousStatus):
 		bldr.append(status.possession.name())
 		bldr.append("/")
-		bldr.append(globals.game.team(status.possession).name)
+		bldr.append(game.team(status.possession).name)
 		bldr.append(" with ")
 		bldr.append(getNthWord(status.down))
 		bldr.append(" & ")
@@ -643,11 +643,11 @@ def renderGameStatusMessage(game):
 		bldr.append(" in the ")
 		bldr.append(getNthWord(status.quarter))
 		bldr.append("|")
-		bldr.append(getLinkFromGameThing(globals.game.thread, status.waitingId))
+		bldr.append(getLinkFromGameThing(game.thread, status.waitingId))
 		bldr.append(" ")
 		bldr.append(status.waitingOn.name())
 		bldr.append("/")
-		bldr.append(globals.game.team(status.waitingOn).name)
+		bldr.append(game.team(status.waitingOn).name)
 		bldr.append(" for ")
 		bldr.append(status.waitingAction.name)
 		bldr.append("|")
@@ -655,7 +655,7 @@ def renderGameStatusMessage(game):
 		bldr.append(buildMessageLink(
                     globals.ACCOUNT_NAME,
                     "Kick game",
-                    "kick {} {}".format(globals.game.thread, i)
+                    "kick {} {}".format(game.thread, i)
                 ))
 		bldr.append(")")
 
