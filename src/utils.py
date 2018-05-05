@@ -657,7 +657,7 @@ def renderGameStatusMessage(game):
                     "Kick game",
                     "kick {} {}".format(game.thread, i)
                 ))
-		bldr.append(")")
+		bldr.append(")\n")
 
 	return ''.join(bldr)
 
