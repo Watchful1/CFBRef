@@ -140,7 +140,7 @@ def overtimeTurnover(game):
 
 def scoreSafety(game, homeAway):
 	scoreForTeam(game, 2, homeAway)
-	setStateKickoff(game, homeAway)
+	setStateKickoff(game, homeAway.negate())
 
 
 def getNumberDiffForGame(game, offenseNumber):
