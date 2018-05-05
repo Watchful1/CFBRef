@@ -476,7 +476,7 @@ def processMessage(message):
 		if "abandon" in body and isMessage and str(message.author).lower() in wiki.admins:
 			response = processMessageAbandonGame(message.body)
 		if "status" in body and isMessage and str(message.author).lower() in wiki.admins:
-			response = processMessageAbandonGame(message.body)
+			response = processMessageGameStatus(message.body)
 
 	message.mark_read()
 	if response is not None:
