@@ -365,6 +365,21 @@ def processMessageAbandonGame(body):
 	return "Game {} abandoned".format(threadIds[0])
 
 
+def processMessageGameStatus(body):
+	log.debug("Processing game status message")
+	threadIds = re.findall('(?: )([\da-z]{6})', body)
+	if len(threadIds) < 1:
+		log.debug("Couldn't find a thread id in message")
+		return "Couldn't find a thread id in message"
+	log.debug("Found thread id: {}".format(threadIds[0]))
+
+	game = utils.loadGameObject(threadIds[0])
+	if game is None:
+		return "Game {} doesn't exist".format(threadIds[0])
+	else:
+		return utils.renderGameStatusMessage(game)
+
+
 def processMessage(message):
 	if isinstance(message, praw.models.Message):
 		isMessage = True
@@ -454,11 +469,13 @@ def processMessage(message):
 		log.debug("Parsing non-datatable message")
 		if "newgame" in body and isMessage:
 			response = processMessageNewGame(message.body, str(message.author))
-		if "kick" in body and isMessage and str(message.author).lower() == globals.OWNER:
+		if "kick" in body and isMessage and str(message.author).lower() in wiki.admins:
 			response = processMessageKickGame(message.body)
 		if "pause" in body and isMessage and str(message.author).lower() in wiki.admins:
 			response = processMessagePauseGame(message.body)
 		if "abandon" in body and isMessage and str(message.author).lower() in wiki.admins:
+			response = processMessageAbandonGame(message.body)
+		if "status" in body and isMessage and str(message.author).lower() in wiki.admins:
 			response = processMessageAbandonGame(message.body)
 
 	message.mark_read()

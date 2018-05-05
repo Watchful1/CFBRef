@@ -296,7 +296,11 @@ def saveGameObject(game):
 
 
 def loadGameObject(threadID):
-	file = open("{}/{}".format(globals.SAVE_FOLDER_NAME, threadID), 'rb')
+	try:
+		file = open("{}/{}".format(globals.SAVE_FOLDER_NAME, threadID), 'rb')
+	except FileNotFoundError as err:
+		log.warning("Game file doesn't exist: {}".format(threadID))
+		return None
 	game = pickle.load(file)
 	file.close()
 	return game
@@ -613,6 +617,49 @@ def newDebugGameObject():
 	away = classes.Team(tag="team2", name="Team 2", offense=classes.OffenseType.SPREAD, defense=classes.DefenseType.FOUR_THREE)
 	away.coaches.append("watchful12")
 	return classes.Game(home, away)
+
+
+def renderGameStatusMessage(game):
+	bldr = []
+	bldr.append("[Game](")
+	bldr.append(globals.SUBREDDIT_LINK)
+	bldr.append(globals.logGameId[1:-1])
+	bldr.append(") errored.\n\n")
+	bldr.append("Status|Waiting|Link\n")
+	bldr.append(":-:|:-:|:-:\n")
+
+	for i, status in enumerate(globals.game.previousStatus):
+		bldr.append(status.possession.name())
+		bldr.append("/")
+		bldr.append(globals.game.team(status.possession).name)
+		bldr.append(" with ")
+		bldr.append(getNthWord(status.down))
+		bldr.append(" & ")
+		bldr.append(str(status.yards))
+		bldr.append(" on the ")
+		bldr.append(str(status.location))
+		bldr.append(" with ")
+		bldr.append(renderTime(status.clock))
+		bldr.append(" in the ")
+		bldr.append(getNthWord(status.quarter))
+		bldr.append("|")
+		bldr.append(getLinkFromGameThing(globals.game.thread, status.waitingId))
+		bldr.append(" ")
+		bldr.append(status.waitingOn.name())
+		bldr.append("/")
+		bldr.append(globals.game.team(status.waitingOn).name)
+		bldr.append(" for ")
+		bldr.append(status.waitingAction.name)
+		bldr.append("|")
+		bldr.append("[Message](")
+		bldr.append(buildMessageLink(
+                    globals.ACCOUNT_NAME,
+                    "Kick game",
+                    "kick {} {}".format(globals.game.thread, i)
+                ))
+		bldr.append(")")
+
+	return ''.join(bldr)
 
 
 driveEnders = [Result.TURNOVER, Result.TOUCHDOWN, Result.TURNOVER_TOUCHDOWN, Result.FIELD_GOAL, Result.PUNT]
