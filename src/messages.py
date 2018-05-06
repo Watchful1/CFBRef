@@ -338,7 +338,7 @@ def processMessageKickGame(body):
 		utils.revertStatus(game, int(statusIndex[0]))
 		result.append("Reverted to status: {}".format(statusIndex[0]))
 
-	messageFullname = re.findall('(?:message:)(t\d_[\da-z]{6})', body)
+	messageFullname = re.findall('(?:message:)(t\d_[\da-z]{6,})', body)
 	if len(messageFullname) > 0:
 		log.debug("Reprocessing message/comment: {}".format(messageFullname[0]))
 		if messageFullname[0].startswith("t1"):
