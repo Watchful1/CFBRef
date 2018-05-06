@@ -124,6 +124,7 @@ while True:
 					log.debug("3 penalties, game over")
 					game.status.quarterType = QuarterType.END
 					game.status.waitingAction = Action.END
+					game.status.winner = game.team(game.status.waitingOn.negate()).name
 					resultMessage = "They forfeit the game. {} has won!".format(utils.flair(game.team(game.status.waitingOn.negate())))
 
 				elif game.status.waitingOn == game.status.possession:

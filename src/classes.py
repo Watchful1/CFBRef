@@ -214,6 +214,7 @@ class GameStatus:
 		self.waitingOn = HomeAway(T.away)
 		self.defensiveNumber = None
 		self.messageId = None
+		self.winner = None
 
 	def state(self, isHome):
 		if isHome:

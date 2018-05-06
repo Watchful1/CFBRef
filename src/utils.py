@@ -278,6 +278,10 @@ def renderGame(game):
 		bldr.append(str(game.status.state(homeAway).points))
 		bldr.append("**\n")
 
+	if game.status.quarterType == QuarterType.END:
+		bldr.append("\n")
+		bldr.append("#Game complete, {} wins!".format(game.status.winner))
+
 	return ''.join(bldr)
 
 

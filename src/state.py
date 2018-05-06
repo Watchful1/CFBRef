@@ -114,6 +114,7 @@ def overtimeTurnover(game):
 					log.debug("Away has won")
 					victor = HomeAway(T.away)
 
+				game.status.winner = game.team(victor).name
 				return "It is the end of the 6th quarter in an overtime forced by the game clock and the score is still tied. " \
 				       "I'm flipping a coin to determine the victor. {} has won!".format(utils.flair(game.team(victor)))
 			else:
@@ -132,6 +133,7 @@ def overtimeTurnover(game):
 				victor = HomeAway(T.home)
 			else:
 				victor = HomeAway(T.away)
+			game.status.winner = game.team(victor).name
 			return "That's the end of the game. {} has won!".format(utils.flair(game.team(victor)))
 
 	else:
@@ -306,6 +308,7 @@ def updateTime(game, play, result, yards, offenseHomeAway, timeOption):
 					timeMessage = "that's the end of the game! {} has won!".format(utils.flair(game.team(victor)))
 					game.status.quarterType = QuarterType.END
 					game.status.waitingAction = Action.END
+					game.status.winner = game.team(victor).name
 				game.status.clock = 0
 			else:
 				if game.status.quarter == 2:
@@ -628,6 +631,7 @@ def executePlay(game, play, number, timeOption):
 				timeMessage = "Game over! {} wins!".format(utils.flair(game.team(game.status.possession)))
 				game.status.quarterType = QuarterType.END
 				game.status.waitingAction = Action.END
+				game.status.winner = game.team(game.status.possession).name
 
 		game.status.defensiveNumber = None
 
