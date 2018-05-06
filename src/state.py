@@ -667,7 +667,7 @@ def executePlay(game, play, number, timeOption):
 
 	messages = [resultMessage]
 	timeOffClock = None
-	if actualResult is not None:
+	if actualResult is not None and game.status.quarterType == QuarterType.NORMAL:
 		if timeMessage is None:
 			timeMessage, timeOffClock = updateTime(game, play, actualResult, yards, startingPossessionHomeAway, timeOption)
 
