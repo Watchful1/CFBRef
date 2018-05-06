@@ -126,7 +126,6 @@ def processMessageDefer(game, isDefer, author):
 
 			state.setStateOvertimeDrive(game, authorHomeAway.negate())
 			game.status.receivingNext = authorHomeAway.copy()
-			game.status.waitingOn.reverse()
 			game.dirty = True
 			utils.sendDefensiveNumberMessage(game)
 
@@ -139,7 +138,6 @@ def processMessageDefer(game, isDefer, author):
 
 			state.setStateOvertimeDrive(game, authorHomeAway)
 			game.status.receivingNext = authorHomeAway.negate()
-			game.status.waitingOn.reverse()
 			game.dirty = True
 			utils.sendDefensiveNumberMessage(game)
 
