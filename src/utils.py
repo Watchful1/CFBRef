@@ -612,6 +612,8 @@ def cycleStatus(game, messageId):
 
 
 def revertStatus(game, index):
+	if game.status.quarterType == QuarterType.END and game.previousStatus[index] != QuarterType.END:
+		database.unEndGame(game.thread)
 	game.status = game.previousStatus[index]
 
 
@@ -625,6 +627,13 @@ def newDebugGameObject():
 	away = classes.Team(tag="team2", name="Team 2", offense=classes.OffenseType.SPREAD, defense=classes.DefenseType.FOUR_THREE)
 	away.coaches.append("watchful12")
 	return classes.Game(home, away)
+
+
+def setGameEnded(game, winner):
+	game.status.quarterType = QuarterType.END
+	game.status.waitingAction = Action.END
+	game.status.winner = winner
+	database.endGame(game.thread)
 
 
 def renderGameStatusMessage(game):

@@ -105,8 +105,6 @@ def overtimeTurnover(game):
 		if game.status.state(T.home).points == game.status.state(T.away).points:
 			if game.status.quarterType == QuarterType.OVERTIME_TIME and game.status.quarter >= 6:
 				log.debug("End of 6th quarter in a time forced overtime, flipping coin for victor")
-				game.status.quarterType = QuarterType.END
-				game.status.waitingAction = Action.END
 				if utils.coinToss():
 					log.debug("Home has won")
 					victor = HomeAway(T.home)
@@ -114,7 +112,7 @@ def overtimeTurnover(game):
 					log.debug("Away has won")
 					victor = HomeAway(T.away)
 
-				game.status.winner = game.team(victor).name
+				utils.setGameEnded(game, game.team(victor).name)
 				return "It is the end of the 6th quarter in an overtime forced by the game clock and the score is still tied. " \
 				       "I'm flipping a coin to determine the victor. {} has won!".format(utils.flair(game.team(victor)))
 			else:
@@ -127,13 +125,11 @@ def overtimeTurnover(game):
 
 		else:
 			log.debug("End of game")
-			game.status.quarterType = QuarterType.END
-			game.status.waitingAction = Action.END
 			if game.status.state(T.home).points > game.status.state(T.away).points:
 				victor = HomeAway(T.home)
 			else:
 				victor = HomeAway(T.away)
-			game.status.winner = game.team(victor).name
+			utils.setGameEnded(game, game.team(victor).name)
 			return "That's the end of the game. {} has won!".format(utils.flair(game.team(victor)))
 
 	else:
@@ -306,9 +302,7 @@ def updateTime(game, play, result, yards, offenseHomeAway, timeOption):
 					else:
 						victor = HomeAway(T.away)
 					timeMessage = "that's the end of the game! {} has won!".format(utils.flair(game.team(victor)))
-					game.status.quarterType = QuarterType.END
-					game.status.waitingAction = Action.END
-					game.status.winner = game.team(victor).name
+					utils.setGameEnded(game, game.team(victor).name)
 				game.status.clock = 0
 			else:
 				if game.status.quarter == 2:
@@ -629,9 +623,7 @@ def executePlay(game, play, number, timeOption):
 			scoreTouchdown(game, game.status.possession.negate())
 			if utils.isGameOvertime(game):
 				timeMessage = "Game over! {} wins!".format(utils.flair(game.team(game.status.possession)))
-				game.status.quarterType = QuarterType.END
-				game.status.waitingAction = Action.END
-				game.status.winner = game.team(game.status.possession).name
+				utils.setGameEnded(game, game.team(game.status.possession).name)
 
 		game.status.defensiveNumber = None
 

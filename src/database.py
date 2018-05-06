@@ -137,6 +137,22 @@ def endGame(threadId):
 		return False
 
 
+def unEndGame(threadId):
+	c = dbConn.cursor()
+	c.execute('''
+		UPDATE games
+		SET Complete = 0
+			,Playclock = DATETIME(CURRENT_TIMESTAMP, '+24 hours')
+		WHERE ThreadID = ?
+	''', (threadId,))
+	dbConn.commit()
+
+	if c.rowcount == 1:
+		return True
+	else:
+		return False
+
+
 def pauseGame(threadID, hours):
 	c = dbConn.cursor()
 	c.execute('''

@@ -386,9 +386,7 @@ def processMessageAbandonGame(body):
 	if game is None:
 		return "Game not found: {}".format(threadIds[0])
 
-	database.endGame(threadIds[0])
-	game.status.quarterType = classes.QuarterType.END
-	game.status.winner = "Abandoned"
+	utils.setGameEnded(game, "Abandoned")
 	utils.updateGameThread(game)
 	utils.saveGameObject(game)
 

@@ -122,9 +122,7 @@ while True:
 					utils.getCoachString(game, game.status.waitingOn), utils.getNthWord(game.status.state(game.status.waitingOn).playclockPenalties))
 				if game.status.state(game.status.waitingOn).playclockPenalties >= 3:
 					log.debug("3 penalties, game over")
-					game.status.quarterType = QuarterType.END
-					game.status.waitingAction = Action.END
-					game.status.winner = game.team(game.status.waitingOn.negate()).name
+					utils.setGameEnded(game, game.team(game.status.waitingOn.negate()).name)
 					resultMessage = "They forfeit the game. {} has won!".format(utils.flair(game.team(game.status.waitingOn.negate())))
 
 				elif game.status.waitingOn == game.status.possession:
