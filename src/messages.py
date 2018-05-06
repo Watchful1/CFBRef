@@ -322,13 +322,39 @@ def processMessageKickGame(body):
 		return "Couldn't find a thread id in message"
 	log.debug("Found thread id: {}".format(threadIds[0]))
 
+	game = utils.loadGameObject(threadIds[0])
+	if game is None:
+		return "Game not found: {}".format(threadIds[0])
+
 	success = database.clearGameErrored(threadIds[0])
-	if success:
-		log.debug("Kicked game")
-		return "Game {} kicked".format(str(threadIds[0]))
-	else:
-		log.debug("Couldn't kick game")
-		return "Couldn't kick game {}".format(str(threadIds[0]))
+	if not success:
+		log.debug("Couldn't clear game error")
+		return "Couldn't clear game error {}".format(str(threadIds[0]))
+	result = ["Kicked game: {}".format(threadIds[0])]
+
+	statusIndex = re.findall('(?:status:)(\d+)', body)
+	if len(threadIds) > 0:
+		log.debug("Reverting to status: {}".format(statusIndex[0]))
+		utils.revertStatus(game, int(statusIndex[0]))
+		result.append("Reverted to status: {}".format(statusIndex[0]))
+
+	messageFullname = re.findall('(?:message:)(t\d_[\da-z]{6})', body)
+	if len(messageFullname) > 0:
+		log.debug("Reprocessing message/comment: {}".format(messageFullname[0]))
+		if messageFullname[0].startswith("t1"):
+			message = reddit.getComment(messageFullname[0][3:])
+		elif messageFullname[0].startswith("t4"):
+			message = reddit.getMessage(messageFullname[0][3:])
+		else:
+			return "Something went wrong. Not valid thingid: {}".format(messageFullname[0])
+		processMessage(message)
+		result.append("Reprocessed message: {}".format(messageFullname[0]))
+
+	if game.dirty:
+		utils.saveGameObject(game)
+
+	log.debug("Finished kicking game")
+	return '\n\n'.join(result)
 
 
 def processMessagePauseGame(body):

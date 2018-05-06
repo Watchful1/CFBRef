@@ -214,6 +214,7 @@ def clearGameErrored(threadID):
 				,Deadline = DATETIME(Deadline, '+' || ((julianday(CURRENT_TIMESTAMP) - julianday(Playclock)) * 86400.0) || ' seconds')
 				,Playclock = DATETIME(CURRENT_TIMESTAMP, '+24 hours')
 			WHERE ThreadID = ?
+				AND Errored = 1
 		''', (threadID,))
 		dbConn.commit()
 	except Exception as err:

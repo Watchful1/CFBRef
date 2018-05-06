@@ -603,8 +603,12 @@ def cycleStatus(game, messageId):
 	oldStatus = copy.deepcopy(game.status)
 	oldStatus.messageId = messageId
 	game.previousStatus.insert(0, oldStatus)
-	if len(game.previousStatus) > 3:
+	if len(game.previousStatus) > 5:
 		game.previousStatus.pop()
+
+
+def revertStatus(game, index):
+	game.status = game.previousStatus[index]
 
 
 def newGameObject(home, away):
@@ -667,7 +671,7 @@ def renderGameStatusMessage(game):
 		bldr.append(buildMessageLink(
                     globals.ACCOUNT_NAME,
                     "Kick game",
-                    "kick {} {}".format(game.thread, i)
+                    "kick {} status:{} message:{}".format(game.thread, i, status.messageId)
                 ))
 		bldr.append(")\n")
 
