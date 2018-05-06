@@ -333,7 +333,7 @@ def processMessageKickGame(body):
 	result = ["Kicked game: {}".format(threadIds[0])]
 
 	statusIndex = re.findall('(?:revert:)(\d+)', body)
-	if len(threadIds) > 0:
+	if len(statusIndex) > 0:
 		log.debug("Reverting to status: {}".format(statusIndex[0]))
 		utils.revertStatus(game, int(statusIndex[0]))
 		utils.saveGameObject(game)
