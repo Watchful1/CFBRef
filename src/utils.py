@@ -383,8 +383,8 @@ def getLinkFromGameThing(threadId, thingId):
 
 def isGameWaitingOn(game, user, action, messageId):
 	if game.status.waitingAction != action:
-		log.debug("Not waiting on {}: {}".format(action, game.status.waitingAction))
-		return "I'm not waiting on a {} for this game, are you sure you replied to the right message?".format(action)
+		log.debug("Not waiting on {}: {}".format(action.name, game.status.waitingAction.name))
+		return "I'm not waiting on a '{}' for this game, are you sure you replied to the right message?".format(action.name.lower())
 
 	if (game.status.waitingOn == 'home') != coachHomeAway(game, user):
 		log.debug("Not waiting on message author's team")

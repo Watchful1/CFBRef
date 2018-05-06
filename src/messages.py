@@ -326,16 +326,21 @@ def processMessageKickGame(body):
 	if game is None:
 		return "Game not found: {}".format(threadIds[0])
 
+	log.debug("Waiting action1: {}".format(game.status.waitingAction))
+
 	success = database.clearGameErrored(threadIds[0])
 	if not success:
 		log.debug("Couldn't clear game error")
 		return "Couldn't clear game error {}".format(str(threadIds[0]))
 	result = ["Kicked game: {}".format(threadIds[0])]
 
+	for status in game.previousStatus:
+		log.debug("Waiting action.: {}".format(status.waitingAction))
 	statusIndex = re.findall('(?:revert:)(\d+)', body)
 	if len(threadIds) > 0:
 		log.debug("Reverting to status: {}".format(statusIndex[0]))
 		utils.revertStatus(game, int(statusIndex[0]))
+		log.debug("Waiting action2: {}".format(game.status.waitingAction))
 		utils.saveGameObject(game)
 		result.append("Reverted to status: {}".format(statusIndex[0]))
 
