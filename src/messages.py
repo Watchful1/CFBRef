@@ -336,6 +336,7 @@ def processMessageKickGame(body):
 	if len(threadIds) > 0:
 		log.debug("Reverting to status: {}".format(statusIndex[0]))
 		utils.revertStatus(game, int(statusIndex[0]))
+		utils.saveGameObject(game)
 		result.append("Reverted to status: {}".format(statusIndex[0]))
 
 	messageFullname = re.findall('(?:message:)(t\d_[\da-z]{6,})', body)
@@ -349,9 +350,6 @@ def processMessageKickGame(body):
 			return "Something went wrong. Not valid thingid: {}".format(messageFullname[0])
 		processMessage(message)
 		result.append("Reprocessed message: {}".format(messageFullname[0]))
-
-	if game.dirty:
-		utils.saveGameObject(game)
 
 	log.debug("Finished kicking game")
 	return '\n\n'.join(result)
