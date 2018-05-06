@@ -332,7 +332,7 @@ def processMessageKickGame(body):
 		return "Couldn't clear game error {}".format(str(threadIds[0]))
 	result = ["Kicked game: {}".format(threadIds[0])]
 
-	statusIndex = re.findall('(?:status:)(\d+)', body)
+	statusIndex = re.findall('(?:revert:)(\d+)', body)
 	if len(threadIds) > 0:
 		log.debug("Reverting to status: {}".format(statusIndex[0]))
 		utils.revertStatus(game, int(statusIndex[0]))

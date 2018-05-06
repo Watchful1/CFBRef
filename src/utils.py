@@ -671,7 +671,7 @@ def renderGameStatusMessage(game):
 		bldr.append(buildMessageLink(
                     globals.ACCOUNT_NAME,
                     "Kick game",
-                    "kick {} status:{} message:{}".format(game.thread, i, status.messageId)
+                    "kick {} revert:{} message:{}".format(game.thread, i, status.messageId)
                 ))
 		bldr.append(")\n")
 
