@@ -6,6 +6,7 @@ import re
 import math
 import copy
 import traceback
+import pytz
 from datetime import datetime
 from datetime import timedelta
 
@@ -600,7 +601,8 @@ def updateGameTimes(game):
 
 
 def renderDatetime(dtTm, includeLink=True):
-	timeString = dtTm.strftime("%m/%d %I:%M UTC")
+	localized = globals.EASTERN.localize(dtTm)
+	timeString = localized.strftime("%m/%d %I:%M EST")
 	if not includeLink:
 		return timeString
 	base = "https://www.timeanddate.com/countdown/afootball?p0=0&msg=Playclock&iso="

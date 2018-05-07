@@ -1,3 +1,4 @@
+from pytz import timezone
 
 ### Config ###
 LOG_FOLDER_NAME = "logs"
@@ -11,6 +12,7 @@ DATABASE_NAME = "database.db"
 SUBREDDIT_LINK = "https://www.reddit.com/r/{}/comments/".format(SUBREDDIT)
 MESSAGE_LINK = "https://www.reddit.com/message/messages/"
 ACCOUNT_NAME = "default"
+EASTERN = timezone('US/Eastern')
 
 ### Constants ###
 datatag = " [](#datatag"
