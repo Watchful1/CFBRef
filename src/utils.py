@@ -170,8 +170,12 @@ def flair(team):
 	return "[{}](#f/{})".format(team.name, team.tag)
 
 
-def renderTime(time):
-	return "{}:{}".format(str(math.trunc(time / 60)), str(time % 60).zfill(2))
+def renderTime(time, includeLink=True):
+	timeString = "{}:{}".format(str(math.trunc(time / 60)), str(time % 60).zfill(2))
+	if not includeLink:
+		return time
+	base = "https://www.timeanddate.com/countdown/afootball?p0=0&msg=Playclock&iso="
+	return "[{}]({}{})".format(timeString, base, time.strftime("%Y%m%dT%H%M%S"))
 
 
 def renderGame(game):
