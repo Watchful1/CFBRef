@@ -491,10 +491,16 @@ def getWaitingOnString(game):
 def sendDefensiveNumberMessage(game):
 	defenseHomeAway = game.status.possession.negate()
 	log.debug("Sending get defence number to {}".format(getCoachString(game, defenseHomeAway)))
-	reddit.sendMessage(game.team(defenseHomeAway).coaches,
-	                   "{} vs {}".format(game.away.name, game.home.name),
-	                   embedTableInMessage("{}\n\nReply with a number between **1** and **1500**, inclusive."
-	                                       .format(getCurrentPlayString(game)), {'action': game.status.waitingAction}))
+	reddit.sendMessage(recipients=game.team(defenseHomeAway).coaches,
+	                   subject="{} vs {}".format(game.away.name, game.home.name),
+	                   message=embedTableInMessage(
+		                    "{}\n\nReply with a number between **1** and **1500**, inclusive. You have until {}."
+	                        .format(
+			                    getCurrentPlayString(game),
+			                    renderDatetime(game.playclock)
+		                    ),
+		                    {'action': game.status.waitingAction}
+	                   ))
 	messageResult = reddit.getRecentSentMessage()
 	game.status.waitingId = messageResult.fullname
 	log.debug("Defensive number sent, now waiting on: {}".format(game.status.waitingId))
