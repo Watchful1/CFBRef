@@ -494,7 +494,7 @@ def sendDefensiveNumberMessage(game):
 	reddit.sendMessage(recipients=game.team(defenseHomeAway).coaches,
 	                   subject="{} vs {}".format(game.away.name, game.home.name),
 	                   message=embedTableInMessage(
-		                    "{}\n\nReply with a number between **1** and **1500**, inclusive. You have until {}."
+		                    "{}\n\nReply with a number between **1** and **1500**, inclusive.\n\nYou have until {}."
 	                        .format(
 			                    getCurrentPlayString(game),
 			                    renderDatetime(game.playclock)
