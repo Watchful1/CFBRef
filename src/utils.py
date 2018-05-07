@@ -601,7 +601,7 @@ def updateGameTimes(game):
 
 
 def renderDatetime(dtTm, includeLink=True):
-	localized = globals.EASTERN.localize(dtTm.replace(tzinfo=pytz.UTC))
+	localized = globals.EASTERN.localize(dtTm)
 	timeString = localized.strftime("%m/%d %I:%M EST")
 	if not includeLink:
 		return timeString
