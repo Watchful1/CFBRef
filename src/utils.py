@@ -170,12 +170,8 @@ def flair(team):
 	return "[{}](#f/{})".format(team.name, team.tag)
 
 
-def renderTime(time, includeLink=True):
-	timeString = "{}:{}".format(str(math.trunc(time / 60)), str(time % 60).zfill(2))
-	if not includeLink:
-		return time
-	base = "https://www.timeanddate.com/countdown/afootball?p0=0&msg=Playclock&iso="
-	return "[{}]({}{})".format(timeString, base, time.strftime("%Y%m%dT%H%M%S"))
+def renderTime(time):
+	return "{}:{}".format(str(math.trunc(time / 60)), str(time % 60).zfill(2))
 
 
 def renderGame(game):
@@ -603,8 +599,12 @@ def updateGameTimes(game):
 	game.deadline = database.getGameDeadline(game.dataID)
 
 
-def renderDatetime(dtTm):
-	return dtTm.strftime("%m/%d %I:%M UTC")
+def renderDatetime(dtTm, includeLink=True):
+	timeString = dtTm.strftime("%m/%d %I:%M UTC")
+	if not includeLink:
+		return timeString
+	base = "https://www.timeanddate.com/countdown/afootball?p0=0&msg=Playclock&iso="
+	return "[{}]({}{})".format(timeString, base, dtTm.strftime("%Y%m%dT%H%M%S"))
 
 
 def cycleStatus(game, messageId):
