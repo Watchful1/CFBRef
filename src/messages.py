@@ -495,15 +495,15 @@ def processMessage(message):
 			log.debug("Couldn't get a game for /u/{}".format(author))
 	else:
 		log.debug("Parsing non-datatable message")
-		if "newgame" in body and isMessage:
+		if body.startswith("newgame") and isMessage:
 			response = processMessageNewGame(message.body, str(message.author))
-		if "kick" in body and isMessage and str(message.author).lower() in wiki.admins:
+		if body.startswith("kick") and isMessage and str(message.author).lower() in wiki.admins:
 			response = processMessageKickGame(message.body)
-		if "pause" in body and isMessage and str(message.author).lower() in wiki.admins:
+		if body.startswith("pause") and isMessage and str(message.author).lower() in wiki.admins:
 			response = processMessagePauseGame(message.body)
-		if "abandon" in body and isMessage and str(message.author).lower() in wiki.admins:
+		if body.startswith("abandon") and isMessage and str(message.author).lower() in wiki.admins:
 			response = processMessageAbandonGame(message.body)
-		if "status" in body and isMessage and str(message.author).lower() in wiki.admins:
+		if body.startswith("status") and isMessage and str(message.author).lower() in wiki.admins:
 			response = processMessageGameStatus(message.body)
 
 	message.mark_read()
