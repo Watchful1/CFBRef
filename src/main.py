@@ -133,6 +133,7 @@ while True:
 							utils.sendDefensiveNumberMessage(game)
 					else:
 						state.turnover(game)
+						game.status.waitingOn = game.status.possession.negate()
 						utils.sendDefensiveNumberMessage(game)
 						resultMessage = "Turnover, {} has the ball.".format(utils.flair(game.team(game.status.waitingOn)))
 

@@ -91,7 +91,7 @@ def turnover(game):
 	game.status.possession.reverse()
 	game.status.location = 100 - game.status.location
 	game.status.waitingAction = Action.PLAY
-	game.status.waitingOn = game.status.possession.negate()
+	game.status.possession.reverse()
 
 
 def overtimeTurnover(game):
