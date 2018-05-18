@@ -10,10 +10,10 @@ import traceback
 import globals
 import reddit
 import messages
-import database
 import wiki
 import utils
 import state
+import index
 from classes import QuarterType
 from classes import Action
 
@@ -51,7 +51,6 @@ if not os.path.exists(globals.SAVE_FOLDER_NAME):
 
 def signal_handler(signal, frame):
 	log.info("Handling interupt")
-	database.close()
 	sys.exit(0)
 
 
@@ -78,7 +77,7 @@ else:
 if not reddit.init(user):
 	sys.exit(0)
 
-database.init()
+index.init()
 
 wiki.loadPages()
 
@@ -96,7 +95,7 @@ while True:
 				log.warning(traceback.format_exc())
 				if globals.game is not None:
 					log.debug("Setting game {} as errored".format(globals.game.thread))
-					database.setGameErrored(globals.game.dataID)
+					index.setGameErrored(globals.game)
 					ownerMessage = utils.renderGameStatusMessage(globals.game)
 
 					message.reply("This game has errored. Please wait for the bot owner to help.")
@@ -113,7 +112,7 @@ while True:
 			log.debug("Message processed after: %d", int(time.perf_counter() - startTime))
 			utils.clearLogGameID()
 
-			for threadId in database.getGamesPastPlayclock():
+			for threadId in index.getGamesPastPlayclock():
 				log.debug("Game past playclock: {}".format(threadId))
 				game = utils.loadGameObject(threadId)
 				utils.cycleStatus(game, None)
@@ -152,12 +151,11 @@ while True:
 						resultMessage = "Automatic 7 point touchdown, {} has the ball.".format(utils.flair(game.team(game.status.waitingOn)))
 
 				utils.sendGameComment(game, "{}\n\n{}".format(penaltyMessage, resultMessage), None, False)
-				database.setGamePlayed(game.dataID)
+				utils.setGamePlayed(game)
 				utils.updateGameThread(game)
 
 			utils.clearLogGameID()
 			if once:
-				database.close()
 				break
 
 	except Exception as err:

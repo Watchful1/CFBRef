@@ -246,7 +246,6 @@ class Game:
 
 		self.dirty = False
 		self.errored = False
-		self.dataID = -1
 		self.thread = "empty"
 		self.status = GameStatus()
 		self.previousStatus = []

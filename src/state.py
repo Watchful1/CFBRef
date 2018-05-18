@@ -4,7 +4,6 @@ from datetime import datetime
 import wiki
 import utils
 import classes
-import database
 import globals
 from classes import T
 from classes import HomeAway
@@ -290,7 +289,7 @@ def updateTime(game, play, result, yards, offenseHomeAway, timeOption):
 				if game.status.state(T.home).points == game.status.state(T.away).points:
 					log.debug("Score tied at end of 4th, going to overtime")
 					timeMessage = "end of regulation. The score is tied, we're going to overtime!"
-					if database.getGameDeadline(game.dataID) > datetime.utcnow():
+					if game.deadline > datetime.utcnow():
 						game.status.quarterType = QuarterType.OVERTIME_TIME
 					else:
 						game.status.quarterType = QuarterType.OVERTIME_NORMAL

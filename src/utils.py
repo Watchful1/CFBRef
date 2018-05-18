@@ -11,10 +11,10 @@ from datetime import datetime
 from datetime import timedelta
 
 import globals
-import database
 import wiki
 import reddit
 import classes
+import index
 from classes import HomeAway
 from classes import Action
 from classes import Play
@@ -63,15 +63,11 @@ def startGame(homeCoach, awayCoach, startTime=None, location=None, station=None,
 	game.thread = threadID
 	log.debug("Game thread created: {}".format(threadID))
 
-	gameID = database.createNewGame(threadID)
-	game.dataID = gameID
-	log.debug("Game database record created: {}".format(gameID))
+	index.addNewGame(game)
 
 	for user in game.home.coaches:
-		database.addCoach(gameID, user, True)
 		log.debug("Coach added to home: {}".format(user))
 	for user in game.away.coaches:
-		database.addCoach(gameID, user, False)
 		log.debug("Coach added to away: {}".format(user))
 
 	log.debug("Game started, posting coin toss comment")
@@ -311,11 +307,6 @@ def loadGameObject(threadID):
 	return game
 
 
-# def getGameByThread(thread):
-# 	threadText = reddit.getSubmission(thread).selftext
-# 	return extractTableFromMessage(threadText)
-
-
 def getGameByUser(user):
 	dataGame = database.getGameByCoach(user)
 	if dataGame is None:
@@ -327,13 +318,7 @@ def getGameByUser(user):
 	return game
 
 
-# def getGameThreadText(game):
-# 	threadText = renderGame(game)
-# 	return embedTableInMessage(threadText, game)
-
-
 def updateGameThread(game):
-	updateGameTimes(game)
 	if game.thread is None:
 		log.error("No thread ID in game when trying to update")
 	game.dirty = False
@@ -601,11 +586,6 @@ def isGameOvertime(game):
 	return game.status.quarterType in [QuarterType.OVERTIME_NORMAL, QuarterType.OVERTIME_TIME]
 
 
-def updateGameTimes(game):
-	game.playclock = database.getGamePlayed(game.dataID)
-	game.deadline = database.getGameDeadline(game.dataID)
-
-
 def renderDatetime(dtTm, includeLink=True):
 	localized = pytz.utc.localize(dtTm).astimezone(globals.EASTERN)
 	timeString = localized.strftime("%m/%d %I:%M EST")
@@ -645,7 +625,7 @@ def setGameEnded(game, winner):
 	game.status.quarterType = QuarterType.END
 	game.status.waitingAction = Action.END
 	game.status.winner = winner
-	database.endGame(game.thread)
+	index.endGame(game)
 
 
 def renderGameStatusMessage(game):
@@ -703,30 +683,34 @@ def renderGameStatusMessage(game):
 	return ''.join(bldr)
 
 
+def setGamePlayed(game):
+	game.playclock = datetime.utcnow() + timedelta(hours=24)
+
+
 driveEnders = [Result.TURNOVER, Result.TOUCHDOWN, Result.TURNOVER_TOUCHDOWN, Result.FIELD_GOAL, Result.PUNT]
 
 
-# def getDrives(game):
-# 	drives = []
-# 	drive = None
-# 	for i, playSummary in enumerate(game.plays):
-# 		if playSummary in classes.kickoffPlays:
-#
-#
-# 		if playSummary not in classes.kickoffPlays and playSummary.posHome != previousPlay.posHome:
-#
-#
-# 		if drive is None:
-# 			drive = DriveSummary()
-# 			drive.posHome = playSummary.posHome
-# 		if playSummary.yards is not None:
-# 			drive.yards += playSummary.yards
-# 		drive.time += playSummary.time
-#
-#
-# 		if playSummary.result in driveEnders:
-# 			drives.append(drive)
-# 			print(drive)
-# 			drive = None
-#
-# 		previousPlay = playSummary
+def getDrives(game):
+	drives = []
+	drive = None
+	for i, playSummary in enumerate(game.plays):
+		#if playSummary in classes.kickoffPlays:
+
+
+		#if playSummary not in classes.kickoffPlays and playSummary.posHome != previousPlay.posHome:
+
+
+		if drive is None:
+			drive = DriveSummary()
+			drive.posHome = playSummary.posHome
+		if playSummary.yards is not None:
+			drive.yards += playSummary.yards
+		drive.time += playSummary.time
+
+
+		if playSummary.result in driveEnders:
+			drives.append(drive)
+			print(drive)
+			drive = None
+
+		previousPlay = playSummary

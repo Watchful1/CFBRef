@@ -6,9 +6,9 @@ import reddit
 import utils
 import wiki
 import globals
-import database
 import state
 import classes
+import index
 from classes import Play
 from classes import Action
 from classes import TimeoutOption
@@ -194,10 +194,9 @@ def processMessageDefenseNumber(game, message, author):
 
 	game.status.waitingOn.reverse()
 	game.dirty = True
-	database.setGamePlayed(game.dataID)
+	utils.setGamePlayed(game)
 
 	log.debug("Sending offense play comment")
-	utils.updateGameTimes(game)
 	resultMessage = "{} has submitted their number. {} you're up. You have until {}.\n\n{}\n\n{} reply with {} and your number. [Play list]({})".format(
 		game.team(game.status.waitingOn.negate()).name,
 		game.team(game.status.waitingOn).name,
@@ -300,7 +299,7 @@ def processMessageOffensePlay(game, message, author):
 
 	game.status.waitingOn.reverse()
 	game.dirty = True
-	database.setGamePlayed(game.dataID)
+	utils.setGamePlayed(game)
 	if game.status.waitingAction in classes.playActions:
 		utils.sendDefensiveNumberMessage(game)
 	elif game.status.waitingAction == Action.OVERTIME:
@@ -326,7 +325,7 @@ def processMessageKickGame(body):
 	if game is None:
 		return "Game not found: {}".format(threadIds[0])
 
-	success = database.clearGameErrored(threadIds[0])
+	success = index.clearGameErrored(threadIds[0])
 	if not success:
 		log.debug("Couldn't clear game error")
 		return "Couldn't clear game error {}".format(str(threadIds[0]))
@@ -463,9 +462,9 @@ def processMessage(message):
 					keywords = ["heads", "tails"]
 					keyword = utils.findKeywordInMessage(keywords, body)
 					if keyword == "heads":
-						success, response = processMessageCoin(game, True, str(message.author))
+						success, response = processMessageCoin(game, True, author)
 					elif keyword == "tails":
-						success, response = processMessageCoin(game, False, str(message.author))
+						success, response = processMessageCoin(game, False, author)
 					elif keyword == "mult":
 						success = False
 						response = "I found both {} in your message. Please reply with just one of them.".format(
@@ -478,19 +477,19 @@ def processMessage(message):
 						keywords = ["defer", "receive"]
 					keyword = utils.findKeywordInMessage(keywords, body)
 					if keyword == "defer" or keyword == "defend":
-						success, response = processMessageDefer(game, True, str(message.author))
+						success, response = processMessageDefer(game, True, author)
 					elif keyword == "receive" or keyword == "attack":
-						success, response = processMessageDefer(game, False, str(message.author))
+						success, response = processMessageDefer(game, False, author)
 					elif keyword == "mult":
 						success = False
 						response = "I found both {} in your message. Please reply with just one of them.".format(
 							' and '.join(keywords))
 
 				elif dataTable['action'] in classes.playActions and isMessage:
-					success, response = processMessageDefenseNumber(game, body, str(message.author))
+					success, response = processMessageDefenseNumber(game, body, author)
 
 				elif dataTable['action'] in classes.playActions and not isMessage:
-					success, response = processMessageOffensePlay(game, body, str(message.author))
+					success, response = processMessageOffensePlay(game, body, author)
 		else:
 			log.debug("Couldn't get a game for /u/{}".format(author))
 	else:
