@@ -100,7 +100,7 @@ def processMessageCoin(game, isHeads, author):
 		else:
 			questionString = "do you want to **receive** or **defer**?"
 		message = "{}, {} won the toss, {}".format(utils.getCoachString(game, False), game.away.name, questionString)
-		return True, utils.embedTableInMessage(message, {'action': Action.DEFER})
+		return True, utils.embedTableInMessage(message, utils.getActionTable(game, Action.DEFER))
 	else:
 		log.debug("User lost coin toss, asking other team if they want to defer")
 		game.status.waitingAction = Action.DEFER
@@ -113,7 +113,7 @@ def processMessageCoin(game, isHeads, author):
 		else:
 			questionString = "do you want to **receive** or **defer**?"
 		message = "{}, {} won the toss, {}".format(utils.getCoachString(game, True), game.home.name, questionString)
-		return True, utils.embedTableInMessage(message, {'action': Action.DEFER})
+		return True, utils.embedTableInMessage(message, utils.getActionTable(game, Action.DEFER))
 
 
 def processMessageDefer(game, isDefer, author):
@@ -206,7 +206,7 @@ def processMessageDefenseNumber(game, message, author):
 		utils.listSuggestedPlays(game),
 		"https://www.reddit.com/r/FakeCollegeFootball/wiki/refbot"
 	)
-	utils.sendGameComment(game, resultMessage, {'action': game.status.waitingAction})
+	utils.sendGameComment(game, resultMessage, utils.getActionTable(game, game.status.waitingAction))
 
 	result = ["I've got {} as your number.".format(number)]
 	if timeoutMessage is not None:
@@ -306,11 +306,11 @@ def processMessageOffensePlay(game, message, author):
 		log.debug("Starting overtime, posting coin toss comment")
 		message = "Overtime has started! {}, you're away, call **heads** or **tails** in the air.".format(
 			utils.getCoachString(game, False))
-		comment = utils.sendGameComment(game, message, {'action': Action.COIN})
+		comment = utils.sendGameComment(game, message, utils.getActionTable(game, Action.COIN))
 		game.status.waitingId = comment.fullname
 		game.status.waitingAction = Action.COIN
 
-	return success, utils.embedTableInMessage('\n\n'.join(result), {'action': game.status.waitingAction})
+	return success, utils.embedTableInMessage('\n\n'.join(result), utils.getActionTable(game, game.status.waitingAction))
 
 
 def processMessageKickGame(body):
@@ -325,7 +325,9 @@ def processMessageKickGame(body):
 	if game is None:
 		return "Game not found: {}".format(threadIds[0])
 
-	success = index.clearGameErrored(threadIds[0])
+	game = index.reloadAndReturn(threadIds[0])
+	success = index.clearGameErrored(game)
+	utils.saveGameObject(game)
 	if not success:
 		log.debug("Couldn't clear game error")
 		return "Couldn't clear game error {}".format(str(threadIds[0]))
@@ -368,7 +370,9 @@ def processMessagePauseGame(body):
 		return "Couldn't find a number of hours in message"
 	log.debug("Found hours: {}".format(hours[0]))
 
-	database.pauseGame(threadIds[0], hours[0])
+	game = index.reloadAndReturn(threadIds[0])
+	utils.pauseGame(game, hours[0])
+	utils.saveGameObject(game)
 
 	return "Game {} paused for {} hours".format(threadIds[0], hours[0])
 
@@ -429,7 +433,7 @@ def processMessage(message):
 		if parent is not None and str(parent.author).lower() == globals.ACCOUNT_NAME:
 			dataTable = utils.extractTableFromMessage(parent.body)
 			if dataTable is not None:
-				if 'action' not in dataTable:
+				if 'action' not in dataTable or 'thread' not in dataTable:
 					dataTable = None
 				else:
 					dataTable['source'] = parent.fullname
@@ -439,7 +443,7 @@ def processMessage(message):
 	author = str(message.author)
 	game = None
 	if dataTable is not None:
-		game = utils.getGameByUser(author)
+		game = index.reloadAndReturn(dataTable['thread'])
 		if game is not None:
 			utils.cycleStatus(game, message.fullname)
 			utils.setLogGameID(game.thread, game)

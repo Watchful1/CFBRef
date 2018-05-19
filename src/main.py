@@ -96,6 +96,7 @@ while True:
 				if globals.game is not None:
 					log.debug("Setting game {} as errored".format(globals.game.thread))
 					index.setGameErrored(globals.game)
+					utils.saveGameObject(game)
 					ownerMessage = utils.renderGameStatusMessage(globals.game)
 
 					message.reply("This game has errored. Please wait for the bot owner to help.")

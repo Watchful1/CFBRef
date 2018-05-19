@@ -1,6 +1,7 @@
 import os
 import logging.handlers
 from datetime import datetime
+from datetime import timedelta
 
 import globals
 import utils
@@ -25,8 +26,8 @@ def reloadAndReturn(thread):
 	game = utils.loadGameObject(thread)
 	if game.status.waitingAction != Action.END:
 		games[game.thread] = game
-		if game.errored:
-			errored.add(game.threadid)
+		if game.errored and game.thread not in errored:
+			errored.add(game.thread)
 		return game
 	else:
 		return None
@@ -35,7 +36,7 @@ def reloadAndReturn(thread):
 def getGamesPastPlayclock():
 	pastPlayclock = []
 	for game in games:
-		if game.playclock < datetime.utcnow():
+		if not game.errored and game.playclock < datetime.utcnow():
 			pastPlayclock.append(game)
 
 
@@ -44,13 +45,12 @@ def endGame(game):
 
 
 def setGameErrored(game):
+	game.playclock = datetime.utcnow()
 	errored.add(game.thread)
-	sdfsdf #fix game timers here
 
 
-def clearGameErrored(thread):
-	errored.remove(thread)
-
-
-def getGameErrored(thread):
-	return thread in errored
+def clearGameErrored(game):
+	errored.remove(game.thread)
+	game.errored = False
+	game.deadline = game.deadline + (datetime.utcnow() - game.playclock)
+	game.playclock = datetime.utcnow() + timedelta(hours=24)

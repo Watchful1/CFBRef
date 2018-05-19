@@ -121,6 +121,10 @@ def extractTableFromMessage(message):
 		return None
 
 
+def getActionTable(game, action):
+	return {'action': action, 'thread': game.thread}
+
+
 def verifyCoaches(coaches):
 	coachSet = set()
 	teamSet = set()
@@ -135,10 +139,6 @@ def verifyCoaches(coaches):
 		if team.name in teamSet:
 			return i, 'same'
 		teamSet.add(team.name)
-
-		game = database.getGameByCoach(coach)
-		if game is not None:
-			return i, 'game'
 
 	return -1, None
 
@@ -304,17 +304,6 @@ def loadGameObject(threadID):
 		return None
 	game = pickle.load(file)
 	file.close()
-	return game
-
-
-def getGameByUser(user):
-	dataGame = database.getGameByCoach(user)
-	if dataGame is None:
-		return None
-	game = loadGameObject(dataGame['thread'])
-	game.dataID = dataGame['id']
-	game.thread = dataGame['thread']
-	game.errored = dataGame['errored']
 	return game
 
 
@@ -484,7 +473,7 @@ def sendDefensiveNumberMessage(game):
 			                    getCurrentPlayString(game),
 			                    renderDatetime(game.playclock)
 		                    ),
-		                    {'action': game.status.waitingAction}
+		                    getActionTable(game, game.status.waitingAction)
 	                   ))
 	messageResult = reddit.getRecentSentMessage()
 	game.status.waitingId = messageResult.fullname
@@ -604,8 +593,6 @@ def cycleStatus(game, messageId):
 
 
 def revertStatus(game, index):
-	if game.status.quarterType == QuarterType.END and game.previousStatus[index] != QuarterType.END:
-		database.unEndGame(game.thread)
 	game.status = game.previousStatus[index]
 
 
@@ -626,6 +613,11 @@ def setGameEnded(game, winner):
 	game.status.waitingAction = Action.END
 	game.status.winner = winner
 	index.endGame(game)
+
+
+def pauseGame(game, hours):
+	game.playclock = datetime.utcnow() + timedelta(hours=hours)
+	game.deadline = game.deadline + timedelta(hours=hours)
 
 
 def renderGameStatusMessage(game):
