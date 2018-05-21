@@ -27,7 +27,7 @@ class QuarterType(Enum):
 	NORMAL = 1
 	OVERTIME_NORMAL = 2
 	OVERTIME_TIME = 3
-	END = 3
+	END = 4
 
 
 class TimeOption(Enum):

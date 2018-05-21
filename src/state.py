@@ -52,7 +52,6 @@ def setStateOvertimeDrive(game, homeAway):
 		game.status.overtimePossession = 1
 
 	setStateTouchback(game, homeAway)
-	game.status.waitingOn.reverse()
 	game.status.location = 75
 
 
@@ -272,7 +271,8 @@ def updateTime(game, play, result, yards, offenseHomeAway, timeOption):
 						timeOffClock += 5
 					else:
 						timeOffClock += getTimeAfterForOffense(game, offenseHomeAway)
-		log.debug("Time off clock: {} : {}".format(game.status.clock, timeOffClock))
+
+	log.debug("Time off clock: {} : {}".format(game.status.clock, timeOffClock))
 
 	game.status.clock -= timeOffClock
 	timeMessage = "{} left".format(utils.renderTime(game.status.clock))
@@ -666,6 +666,7 @@ def executePlay(game, play, number, timeOption):
 		if timeMessage is None:
 			timeMessage, timeOffClock = updateTime(game, play, actualResult, yards, startingPossessionHomeAway, timeOption)
 
+	if timeMessage is not None:
 		messages.append(timeMessage)
 
 	if diffMessage is not None:

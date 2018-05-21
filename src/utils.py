@@ -72,7 +72,7 @@ def startGame(homeTeam, awayTeam, startTime=None, location=None, station=None, h
 
 	log.debug("Game started, posting coin toss comment")
 	message = "The game has started! {}, you're home. {}, you're away, call **heads** or **tails** in the air.".format(getCoachString(game, True), getCoachString(game, False))
-	sendGameComment(game, message, {'action': Action.COIN})
+	sendGameComment(game, message, getActionTable(game, Action.COIN))
 	log.debug("Comment posted, now waiting on: {}".format(game.status.waitingId))
 	updateGameThread(game)
 
@@ -182,7 +182,10 @@ def flair(team):
 
 
 def renderTime(time):
-	return "{}:{}".format(str(math.trunc(time / 60)), str(time % 60).zfill(2))
+	if time < 0:
+		return "0:00"
+	else:
+		return "{}:{}".format(str(math.trunc(time / 60)), str(time % 60).zfill(2))
 
 
 def renderGame(game):
@@ -374,14 +377,15 @@ def getLinkFromGameThing(threadId, thingId):
 	return "[{}]({})".format(waitingMessageType, link)
 
 
-def isGameWaitingOn(game, user, action, messageId):
+def isGameWaitingOn(game, user, action, messageId, forceCoach=False):
 	if game.status.waitingAction != action:
 		log.debug("Not waiting on {}: {}".format(action.name, game.status.waitingAction.name))
 		return "I'm not waiting on a '{}' for this game, are you sure you replied to the right message?".format(action.name.lower())
 
-	if (game.status.waitingOn == 'home') != coachHomeAway(game, user):
-		log.debug("Not waiting on message author's team")
-		return "I'm not waiting on a message from you, are you sure you responded to the right message?"
+	if not forceCoach:
+		if (game.status.waitingOn == 'home') != coachHomeAway(game, user):
+			log.debug("Not waiting on message author's team")
+			return "I'm not waiting on a message from you, are you sure you responded to the right message?"
 
 	if game.status.waitingId is not None and game.status.waitingId != messageId:
 		log.debug("Not waiting on message id: {} : {}".format(game.status.waitingId, messageId))

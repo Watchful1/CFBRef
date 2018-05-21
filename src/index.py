@@ -20,27 +20,28 @@ def init():
 	games = {}
 	for gameFile in os.listdir(globals.SAVE_FOLDER_NAME):
 		game = reloadAndReturn(gameFile)
-		changed = False
-		for team in [game.home, game.away]:
-			wikiTeam = wiki.getTeamByTag(team.tag)
-			if ((team.coaches > wikiTeam.coaches) - (team.coachs < wikiTeam.coaches)) != 0:
-				log.debug("Coaches for game {}, team {} changed from [{}] to [{}]".format(
-					game.thread,
-					team.tag,
-					team.coaches,
-					wikiTeam.coaches
-				))
-				changed = True
-				team.coaches = wikiTeam.coaches
+		if game is not None:
+			changed = False
+			for team in [game.home, game.away]:
+				wikiTeam = wiki.getTeamByTag(team.tag)
+				if ((team.coaches > wikiTeam.coaches) - (team.coaches < wikiTeam.coaches)) != 0:
+					log.debug("Coaches for game {}, team {} changed from {} to {}".format(
+						game.thread,
+						team.tag,
+						team.coaches,
+						wikiTeam.coaches
+					))
+					changed = True
+					team.coaches = wikiTeam.coaches
 
-		if changed:
-			log.debug("Reverting status and reprocessing {}".format(game.previousStatus[0].messageId))
-			utils.revertStatus(game, 0)
-			message = reddit.getThingFromFullname(game.status.messageId)
-			if message is None:
-				return "Something went wrong. Not valid fullname: {}".format(game.status.messageId)
-			messages.processMessage(message)
-			utils.saveGameObject(game)
+			if changed:
+				log.debug("Reverting status and reprocessing {}".format(game.previousStatus[0].messageId))
+				utils.revertStatus(game, 0)
+				utils.saveGameObject(game)
+				message = reddit.getThingFromFullname(game.status.messageId)
+				if message is None:
+					return "Something went wrong. Not valid fullname: {}".format(game.status.messageId)
+				messages.processMessage(message)
 
 
 def addNewGame(game):
@@ -58,9 +59,11 @@ def reloadAndReturn(thread):
 
 def getGamesPastPlayclock():
 	pastPlayclock = []
-	for game in games:
+	for thread in games:
+		game = games[thread]
 		if not game.errored and game.playclock < datetime.utcnow():
 			pastPlayclock.append(game)
+	return pastPlayclock
 
 
 def endGame(game):

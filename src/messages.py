@@ -114,6 +114,7 @@ def processMessageDefer(game, isDefer, author):
 
 			state.setStateOvertimeDrive(game, authorHomeAway.negate())
 			game.status.receivingNext = authorHomeAway.copy()
+			game.status.waitingOn.reverse()
 			game.dirty = True
 			utils.sendDefensiveNumberMessage(game)
 
@@ -126,6 +127,7 @@ def processMessageDefer(game, isDefer, author):
 
 			state.setStateOvertimeDrive(game, authorHomeAway)
 			game.status.receivingNext = authorHomeAway.negate()
+			game.status.waitingOn.reverse()
 			game.dirty = True
 			utils.sendDefensiveNumberMessage(game)
 
@@ -314,11 +316,8 @@ def processMessageKickGame(body):
 		return "Game not found: {}".format(threadIds[0])
 
 	game = index.reloadAndReturn(threadIds[0])
-	success = index.clearGameErrored(game)
+	index.clearGameErrored(game)
 	utils.saveGameObject(game)
-	if not success:
-		log.debug("Couldn't clear game error")
-		return "Couldn't clear game error {}".format(str(threadIds[0]))
 	result = ["Kicked game: {}".format(threadIds[0])]
 
 	statusIndex = re.findall('(?:revert:)(\d+)', body)
@@ -334,7 +333,7 @@ def processMessageKickGame(body):
 		message = reddit.getThingFromFullname(messageFullname[0])
 		if message is None:
 			return "Something went wrong. Not valid fullname: {}".format(messageFullname[0])
-		processMessage(message)
+		processMessage(message, True)
 		result.append("Reprocessed message: {}".format(messageFullname[0]))
 
 	log.debug("Finished kicking game")
@@ -403,7 +402,7 @@ def processMessageReindex(body):
 	return "Wiki pages reloaded and games reindexed"
 
 
-def processMessage(message):
+def processMessage(message, force=False):
 	if isinstance(message, praw.models.Message):
 		isMessage = True
 		log.debug("Processing a message from /u/{} : {}".format(str(message.author), message.id))
@@ -440,7 +439,7 @@ def processMessage(message):
 			utils.cycleStatus(game, message.fullname)
 			utils.setLogGameID(game.thread, game)
 
-			waitingOn = utils.isGameWaitingOn(game, author, dataTable['action'], dataTable['source'])
+			waitingOn = utils.isGameWaitingOn(game, author, dataTable['action'], dataTable['source'], force)
 			if waitingOn is not None:
 				response = waitingOn
 				success = False
