@@ -105,3 +105,13 @@ def replyMessage(message, body):
 
 def getRecentSentMessage():
 	return reddit.inbox.sent(limit=1).next()
+
+
+def getThingFromFullname(fullname):
+	if fullname.startswith("t1"):
+		return reddit.getComment(fullname[3:])
+	elif fullname.startswith("t4"):
+		return reddit.getMessage(fullname[3:])
+	else:
+		log.debug("Not a valid fullname: {}".format(fullname))
+		return None

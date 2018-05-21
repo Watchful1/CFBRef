@@ -77,9 +77,9 @@ else:
 if not reddit.init(user):
 	sys.exit(0)
 
-index.init()
-
 wiki.loadPages()
+
+index.init()
 
 while True:
 	try:

@@ -24,9 +24,9 @@ admins = set()
 lastTime = None
 
 
-def loadPages():
+def loadPages(force=False):
 	global lastTime
-	if lastTime is None or lastTime + timedelta(minutes=15) < datetime.utcnow():
+	if force or lastTime is None or lastTime + timedelta(minutes=15) < datetime.utcnow():
 		startTime = time.perf_counter()
 		log.debug("Loading pages")
 		lastTime = datetime.utcnow()
@@ -120,6 +120,8 @@ def parseResult(resultString):
 
 
 def loadTeams():
+	global teams
+	teams = {}
 	teamsPage = reddit.getWikiPage(globals.CONFIG_SUBREDDIT, "teams")
 
 	requirements = {
@@ -152,19 +154,16 @@ def loadTeams():
 		for coach in items[4].lower().split(','):
 			coach = coach.strip()
 			team.coaches.append(coach)
-			coaches[coach] = team
 		teams[team.tag] = team
 
 	coach1 = "watchful1"
 	team1 = Team(tag="team1", name="Team 1", offense=OffenseType.OPTION, defense=DefenseType.THREE_FOUR)
 	team1.coaches.append(coach1)
-	coaches[coach1] = team1
 	teams[team1.tag] = team1
 
 	coach2 = "watchful12"
 	team2 = Team(tag="team2", name="Team 2", offense=OffenseType.SPREAD, defense=DefenseType.FOUR_THREE)
 	team2.coaches.append(coach2)
-	coaches[coach2] = team2
 	teams[team2.tag] = team2
 
 
@@ -217,6 +216,8 @@ def parsePlayPart(playPart):
 
 
 def loadPlays():
+	global plays
+	plays = {}
 	playsPage = reddit.getWikiPage(globals.CONFIG_SUBREDDIT, "plays")
 
 	for playLine in playsPage.splitlines():
@@ -267,6 +268,8 @@ def loadPlays():
 
 
 def loadTimes():
+	global times
+	times = {}
 	timesPage = reddit.getWikiPage(globals.CONFIG_SUBREDDIT, "times")
 
 	for timeLine in timesPage.splitlines():
@@ -313,14 +316,6 @@ def getTeamByTag(tag):
 	tag = tag.lower()
 	if tag in teams:
 		return teams[tag]
-	else:
-		return None
-
-
-def getTeamByCoach(coach):
-	coach = coach.lower()
-	if coach in coaches:
-		return coaches[coach]
 	else:
 		return None
 

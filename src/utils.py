@@ -29,16 +29,16 @@ def getLinkToThread(threadID):
 	return globals.SUBREDDIT_LINK + threadID
 
 
-def startGame(homeCoach, awayCoach, startTime=None, location=None, station=None, homeRecord=None, awayRecord=None):
-	log.debug("Creating new game between /u/{} and /u/{}".format(homeCoach, awayCoach))
+def startGame(homeTeam, awayTeam, startTime=None, location=None, station=None, homeRecord=None, awayRecord=None):
+	log.debug("Creating new game between {} and {}".format(homeTeam, awayTeam))
 
-	coachNum, result = verifyCoaches([homeCoach, awayCoach])
-	if coachNum != -1:
-		log.debug("Coaches not verified, {} : {}".format(coachNum, result))
+	i, result = verifyTeams([homeTeam, awayTeam])
+	if i != -1:
+		log.debug("Coaches not verified, {} : {}".format(i, result))
 		return "Something went wrong, someone is no longer an acceptable coach. Please try to start the game again"
 
-	homeTeam = wiki.getTeamByCoach(homeCoach.lower())
-	awayTeam = wiki.getTeamByCoach(awayCoach.lower())
+	homeTeam = wiki.getTeamByTag(homeTeam.lower())
+	awayTeam = wiki.getTeamByTag(awayTeam.lower())
 
 	game = newGameObject(homeTeam, awayTeam)
 	if startTime is not None:
@@ -123,6 +123,20 @@ def extractTableFromMessage(message):
 
 def getActionTable(game, action):
 	return {'action': action, 'thread': game.thread}
+
+
+def verifyTeams(teamTags):
+	teamSet = set()
+	for i, tag in enumerate(teamTags):
+		if tag in teamSet:
+			return i, 'duplicate'
+		teamSet.add(tag)
+
+		team = wiki.getTeamByTag(tag)
+		if team is None:
+			return i, 'team'
+
+	return -1, None
 
 
 def verifyCoaches(coaches):

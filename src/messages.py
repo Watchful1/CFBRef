@@ -24,40 +24,28 @@ def processMessageNewGame(body, author):
 		log.debug("User /u/{} is not allowed to create games".format(author))
 		return "Only admins can start games"
 
-	users = re.findall('(?: /u/)([\w-]*)', body)
-	if len(users) < 2:
+	teams = re.findall('(\w+)', body)
+	if len(teams) < 3:
 		log.debug("Could not find an two teams in create game message")
 		return "Please resend the message and specify two teams"
 
-	homeCoach = users[0].lower()
-	awayCoach = users[1].lower()
-	log.debug("Found home/away coaches in message /u/{} vs /u/{}".format(homeCoach, awayCoach))
+	homeTeam = teams[1]
+	awayTeam = teams[2]
+	log.debug("Found teams in message {} vs {}".format(homeTeam, awayTeam))
 
-	i, result = utils.verifyCoaches([homeCoach, awayCoach])
-
-	if result == 'same':
-		log.debug("Coaches are on the same team")
-		return "You can't list two coaches that are on the same team"
+	i, result = utils.verifyTeams([homeTeam, awayTeam])
 
 	if result == 'duplicate':
-		log.debug("Duplicate coaches")
-		return "Both coaches were the same"
+		log.debug("Teams are the same")
+		return "You can't have a team play itself"
 
 	if i == 0 and result == 'team':
-		log.debug("Home does not have a team")
-		return "The home coach does not have a team"
-
-	if i == 0 and result == 'game':
-		log.debug("Home already has a game")
-		return "The home coach is already in a game"
+		log.debug("Home is not a valid team")
+		return "The home team is not valid"
 
 	if i == 1 and result == 'team':
-		log.debug("Away does not have a team")
-		return "The away coach does not have a team"
-
-	if i == 1 and result == 'game':
-		log.debug("Away already has a game")
-		return "The away coach is already in a game"
+		log.debug("Away is not a valid team")
+		return "The away team is not valid"
 
 	startTime = None
 	location = None
@@ -82,7 +70,7 @@ def processMessageNewGame(body, author):
 			awayRecord = utils.escapeMarkdown(match.group(2))
 			log.debug("Found away record: {}".format(awayRecord))
 
-	return utils.startGame(homeCoach, awayCoach, startTime, location, station, homeRecord, awayRecord)
+	return utils.startGame(homeTeam, awayTeam, startTime, location, station, homeRecord, awayRecord)
 
 
 def processMessageCoin(game, isHeads, author):
@@ -343,12 +331,9 @@ def processMessageKickGame(body):
 	messageFullname = re.findall('(?:message:)(t\d_[\da-z]{6,})', body)
 	if len(messageFullname) > 0:
 		log.debug("Reprocessing message/comment: {}".format(messageFullname[0]))
-		if messageFullname[0].startswith("t1"):
-			message = reddit.getComment(messageFullname[0][3:])
-		elif messageFullname[0].startswith("t4"):
-			message = reddit.getMessage(messageFullname[0][3:])
-		else:
-			return "Something went wrong. Not valid thingid: {}".format(messageFullname[0])
+		message = reddit.getThingFromFullname(messageFullname[0])
+		if message is None:
+			return "Something went wrong. Not valid fullname: {}".format(messageFullname[0])
 		processMessage(message)
 		result.append("Reprocessed message: {}".format(messageFullname[0]))
 
@@ -409,6 +394,13 @@ def processMessageGameStatus(body):
 		return "Game {} doesn't exist".format(threadIds[0])
 	else:
 		return utils.renderGameStatusMessage(game)
+
+
+def processMessageReindex(body):
+	log.debug("Processing reindex message")
+	wiki.loadPages(True)
+	index.init()
+	return "Wiki pages reloaded and games reindexed"
 
 
 def processMessage(message):
@@ -500,14 +492,16 @@ def processMessage(message):
 		log.debug("Parsing non-datatable message")
 		if body.startswith("newgame") and isMessage:
 			response = processMessageNewGame(message.body, str(message.author))
-		if body.startswith("kick") and isMessage and str(message.author).lower() in wiki.admins:
+		elif body.startswith("kick") and isMessage and str(message.author).lower() in wiki.admins:
 			response = processMessageKickGame(message.body)
-		if body.startswith("pause") and isMessage and str(message.author).lower() in wiki.admins:
+		elif body.startswith("pause") and isMessage and str(message.author).lower() in wiki.admins:
 			response = processMessagePauseGame(message.body)
-		if body.startswith("abandon") and isMessage and str(message.author).lower() in wiki.admins:
+		elif body.startswith("abandon") and isMessage and str(message.author).lower() in wiki.admins:
 			response = processMessageAbandonGame(message.body)
-		if body.startswith("status") and isMessage and str(message.author).lower() in wiki.admins:
+		elif body.startswith("status") and isMessage and str(message.author).lower() in wiki.admins:
 			response = processMessageGameStatus(message.body)
+		elif body.startswith("reindex") and isMessage and str(message.author).lower() in wiki.admins:
+			response = processMessageReindex(message.body)
 
 	message.mark_read()
 	if response is not None:
