@@ -349,13 +349,6 @@ def renderPostGame(game):
 		)
 		bldr.append("\n\n___\n")
 
-	bldr.append("Game Summary|Time\n")
-	bldr.append(":-:|:-:\n")
-	for drive in []:
-		bldr.append("test|test\n")
-
-	bldr.append("\n___\n\n")
-
 	bldr.append("Team|")
 	numQuarters = len(game.status.homeState.quarters)
 	for i in range(numQuarters):
@@ -375,14 +368,17 @@ def renderPostGame(game):
 		bldr.append(str(game.status.state(homeAway).points))
 		bldr.append("**\n")
 
-	playString = '\n'.join(game.plays)
+	playBldr = []
+	for play in game.plays:
+		playBldr.append(str(play))
+	playString = '\n'.join(playBldr)
 	pasteOutput = paste("Thread summary", ''.join(playString)).decode('utf-8')
 
 	bldr.append("\n")
 	if "pastebin.com" in pasteOutput:
 		log.debug("Finished pasting: {}".format(pasteOutput))
 		bldr.append("[Plays](")
-		bldr.append("pasteOutput")
+		bldr.append(pasteOutput)
 		bldr.append(")\n")
 	else:
 		bldr.append("Unable to generate play list\n")
@@ -739,7 +735,7 @@ def endGame(game, winner, postThread=True):
 
 	if postThread:
 		postGameThread = renderPostGame(game)
-		gameTitle = "[GAME THREAD] {}{} @ {}{}".format(
+		gameTitle = "[POST GAME THREAD] {}{} @ {}{}".format(
 			game.away.name,
 			" {}".format(unescapeMarkdown(game.away.record)) if game.away.record is not None else "",
 			game.home.name,

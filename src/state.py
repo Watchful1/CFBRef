@@ -23,6 +23,8 @@ def scoreForTeam(game, points, homeAway):
 	oldScore = game.status.state(homeAway).points
 	game.status.state(homeAway).points += points
 	log.debug("Score for {} changed from {} to {}".format(homeAway.name(), oldScore, game.status.state(homeAway).points))
+	if len(game.status.state(homeAway).quarters) < game.status.quarter:
+		game.status.state(homeAway).quarters.append(0)
 	game.status.state(homeAway).quarters[game.status.quarter - 1] += points
 
 

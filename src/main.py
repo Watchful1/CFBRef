@@ -97,7 +97,7 @@ while True:
 				if globals.game is not None:
 					log.debug("Setting game {} as errored".format(globals.game.thread))
 					index.setGameErrored(globals.game)
-					utils.saveGameObject(game)
+					utils.saveGameObject(globals.game)
 					ownerMessage = utils.renderGameStatusMessage(globals.game)
 
 					message.reply("This game has errored. Please wait for the bot owner to help.")
@@ -114,9 +114,8 @@ while True:
 			log.debug("Message processed after: %d", int(time.perf_counter() - startTime))
 			utils.clearLogGameID()
 
-			for threadId in index.getGamesPastPlayclock():
-				log.debug("Game past playclock: {}".format(threadId))
-				game = utils.loadGameObject(threadId)
+			for game in index.getGamesPastPlayclock():
+				log.debug("Game past playclock: {}".format(game.thread))
 				utils.cycleStatus(game, None)
 				game.status.state(game.status.waitingOn).playclockPenalties += 1
 				penaltyMessage = "{} has not sent their number in over 24 hours, playclock penalty. This is their {} penalty.".format(
