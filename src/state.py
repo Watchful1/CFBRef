@@ -520,6 +520,9 @@ def executePlay(game, play, number, timeOption):
 		log.debug("Executing normal play: {}".format(play))
 		result = getPlayResult(game, play, numberResult)
 
+		if play == Play.FIELD_GOAL:
+			utils.addStat(game, 'fieldGoalsAttempted', 1)
+
 		actualResult = result['result']
 		if play == Play.PUNT and result['result'] == Result.GAIN:
 			if game.status.location + result['yards'] >= 100:
@@ -594,9 +597,7 @@ def executePlay(game, play, number, timeOption):
 				if result['result'] == Result.TURNOVER:
 					utils.addStat(game, 'turnoverFumble', 1)
 					resultMessage = "It's blocked!"
-
 				else:
-					utils.addStat(game, 'fieldGoalsAttempted', 1)
 					resultMessage = "The kick is wide."
 
 			elif play == Play.PUNT:
