@@ -77,6 +77,7 @@ else:
 if not reddit.init(user):
 	sys.exit(0)
 
+
 wiki.loadPages()
 
 index.init()
@@ -122,8 +123,8 @@ while True:
 					utils.getCoachString(game, game.status.waitingOn), utils.getNthWord(game.status.state(game.status.waitingOn).playclockPenalties))
 				if game.status.state(game.status.waitingOn).playclockPenalties >= 3:
 					log.debug("3 penalties, game over")
-					utils.setGameEnded(game, game.team(game.status.waitingOn.negate()).name)
-					resultMessage = "They forfeit the game. {} has won!".format(utils.flair(game.team(game.status.waitingOn.negate())))
+					result = utils.endGame(game, game.team(game.status.waitingOn.negate()).name)
+					resultMessage = "They forfeit the game. {} has won!\n\n{}".format(utils.flair(game.team(game.status.waitingOn.negate())), result)
 
 				elif game.status.waitingOn == game.status.possession:
 					log.debug("Waiting on offense, turnover")

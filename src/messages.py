@@ -373,7 +373,7 @@ def processMessageAbandonGame(body):
 	if game is None:
 		return "Game not found: {}".format(threadIds[0])
 
-	utils.setGameEnded(game, "Abandoned")
+	utils.endGame(game, "Abandoned", False)
 	utils.updateGameThread(game)
 	utils.saveGameObject(game)
 

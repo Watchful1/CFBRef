@@ -13,6 +13,7 @@ SUBREDDIT_LINK = "https://www.reddit.com/r/{}/comments/".format(SUBREDDIT)
 MESSAGE_LINK = "https://www.reddit.com/message/messages/"
 ACCOUNT_NAME = "default"
 EASTERN = timezone('US/Eastern')
+PASTEBIN_KEY = None
 
 ### Constants ###
 datatag = " [](#datatag"

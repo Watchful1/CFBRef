@@ -7,6 +7,8 @@ import math
 import copy
 import traceback
 import pytz
+import urllib.parse
+import urllib.request
 from datetime import datetime
 from datetime import timedelta
 
@@ -297,6 +299,109 @@ def renderGame(game):
 		bldr.append("#Game complete, {} wins!".format(game.status.winner))
 
 	return ''.join(bldr)
+
+
+def renderPostGame(game):
+	bldr = []
+
+	bldr.append(flair(game.away))
+	bldr.append(" **")
+	bldr.append(game.away.name)
+	bldr.append("** @ ")
+	bldr.append(flair(game.home))
+	bldr.append(" **")
+	bldr.append(game.home.name)
+	bldr.append("**\n\n")
+
+	if game.startTime is not None:
+		bldr.append(" **Game Start Time:** ")
+		bldr.append(unescapeMarkdown(game.startTime))
+		bldr.append("\n\n")
+
+	if game.location is not None:
+		bldr.append(" **Location:** ")
+		bldr.append(unescapeMarkdown(game.location))
+		bldr.append("\n\n")
+
+	if game.station is not None:
+		bldr.append(" **Watch:** ")
+		bldr.append(unescapeMarkdown(game.station))
+		bldr.append("\n\n")
+
+	bldr.append("\n\n")
+
+	for homeAway in [False, True]:
+		bldr.append(flair(game.team(homeAway)))
+		bldr.append("\n\n")
+		bldr.append("Total Passing Yards|Total Rushing Yards|Total Yards|Interceptions Lost|Fumbles Lost|Field Goals|Time of Possession|Timeouts\n")
+		bldr.append(":-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:\n")
+		bldr.append("{} yards|{} yards|{} yards|{}|{}|{}/{}|{}|{}".format(
+				game.status.stats(homeAway).yardsPassing,
+				game.status.stats(homeAway).yardsRushing,
+				game.status.stats(homeAway).yardsTotal,
+				game.status.stats(homeAway).turnoverInterceptions,
+				game.status.stats(homeAway).turnoverFumble,
+				game.status.stats(homeAway).fieldGoalsScored,
+				game.status.stats(homeAway).fieldGoalsAttempted,
+				renderTime(game.status.stats(homeAway).posTime),
+				game.status.state(homeAway).timeouts
+			)
+		)
+		bldr.append("\n\n___\n")
+
+	bldr.append("Game Summary|Time\n")
+	bldr.append(":-:|:-:\n")
+	for drive in []:
+		bldr.append("test|test\n")
+
+	bldr.append("\n___\n\n")
+
+	bldr.append("Team|")
+	numQuarters = len(game.status.homeState.quarters)
+	for i in range(numQuarters):
+		bldr.append("Q")
+		bldr.append(str(i + 1))
+		bldr.append("|")
+	bldr.append("Total\n")
+	bldr.append((":-:|"*(numQuarters + 2))[:-1])
+	bldr.append("\n")
+	for homeAway in [True, False]:
+		bldr.append(flair(game.team(homeAway)))
+		bldr.append("|")
+		for quarter in game.status.state(homeAway).quarters:
+			bldr.append(str(quarter))
+			bldr.append("|")
+		bldr.append("**")
+		bldr.append(str(game.status.state(homeAway).points))
+		bldr.append("**\n")
+
+	playString = '\n'.join(game.plays)
+	pasteOutput = paste("Thread summary", ''.join(playString)).decode('utf-8')
+
+	bldr.append("\n")
+	if "pastebin.com" in pasteOutput:
+		log.debug("Finished pasting: {}".format(pasteOutput))
+		bldr.append("[Plays](")
+		bldr.append("pasteOutput")
+		bldr.append(")\n")
+	else:
+		bldr.append("Unable to generate play list\n")
+
+	bldr.append("\n")
+	bldr.append("#Game complete, {} wins!".format(game.status.winner))
+
+	return ''.join(bldr)
+
+
+def paste(title, content):  # used for posting a new paste
+	pastebin_vars = dict(
+		api_option='paste',
+		api_dev_key=globals.PASTEBIN_KEY,
+		api_paste_name=title,
+		api_paste_code=content,
+	)
+	return urllib.request.urlopen('http://pastebin.com/api/api_post.php', urllib.parse.urlencode(pastebin_vars).encode('utf8')).read()
+
 
 
 def coinToss():
@@ -626,11 +731,25 @@ def newDebugGameObject():
 	return classes.Game(home, away)
 
 
-def setGameEnded(game, winner):
+def endGame(game, winner, postThread=True):
 	game.status.quarterType = QuarterType.END
 	game.status.waitingAction = Action.END
 	game.status.winner = winner
 	index.endGame(game)
+
+	if postThread:
+		postGameThread = renderPostGame(game)
+		gameTitle = "[GAME THREAD] {}{} @ {}{}".format(
+			game.away.name,
+			" {}".format(unescapeMarkdown(game.away.record)) if game.away.record is not None else "",
+			game.home.name,
+			" {}".format(unescapeMarkdown(game.home.record)) if game.home.record is not None else "")
+		threadID = str(reddit.submitSelfPost(globals.SUBREDDIT, gameTitle, postGameThread))
+
+		return "[Post game thread]({}).".format(getLinkToThread(threadID))
+	else:
+		return None
+
 
 
 def pauseGame(game, hours):
