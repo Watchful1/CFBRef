@@ -613,12 +613,16 @@ def executePlay(game, play, number, timeOption):
 		elif result['result'] == Result.TURNOVER_TOUCHDOWN:
 			log.debug("Play results in a turnover and run back")
 			if play == Play.RUN:
+				utils.addStat(game, 'turnoverFumble', 1)
 				resultMessage = "Fumble! The ball is dropped and it's run all the way back. Touchdown {}!".format(game.team(game.status.possession.negate()).name)
 			elif play == Play.PASS:
+				utils.addStat(game, 'turnoverInterceptions', 1)
 				resultMessage = "Picked off! The pass is intercepted and it's run all the way back. Touchdown {}!".format(game.team(game.status.possession.negate()).name)
 			elif play == Play.FIELD_GOAL or play == Play.PUNT:
+				utils.addStat(game, 'turnoverFumble', 1)
 				resultMessage = "It's blocked! The ball is picked up and run all the back. Touchdown {}!".format(game.team(game.status.possession.negate()).name)
 			else:
+				utils.addStat(game, 'turnoverFumble', 1)
 				resultMessage = "It's a turnover and run back for a touchdown!"
 			yards = game.status.location
 			scoreTouchdown(game, game.status.possession.negate())
