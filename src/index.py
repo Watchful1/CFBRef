@@ -67,7 +67,8 @@ def getGamesPastPlayclock():
 
 
 def endGame(game):
-	games.pop(game.thread)
+	if game.thread in games:
+		del games[game.thread]
 
 
 def setGameErrored(game):
