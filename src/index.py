@@ -1,5 +1,6 @@
 import os
 import logging.handlers
+import traceback
 from datetime import datetime
 from datetime import timedelta
 
@@ -35,13 +36,17 @@ def init():
 					team.coaches = wikiTeam.coaches
 
 			if changed:
-				log.debug("Reverting status and reprocessing {}".format(game.previousStatus[0].messageId))
-				utils.revertStatus(game, 0)
-				utils.saveGameObject(game)
-				message = reddit.getThingFromFullname(game.status.messageId)
-				if message is None:
-					return "Something went wrong. Not valid fullname: {}".format(game.status.messageId)
-				messages.processMessage(message)
+				try:
+					log.debug("Reverting status and reprocessing {}".format(game.previousStatus[0].messageId))
+					utils.revertStatus(game, 0)
+					utils.saveGameObject(game)
+					message = reddit.getThingFromFullname(game.status.messageId)
+					if message is None:
+						return "Something went wrong. Not valid fullname: {}".format(game.status.messageId)
+					messages.processMessage(message)
+				except Exception as err:
+					log.warning(traceback.format_exc())
+					log.warning("Unable to revert game when changing coaches")
 
 
 def addNewGame(game):
