@@ -735,11 +735,13 @@ def endGame(game, winner, postThread=True):
 
 	if postThread:
 		postGameThread = renderPostGame(game)
-		gameTitle = "[POST GAME THREAD] {}{} @ {}{}".format(
-			game.away.name,
-			" {}".format(unescapeMarkdown(game.away.record)) if game.away.record is not None else "",
-			game.home.name,
-			" {}".format(unescapeMarkdown(game.home.record)) if game.home.record is not None else "")
+		winnerHome = True if game.status.winner == game.home.name else False
+		gameTitle = "[POST GAME THREAD] {} defeats {}, {}-{}".format(
+			game.team(winnerHome).name,
+			game.team(not winnerHome).name,
+			game.status.state(winnerHome).points,
+			game.status.state(not winnerHome).points
+		)
 		threadID = str(reddit.submitSelfPost(globals.SUBREDDIT, gameTitle, postGameThread))
 
 		return "[Post game thread]({}).".format(getLinkToThread(threadID))
