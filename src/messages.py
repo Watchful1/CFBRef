@@ -299,6 +299,7 @@ def processMessageOffensePlay(game, message, author):
 		comment = utils.sendGameComment(game, message, utils.getActionTable(game, Action.COIN))
 		game.status.waitingId = comment.fullname
 		game.status.waitingAction = Action.COIN
+		game.status.waitingOn = classes.HomeAway(False)
 
 	return success, utils.embedTableInMessage('\n\n'.join(result), utils.getActionTable(game, game.status.waitingAction))
 
