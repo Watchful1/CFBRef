@@ -19,11 +19,6 @@ log = logging.getLogger("bot")
 
 def processMessageNewGame(body, author):
 	log.debug("Processing new game message")
-
-	if author.lower() not in wiki.admins:
-		log.debug("User /u/{} is not allowed to create games".format(author))
-		return "Only admins can start games"
-
 	teams = re.findall('(\w+)', body)
 	if len(teams) < 3:
 		log.debug("Could not find an two teams in create game message")
@@ -215,11 +210,16 @@ def processMessageOffensePlay(game, message, author):
 		else:
 			timeoutMessageOffense = "The offense requested a timeout, but they don't have any left"
 
-	timeOption = TimeOption.NONE
-	if any(x in message for x in ['chew the clock', 'milk the clock']):
+	if game.forceChew:
+		timeOption = TimeOption.CHEW
+	else:
+		timeOption = TimeOption.NORMAL
+	if any(x in message for x in ['chew the clock', 'milk the clock', 'chew clock']):
 		timeOption = TimeOption.CHEW
 	elif any(x in message for x in ['hurry up', 'no huddle', 'no-huddle']):
 		timeOption = TimeOption.HURRY
+	elif any(x in message for x in ['normal']):
+		timeOption = TimeOption.NORMAL
 
 	normalOptions = ["run", "pass", "punt", "field goal", "kneel", "spike"]
 	conversionOptions = ["two point", "pat"]
@@ -403,6 +403,31 @@ def processMessageReindex(body):
 	return "Wiki pages reloaded and games reindexed"
 
 
+def processMessageDefaultChew(body):
+	log.debug("Processing default chew message")
+	threadIds = re.findall('(?: )([\da-z]{6})', body)
+	if len(threadIds) < 1:
+		log.debug("Couldn't find a thread id in message")
+		return "Couldn't find a thread id in message"
+	log.debug("Found thread id: {}".format(threadIds[0]))
+
+	game = utils.loadGameObject(threadIds[0])
+	if game is None:
+		return "Game not found: {}".format(threadIds[0])
+
+	if "normal" in body:
+		game.defaultChew = False
+		result = "Game changed to normal plays by default: {}".format(threadIds[0])
+	else:
+		game.defaultChew = True
+		result = "Game changed to chew the clock plays by default: {}".format(threadIds[0])
+
+	utils.updateGameThread(game)
+	utils.saveGameObject(game)
+
+	return result
+
+
 def processMessage(message, force=False):
 	if isinstance(message, praw.models.Message):
 		isMessage = True
@@ -490,18 +515,21 @@ def processMessage(message, force=False):
 			log.debug("Couldn't get a game for /u/{}".format(author))
 	else:
 		log.debug("Parsing non-datatable message")
-		if body.startswith("newgame") and isMessage:
-			response = processMessageNewGame(message.body, str(message.author))
-		elif body.startswith("kick") and isMessage and str(message.author).lower() in wiki.admins:
-			response = processMessageKickGame(message.body)
-		elif body.startswith("pause") and isMessage and str(message.author).lower() in wiki.admins:
-			response = processMessagePauseGame(message.body)
-		elif body.startswith("abandon") and isMessage and str(message.author).lower() in wiki.admins:
-			response = processMessageAbandonGame(message.body)
-		elif body.startswith("status") and isMessage and str(message.author).lower() in wiki.admins:
-			response = processMessageGameStatus(message.body)
-		elif body.startswith("reindex") and isMessage and str(message.author).lower() in wiki.admins:
-			response = processMessageReindex(message.body)
+		if isMessage and str(message.author).lower() in wiki.admins:
+			if body.startswith("newgame"):
+				response = processMessageNewGame(message.body, str(message.author))
+			elif body.startswith("kick"):
+				response = processMessageKickGame(message.body)
+			elif body.startswith("pause"):
+				response = processMessagePauseGame(message.body)
+			elif body.startswith("abandon"):
+				response = processMessageAbandonGame(message.body)
+			elif body.startswith("status"):
+				response = processMessageGameStatus(message.body)
+			elif body.startswith("reindex"):
+				response = processMessageReindex(message.body)
+			elif body.startswith("chew"):
+				response = processMessageDefaultChew(message.body)
 
 	message.mark_read()
 	if response is not None:

@@ -31,7 +31,7 @@ class QuarterType(Enum):
 
 
 class TimeOption(Enum):
-	NONE = 1
+	NORMAL = 1
 	CHEW = 2
 	HURRY = 3
 
@@ -215,6 +215,7 @@ class GameStatus:
 		self.defensiveNumber = None
 		self.messageId = None
 		self.winner = None
+		self.timeRunoff = False
 
 	def state(self, isHome):
 		if isHome:
@@ -255,6 +256,7 @@ class Game:
 		self.station = None
 		self.playclock = datetime.utcnow() + timedelta(hours=24)
 		self.deadline = datetime.utcnow() + timedelta(days=10)
+		self.forceChew = False
 
 	def team(self, isHome):
 		if isHome:

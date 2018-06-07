@@ -238,43 +238,48 @@ def getTimeByPlay(play, result, yards):
 
 
 def updateTime(game, play, result, yards, offenseHomeAway, timeOption):
+	timeOffClock = 0
+	if game.status.timeRunoff:
+		if game.status.state(offenseHomeAway).requestedTimeout == TimeoutOption.REQUESTED:
+			log.debug("Using offensive timeout")
+			game.status.state(offenseHomeAway).requestedTimeout = TimeoutOption.USED
+			game.status.state(offenseHomeAway).timeouts -= 1
+		elif game.status.state(offenseHomeAway.negate()).requestedTimeout == TimeoutOption.REQUESTED:
+			log.debug("Using defensive timeout")
+			game.status.state(offenseHomeAway.negate()).requestedTimeout = TimeoutOption.USED
+			game.status.state(offenseHomeAway.negate()).timeouts -= 1
+		else:
+			if result == Result.KNEEL:
+				timeOffClock = 39
+			elif timeOption == TimeOption.CHEW:
+				timeOffClock = 35
+			elif timeOption == TimeOption.HURRY:
+				timeOffClock = 5
+			else:
+				timeOffClock = getTimeAfterForOffense(game, offenseHomeAway)
+
 	if result in [Result.TOUCHDOWN, Result.TOUCHBACK, Result.SAFETY] and play not in classes.kickoffPlays:
 		actualResult = Result.GAIN
 	else:
 		actualResult = result
+
+	game.status.timeBetweenPlays = 0
 	if result == Result.SPIKE:
-		timeOffClock = 3
+		timeOffClock += 3
 	elif play == Play.PAT:
-		timeOffClock = 0
+		timeOffClock += 0
 	elif play == Play.TWO_POINT:
-		timeOffClock = 0
+		timeOffClock += 0
 	else:
 		if result == Result.KNEEL:
-			timeOffClock = 1
+			timeOffClock += 1
 		else:
-			timeOffClock = getTimeByPlay(play, actualResult, yards)
+			timeOffClock += getTimeByPlay(play, actualResult, yards)
 
-		if result in [Result.GAIN, Result.KNEEL]:
-			if game.status.state(offenseHomeAway).requestedTimeout == TimeoutOption.REQUESTED:
-				log.debug("Using offensive timeout")
-				game.status.state(offenseHomeAway).requestedTimeout = TimeoutOption.USED
-				game.status.state(offenseHomeAway).timeouts -= 1
-			elif game.status.state(offenseHomeAway.negate()).requestedTimeout == TimeoutOption.REQUESTED:
-				log.debug("Using defensive timeout")
-				game.status.state(offenseHomeAway.negate()).requestedTimeout = TimeoutOption.USED
-				game.status.state(offenseHomeAway.negate()).timeouts -= 1
-			else:
-				if result == Result.KNEEL:
-					timeOffClock += 39
-				else:
-					if timeOption == TimeOption.CHEW:
-						timeOffClock += 35
-					elif timeOption == TimeOption.HURRY:
-						timeOffClock += 5
-					else:
-						timeOffClock += getTimeAfterForOffense(game, offenseHomeAway)
+		if result == Result.GAIN:
+			game.status.timeRunoff = True
 
-	log.debug("Time off clock: {} : {}".format(game.status.clock, timeOffClock))
+	log.debug("Time off clock: {} : {} : {}".format(game.status.clock, timeOffClock, game.status.timeBetweenPlays))
 
 	game.status.clock -= timeOffClock
 	timeMessage = "{} left".format(utils.renderTime(game.status.clock))
