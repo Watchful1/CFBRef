@@ -263,7 +263,7 @@ def updateTime(game, play, result, yards, offenseHomeAway, timeOption):
 	else:
 		actualResult = result
 
-	game.status.timeBetweenPlays = 0
+	game.status.timeRunoff = False
 	if result == Result.SPIKE:
 		timeOffClock += 3
 	elif play == Play.PAT:
