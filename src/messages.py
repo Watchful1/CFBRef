@@ -182,14 +182,15 @@ def processMessageDefenseNumber(game, message, author):
 	utils.setGamePlayed(game)
 
 	log.debug("Sending offense play comment")
-	resultMessage = "{} has submitted their number. {} you're up. You have until {}.\n\n{}\n\n{} reply with {} and your number. [Play list]({})".format(
+	resultMessage = "{} has submitted their number. {} you're up. You have until {}.\n\n{}\n\n{} reply with {} and your number. [Play list]({}){}".format(
 		game.team(game.status.waitingOn.negate()).name,
 		game.team(game.status.waitingOn).name,
 		utils.renderDatetime(game.playclock),
 		utils.getCurrentPlayString(game),
 		utils.getCoachString(game, game.status.waitingOn),
 		utils.listSuggestedPlays(game),
-		"https://www.reddit.com/r/FakeCollegeFootball/wiki/refbot"
+		"https://www.reddit.com/r/FakeCollegeFootball/wiki/refbot",
+		"\n\nThe clock has stopped" if game.status.timeRunoff else ""
 	)
 	utils.sendGameComment(game, resultMessage, utils.getActionTable(game, game.status.waitingAction))
 
@@ -286,6 +287,9 @@ def processMessageOffensePlay(game, message, author):
 		result.append(timeoutMessageOffense)
 	if timeoutMessageDefense is not None:
 		result.append(timeoutMessageDefense)
+
+	if not game.status.timeRunoff:
+		result.append("The clock is stopped.")
 
 	game.status.waitingOn.reverse()
 	game.dirty = True
@@ -416,10 +420,10 @@ def processMessageDefaultChew(body):
 		return "Game not found: {}".format(threadIds[0])
 
 	if "normal" in body:
-		game.defaultChew = False
+		game.forceChew = False
 		result = "Game changed to normal plays by default: {}".format(threadIds[0])
 	else:
-		game.defaultChew = True
+		game.forceChew = True
 		result = "Game changed to chew the clock plays by default: {}".format(threadIds[0])
 
 	utils.updateGameThread(game)

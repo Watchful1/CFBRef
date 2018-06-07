@@ -73,7 +73,12 @@ def startGame(homeTeam, awayTeam, startTime=None, location=None, station=None, h
 		log.debug("Coach added to away: {}".format(user))
 
 	log.debug("Game started, posting coin toss comment")
-	message = "The game has started! {}, you're home. {}, you're away, call **heads** or **tails** in the air.".format(getCoachString(game, True), getCoachString(game, False))
+	message = "Welcome to week 5. There has been a substantial change in how the clock works this week. The between " \
+	          "play runoff now happens before the play rather than after. If the previous play did not stop the clock, " \
+	          "you can call chew the clock, hurry up, timeout or a kneel to effect the between play runoff for the " \
+	          "current play.\n\n" \
+	          "The game has started! {}, you're home. {}, you're away, call **heads** or **tails** in the air."\
+		.format(getCoachString(game, True), getCoachString(game, False))
 	sendGameComment(game, message, getActionTable(game, Action.COIN))
 	log.debug("Comment posted, now waiting on: {}".format(game.status.waitingId))
 	updateGameThread(game)
@@ -294,9 +299,11 @@ def renderGame(game):
 		bldr.append(str(game.status.state(homeAway).points))
 		bldr.append("**\n")
 
+	if game.forceChew:
+		bldr.append("\n#This game is in default chew the clock mode.\n")
+
 	if game.status.quarterType == QuarterType.END:
-		bldr.append("\n")
-		bldr.append("#Game complete, {} wins!".format(game.status.winner))
+		bldr.append("\n#Game complete, {} wins!\n".format(game.status.winner))
 
 	return ''.join(bldr)
 
