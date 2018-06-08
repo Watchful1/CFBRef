@@ -170,7 +170,7 @@ def processMessageDefenseNumber(game, message, author):
 	game.status.defensiveNumber = number
 
 	timeoutMessage = None
-	if message.find("timeout") > 0:
+	if "timeout" in message:
 		if game.status.state(game.status.possession.negate()).timeouts > 0:
 			game.status.state(game.status.possession.negate()).requestedTimeout = TimeoutOption.REQUESTED
 			timeoutMessage = "Timeout requested successfully"
