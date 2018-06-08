@@ -190,7 +190,7 @@ def processMessageDefenseNumber(game, message, author):
 		utils.getCoachString(game, game.status.waitingOn),
 		utils.listSuggestedPlays(game),
 		"https://www.reddit.com/r/FakeCollegeFootball/wiki/refbot",
-		"\n\nThe clock has stopped" if game.status.timeRunoff else ""
+		"\n\nThe clock has stopped" if not game.status.timeRunoff else ""
 	)
 	utils.sendGameComment(game, resultMessage, utils.getActionTable(game, game.status.waitingAction))
 
