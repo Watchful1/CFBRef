@@ -276,7 +276,7 @@ def updateTime(game, play, result, yards, offenseHomeAway, timeOption):
 		else:
 			timeOffClock += getTimeByPlay(play, actualResult, yards)
 
-		if result == Result.GAIN:
+		if result in [Result.GAIN, Result.KNEEL]:
 			game.status.timeRunoff = True
 
 	log.debug("Time off clock: {} : {} : {}".format(game.status.clock, timeOffClock, game.status.timeBetweenPlays))
