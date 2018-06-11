@@ -77,6 +77,7 @@ def endGame(game):
 
 
 def setGameErrored(game):
+	game.errored = True
 	game.playclock = datetime.utcnow()
 
 
