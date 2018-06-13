@@ -237,7 +237,7 @@ def getTimeByPlay(play, result, yards):
 		return timeObject['time']
 
 
-def updateTime(game, play, result, yards, offenseHomeAway, timeOption):
+def updateTime(game, play, result, actualResult, yards, offenseHomeAway, timeOption):
 	timeOffClock = 0
 	if game.status.timeRunoff:
 		if game.status.state(offenseHomeAway).requestedTimeout == TimeoutOption.REQUESTED:
@@ -249,7 +249,7 @@ def updateTime(game, play, result, yards, offenseHomeAway, timeOption):
 			game.status.state(offenseHomeAway.negate()).requestedTimeout = TimeoutOption.USED
 			game.status.state(offenseHomeAway.negate()).timeouts -= 1
 		else:
-			if result == Result.KNEEL:
+			if actualResult == Result.KNEEL:
 				timeOffClock = 39
 			elif timeOption == TimeOption.CHEW:
 				timeOffClock = 35
@@ -258,25 +258,27 @@ def updateTime(game, play, result, yards, offenseHomeAway, timeOption):
 			else:
 				timeOffClock = getTimeAfterForOffense(game, offenseHomeAway)
 
-	if result in [Result.TOUCHDOWN, Result.TOUCHBACK, Result.SAFETY] and play not in classes.kickoffPlays:
-		actualResult = Result.GAIN
+	if actualResult in [Result.TOUCHDOWN, Result.TOUCHBACK, Result.SAFETY] and play not in classes.kickoffPlays:
+		timeResult = Result.GAIN
+	elif actualResult == Result.TURNOVER and result == Result.GAIN:
+		timeResult = Result.GAIN
 	else:
-		actualResult = result
+		timeResult = actualResult
 
 	game.status.timeRunoff = False
-	if result == Result.SPIKE:
+	if actualResult == Result.SPIKE:
 		timeOffClock += 3
 	elif play == Play.PAT:
 		timeOffClock += 0
 	elif play == Play.TWO_POINT:
 		timeOffClock += 0
 	else:
-		if result == Result.KNEEL:
+		if actualResult == Result.KNEEL:
 			timeOffClock += 1
 		else:
-			timeOffClock += getTimeByPlay(play, actualResult, yards)
+			timeOffClock += getTimeByPlay(play, timeResult, yards)
 
-		if result in [Result.GAIN, Result.KNEEL]:
+		if actualResult in [Result.GAIN, Result.KNEEL]:
 			game.status.timeRunoff = True
 
 	log.debug("Time off clock: {} : {} : {}".format(game.status.clock, timeOffClock, game.status.timeRunoff))
@@ -666,6 +668,7 @@ def executePlay(game, play, number, timeOption):
 				resultMessage = "Turnover on downs"
 			else:
 				resultMessage = "The quarterback spikes the ball"
+		result = {'result': actualResult}
 
 	else:
 		log.debug("Something went wrong, invalid play: {}".format(play))
@@ -676,7 +679,7 @@ def executePlay(game, play, number, timeOption):
 	timeOffClock = None
 	if actualResult is not None and game.status.quarterType == QuarterType.NORMAL:
 		if timeMessage is None:
-			timeMessage, timeOffClock = updateTime(game, play, actualResult, yards, startingPossessionHomeAway, timeOption)
+			timeMessage, timeOffClock = updateTime(game, play, result['result'], actualResult, yards, startingPossessionHomeAway, timeOption)
 
 	if timeMessage is not None:
 		messages.append(timeMessage)
