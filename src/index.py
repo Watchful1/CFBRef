@@ -43,7 +43,7 @@ def init():
 					message = reddit.getThingFromFullname(game.status.messageId)
 					if message is None:
 						return "Something went wrong. Not valid fullname: {}".format(game.status.messageId)
-					messages.processMessage(message)
+					messages.processMessage(message, True)
 				except Exception as err:
 					log.warning(traceback.format_exc())
 					log.warning("Unable to revert game when changing coaches")
