@@ -257,6 +257,7 @@ class Game:
 		self.playclock = datetime.utcnow() + timedelta(hours=24)
 		self.deadline = datetime.utcnow() + timedelta(days=10)
 		self.forceChew = False
+		self.playclockWarning = False
 
 	def team(self, isHome):
 		if isHome:

@@ -48,6 +48,8 @@ def init():
 					log.warning(traceback.format_exc())
 					log.warning("Unable to revert game when changing coaches")
 
+			games[game.thread] = game
+
 
 def addNewGame(game):
 	games[game.thread] = game
@@ -67,6 +69,15 @@ def getGamesPastPlayclock():
 	for thread in games:
 		game = games[thread]
 		if not game.errored and game.playclock < datetime.utcnow():
+			pastPlayclock.append(game)
+	return pastPlayclock
+
+
+def getGamesPastPlayclockWarning():
+	pastPlayclock = []
+	for thread in games:
+		game = games[thread]
+		if not game.errored and not game.playclockWarning and game.playclock - timedelta(hours=12) < datetime.utcnow():
 			pastPlayclock.append(game)
 	return pastPlayclock
 

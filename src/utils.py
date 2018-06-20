@@ -851,6 +851,7 @@ def renderGameStatusMessage(game):
 
 def setGamePlayed(game):
 	game.playclock = datetime.utcnow() + timedelta(hours=24)
+	game.playclockWarning = False
 
 
 driveEnders = [Result.TURNOVER, Result.TOUCHDOWN, Result.TURNOVER_TOUCHDOWN, Result.FIELD_GOAL, Result.PUNT]
