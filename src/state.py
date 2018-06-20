@@ -43,6 +43,7 @@ def setStateKickoff(game, homeAway):
 	game.status.location = 35
 	game.status.down = 1
 	game.status.yards = 10
+	game.status.timeRunoff = False
 	game.status.possession = homeAway.copy()
 	game.status.waitingAction = Action.KICKOFF
 	game.status.waitingOn = homeAway.copy()
