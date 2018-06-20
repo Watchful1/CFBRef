@@ -291,8 +291,10 @@ def updateTime(game, play, result, actualResult, yards, offenseHomeAway, timeOpt
 		actualTimeOffClock = timeOffClock + game.status.clock
 		if game.status.quarter == 1:
 			timeMessage = "end of the first quarter"
+			game.status.timeRunoff = False
 		elif game.status.quarter == 3:
 			timeMessage = "end of the third quarter"
+			game.status.timeRunoff = False
 		else:
 			if game.status.quarter == 4:
 				if game.status.state(T.home).points == game.status.state(T.away).points:
