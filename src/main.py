@@ -159,7 +159,7 @@ while True:
 
 			for game in index.getGamesPastPlayclockWarning():
 				warningText = "This is a warning that your [game]({}) is waiting on a reply from you to " \
-								"[this message]({}). You have 12 hours until a delay of game penalty."\
+								"this {}. You have 12 hours until a delay of game penalty."\
 								.format(utils.getLinkToThread(game.thread),
 										utils.getLinkFromGameThing(game.thread, utils.getPrimaryWaitingId(game.status.waitingId)))
 				reddit.sendMessage(recipients=game.team(game.status.waitingOn).coaches,

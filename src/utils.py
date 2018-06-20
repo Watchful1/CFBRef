@@ -302,6 +302,13 @@ def renderGame(game):
 	if game.forceChew:
 		bldr.append("\n#This game is in default chew the clock mode.\n")
 
+	if game.status.waitingId != "":
+		bldr.append("\nWaiting on a response from {} to this {}.\n"
+					.format(
+						getCoachString(game, game.status.waitingOn),
+						getLinkFromGameThing(game.thread, getPrimaryWaitingId(game.status.waitingId))))
+
+
 	if game.status.quarterType == QuarterType.END:
 		bldr.append("\n#Game complete, {} wins!\n".format(game.status.winner))
 
