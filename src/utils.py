@@ -74,10 +74,10 @@ def startGame(homeTeam, awayTeam, startTime=None, location=None, station=None, h
 
 	log.debug("Game started, posting coin toss comment")
 	message = "Welcome to week 5. There has been a substantial change in how the clock works this week. The between " \
-	          "play runoff now happens before the play rather than after. If the previous play did not stop the clock, " \
-	          "you can call chew the clock, hurry up, timeout or a kneel to effect the between play runoff for the " \
-	          "current play.\n\n" \
-	          "The game has started! {}, you're home. {}, you're away, call **heads** or **tails** in the air."\
+			  "play runoff now happens before the play rather than after. If the previous play did not stop the clock, " \
+			  "you can call chew the clock, hurry up, timeout or a kneel to effect the between play runoff for the " \
+			  "current play.\n\n" \
+			  "The game has started! {}, you're home. {}, you're away, call **heads** or **tails** in the air." \
 		.format(getCoachString(game, True), getCoachString(game, False))
 	sendGameComment(game, message, getActionTable(game, Action.COIN))
 	log.debug("Comment posted, now waiting on: {}".format(game.status.waitingId))
@@ -222,25 +222,25 @@ def renderGame(game):
 		bldr.append(unescapeMarkdown(game.station))
 		bldr.append("\n\n")
 
-
 	bldr.append("\n\n")
 
 	for homeAway in [False, True]:
 		bldr.append(flair(game.team(homeAway)))
 		bldr.append("\n\n")
-		bldr.append("Total Passing Yards|Total Rushing Yards|Total Yards|Interceptions Lost|Fumbles Lost|Field Goals|Time of Possession|Timeouts\n")
+		bldr.append(
+			"Total Passing Yards|Total Rushing Yards|Total Yards|Interceptions Lost|Fumbles Lost|Field Goals|Time of Possession|Timeouts\n")
 		bldr.append(":-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:\n")
 		bldr.append("{} yards|{} yards|{} yards|{}|{}|{}/{}|{}|{}".format(
-				game.status.stats(homeAway).yardsPassing,
-				game.status.stats(homeAway).yardsRushing,
-				game.status.stats(homeAway).yardsTotal,
-				game.status.stats(homeAway).turnoverInterceptions,
-				game.status.stats(homeAway).turnoverFumble,
-				game.status.stats(homeAway).fieldGoalsScored,
-				game.status.stats(homeAway).fieldGoalsAttempted,
-				renderTime(game.status.stats(homeAway).posTime),
-				game.status.state(homeAway).timeouts
-			)
+			game.status.stats(homeAway).yardsPassing,
+			game.status.stats(homeAway).yardsRushing,
+			game.status.stats(homeAway).yardsTotal,
+			game.status.stats(homeAway).turnoverInterceptions,
+			game.status.stats(homeAway).turnoverFumble,
+			game.status.stats(homeAway).fieldGoalsScored,
+			game.status.stats(homeAway).fieldGoalsAttempted,
+			renderTime(game.status.stats(homeAway).posTime),
+			game.status.state(homeAway).timeouts
+		)
 		)
 		bldr.append("\n\n___\n")
 
@@ -287,7 +287,7 @@ def renderGame(game):
 		bldr.append(str(i + 1))
 		bldr.append("|")
 	bldr.append("Total\n")
-	bldr.append((":-:|"*(numQuarters + 2))[:-1])
+	bldr.append((":-:|" * (numQuarters + 2))[:-1])
 	bldr.append("\n")
 	for homeAway in [True, False]:
 		bldr.append(flair(game.team(homeAway)))
@@ -340,19 +340,20 @@ def renderPostGame(game):
 	for homeAway in [False, True]:
 		bldr.append(flair(game.team(homeAway)))
 		bldr.append("\n\n")
-		bldr.append("Total Passing Yards|Total Rushing Yards|Total Yards|Interceptions Lost|Fumbles Lost|Field Goals|Time of Possession|Timeouts\n")
+		bldr.append(
+			"Total Passing Yards|Total Rushing Yards|Total Yards|Interceptions Lost|Fumbles Lost|Field Goals|Time of Possession|Timeouts\n")
 		bldr.append(":-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:\n")
 		bldr.append("{} yards|{} yards|{} yards|{}|{}|{}/{}|{}|{}".format(
-				game.status.stats(homeAway).yardsPassing,
-				game.status.stats(homeAway).yardsRushing,
-				game.status.stats(homeAway).yardsTotal,
-				game.status.stats(homeAway).turnoverInterceptions,
-				game.status.stats(homeAway).turnoverFumble,
-				game.status.stats(homeAway).fieldGoalsScored,
-				game.status.stats(homeAway).fieldGoalsAttempted,
-				renderTime(game.status.stats(homeAway).posTime),
-				game.status.state(homeAway).timeouts
-			)
+			game.status.stats(homeAway).yardsPassing,
+			game.status.stats(homeAway).yardsRushing,
+			game.status.stats(homeAway).yardsTotal,
+			game.status.stats(homeAway).turnoverInterceptions,
+			game.status.stats(homeAway).turnoverFumble,
+			game.status.stats(homeAway).fieldGoalsScored,
+			game.status.stats(homeAway).fieldGoalsAttempted,
+			renderTime(game.status.stats(homeAway).posTime),
+			game.status.state(homeAway).timeouts
+		)
 		)
 		bldr.append("\n\n___\n")
 
@@ -363,7 +364,7 @@ def renderPostGame(game):
 		bldr.append(str(i + 1))
 		bldr.append("|")
 	bldr.append("Total\n")
-	bldr.append((":-:|"*(numQuarters + 2))[:-1])
+	bldr.append((":-:|" * (numQuarters + 2))[:-1])
 	bldr.append("\n")
 	for homeAway in [True, False]:
 		bldr.append(flair(game.team(homeAway)))
@@ -403,8 +404,8 @@ def paste(title, content):  # used for posting a new paste
 		api_paste_name=title,
 		api_paste_code=content,
 	)
-	return urllib.request.urlopen('http://pastebin.com/api/api_post.php', urllib.parse.urlencode(pastebin_vars).encode('utf8')).read()
-
+	return urllib.request.urlopen('http://pastebin.com/api/api_post.php',
+								  urllib.parse.urlencode(pastebin_vars).encode('utf8')).read()
 
 
 def coinToss():
@@ -452,15 +453,15 @@ def coachHomeAway(game, coach):
 
 def sendGameMessage(isHome, game, message, dataTable):
 	reddit.sendMessage(game.team(isHome).coaches,
-	                   "{} vs {}".format(game.home.name, game.away.name),
-	                   embedTableInMessage(message, dataTable))
+					   "{} vs {}".format(game.home.name, game.away.name),
+					   embedTableInMessage(message, dataTable))
 	return reddit.getRecentSentMessage().id
 
 
 def sendGameComment(game, message, dataTable=None, saveWaiting=True):
 	commentResult = reddit.replySubmission(game.thread, embedTableInMessage(message, dataTable))
 	if saveWaiting:
-		game.status.waitingId = commentResult.fullname
+		setWaitingId(game, commentResult.fullname)
 	log.debug("Game comment sent, now waiting on: {}".format(game.status.waitingId))
 	return commentResult
 
@@ -485,27 +486,54 @@ def getLinkFromGameThing(threadId, thingId):
 	return "[{}]({})".format(waitingMessageType, link)
 
 
+def getPrimaryWaitingId(waitingId):
+	lastComma = waitingId.rfind(",")
+	if lastComma == -1:
+		return waitingId
+	else:
+		return waitingId[lastComma + 1:]
+
+
+def clearReturnWaitingId(game):
+	game.status.waitingId = re.sub(",?return", "", game.status.waitingId)
+
+
+def resetWaitingId(game):
+	game.status.waitingId = ""
+
+
+def addWaitingId(game, waitingId):
+	game.status.waitingId = "{},{}".format(game.status.waitingId, waitingId)
+
+
+def setWaitingId(game, waitingId):
+	resetWaitingId(game)
+	addWaitingId(game, waitingId)
+
+
 def isGameWaitingOn(game, user, action, messageId, forceCoach=False):
 	if game.status.waitingAction != action:
 		log.debug("Not waiting on {}: {}".format(action.name, game.status.waitingAction.name))
-		return "I'm not waiting on a '{}' for this game, are you sure you replied to the right message?".format(action.name.lower())
+		return "I'm not waiting on a '{}' for this game, are you sure you replied to the right message?".format(
+			action.name.lower())
 
 	if not forceCoach:
 		if (game.status.waitingOn == 'home') != coachHomeAway(game, user):
 			log.debug("Not waiting on message author's team")
 			return "I'm not waiting on a message from you, are you sure you responded to the right message?"
 
-	if game.status.waitingId is not None and game.status.waitingId != messageId:
+	if messageId not in game.status.waitingId:
 		log.debug("Not waiting on message id: {} : {}".format(game.status.waitingId, messageId))
 
-		link = getLinkFromGameThing(game.thread, game.status.waitingId)
+		primaryWaitingId = getPrimaryWaitingId(game.status.waitingId)
+		link = getLinkFromGameThing(game.thread, primaryWaitingId)
 
 		if messageId.startswith("t1"):
 			messageType = "comment"
 		elif messageId.startswith("t4"):
 			messageType = "message"
 		else:
-			return "Something went wrong. Not valid: {}".format(game.status.waitingId)
+			return "Something went wrong. Not valid: {}".format(primaryWaitingId)
 
 		return "I'm not waiting on a reply to this {}. Please respond to this {}".format(messageType, link)
 
@@ -592,17 +620,17 @@ def sendDefensiveNumberMessage(game):
 	defenseHomeAway = game.status.possession.negate()
 	log.debug("Sending get defence number to {}".format(getCoachString(game, defenseHomeAway)))
 	reddit.sendMessage(recipients=game.team(defenseHomeAway).coaches,
-	                   subject="{} vs {}".format(game.away.name, game.home.name),
-	                   message=embedTableInMessage(
-		                    "{}\n\nReply with a number between **1** and **1500**, inclusive.\n\nYou have until {}."
-	                        .format(
-			                    getCurrentPlayString(game),
-			                    renderDatetime(game.playclock)
-		                    ),
-		                    getActionTable(game, game.status.waitingAction)
-	                   ))
+						subject="{} vs {}".format(game.away.name, game.home.name),
+						message=embedTableInMessage(
+							"{}\n\nReply with a number between **1** and **1500**, inclusive.\n\nYou have until {}."
+								.format(
+								getCurrentPlayString(game),
+								renderDatetime(game.playclock)
+							),
+							getActionTable(game, game.status.waitingAction)
+						))
 	messageResult = reddit.getRecentSentMessage()
-	game.status.waitingId = messageResult.fullname
+	addWaitingId(game, messageResult.fullname)
 	log.debug("Defensive number sent, now waiting on: {}".format(game.status.waitingId))
 
 
@@ -691,7 +719,9 @@ def addStatRunPass(game, runPass, amount):
 def addStat(game, stat, amount, offenseHomeAway=None):
 	if offenseHomeAway is None:
 		offenseHomeAway = game.status.possession
-	log.debug("Adding stat {} : {} : {} : {}".format(stat, offenseHomeAway, getattr(game.status.stats(offenseHomeAway), stat), amount))
+	log.debug(
+		"Adding stat {} : {} : {} : {}".format(stat, offenseHomeAway, getattr(game.status.stats(offenseHomeAway), stat),
+											   amount))
 	setattr(game.status.stats(offenseHomeAway), stat, getattr(game.status.stats(offenseHomeAway), stat) + amount)
 	if stat in ['yardsPassing', 'yardsRushing']:
 		game.status.stats(offenseHomeAway).yardsTotal += amount
@@ -727,9 +757,11 @@ def newGameObject(home, away):
 
 
 def newDebugGameObject():
-	home = classes.Team(tag="team1", name="Team 1", offense=classes.OffenseType.OPTION, defense=classes.DefenseType.THREE_FOUR)
+	home = classes.Team(tag="team1", name="Team 1", offense=classes.OffenseType.OPTION,
+						defense=classes.DefenseType.THREE_FOUR)
 	home.coaches.append("watchful1")
-	away = classes.Team(tag="team2", name="Team 2", offense=classes.OffenseType.SPREAD, defense=classes.DefenseType.FOUR_THREE)
+	away = classes.Team(tag="team2", name="Team 2", offense=classes.OffenseType.SPREAD,
+						defense=classes.DefenseType.FOUR_THREE)
 	away.coaches.append("watchful12")
 	return classes.Game(home, away)
 
@@ -754,7 +786,6 @@ def endGame(game, winner, postThread=True):
 		return "[Post game thread]({}).".format(getLinkToThread(threadID))
 	else:
 		return None
-
 
 
 def pauseGame(game, hours):
@@ -798,7 +829,8 @@ def renderGameStatusMessage(game):
 		bldr.append(" in the ")
 		bldr.append(getNthWord(status.quarter))
 		bldr.append("|")
-		bldr.append(getLinkFromGameThing(game.thread, status.waitingId))
+		primaryWaitingId = getPrimaryWaitingId(game.status.waitingId)
+		bldr.append(getLinkFromGameThing(game.thread, primaryWaitingId))
 		bldr.append(" ")
 		bldr.append(status.waitingOn.name())
 		bldr.append("/")
@@ -808,10 +840,10 @@ def renderGameStatusMessage(game):
 		bldr.append("|")
 		bldr.append("[Message](")
 		bldr.append(buildMessageLink(
-                    globals.ACCOUNT_NAME,
-                    "Kick game",
-                    "kick {} revert:{} message:{}".format(game.thread, i, status.messageId)
-                ))
+			globals.ACCOUNT_NAME,
+			"Kick game",
+			"kick {} revert:{} message:{}".format(game.thread, i, status.messageId)
+		))
 		bldr.append(")\n")
 
 	return ''.join(bldr)
@@ -828,11 +860,9 @@ def getDrives(game):
 	drives = []
 	drive = None
 	for i, playSummary in enumerate(game.plays):
-		#if playSummary in classes.kickoffPlays:
+		# if playSummary in classes.kickoffPlays:
 
-
-		#if playSummary not in classes.kickoffPlays and playSummary.posHome != previousPlay.posHome:
-
+		# if playSummary not in classes.kickoffPlays and playSummary.posHome != previousPlay.posHome:
 
 		if drive is None:
 			drive = DriveSummary()
@@ -840,7 +870,6 @@ def getDrives(game):
 		if playSummary.yards is not None:
 			drive.yards += playSummary.yards
 		drive.time += playSummary.time
-
 
 		if playSummary.result in driveEnders:
 			drives.append(drive)

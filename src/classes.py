@@ -209,7 +209,7 @@ class GameStatus:
 		self.awayState = TeamState()
 		self.homeStats = TeamStats()
 		self.awayStats = TeamStats()
-		self.waitingId = None
+		self.waitingId = ""
 		self.waitingAction = Action.COIN
 		self.waitingOn = HomeAway(T.away)
 		self.defensiveNumber = None
