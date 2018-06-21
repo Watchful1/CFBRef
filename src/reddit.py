@@ -47,22 +47,23 @@ def getMessage(id):
 def sendMessage(recipients, subject, message):
 	if not isinstance(recipients, list):
 		recipients = [recipients]
-	success = None
+	results = []
 	for recipient in recipients:
 		try:
-			success = reddit.redditor(recipient).message(
+			reddit.redditor(recipient).message(
 				subject=subject,
 				message=message
 			)
+			results.append(getRecentSentMessage())
 		except praw.exceptions.APIException:
 			log.warning("User "+recipient+" doesn't exist")
-			success = None
+			return []
 		except Exception:
 			log.warning("Couldn't sent message to "+recipient)
 			log.warning(traceback.format_exc())
-			success = None
+			return []
 
-	return success
+	return results
 
 
 def replySubmission(id, message):

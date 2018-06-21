@@ -513,7 +513,7 @@ def processMessage(message, force=False):
 
 				elif dataTable['action'] in classes.playActions and isMessage:
 					success, response = processMessageDefenseNumber(game, body, author)
-					appendMessageId = success
+					appendMessageId = not success
 
 				elif dataTable['action'] in classes.playActions and not isMessage:
 					success, response = processMessageOffensePlay(game, body, author)

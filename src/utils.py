@@ -73,10 +73,7 @@ def startGame(homeTeam, awayTeam, startTime=None, location=None, station=None, h
 		log.debug("Coach added to away: {}".format(user))
 
 	log.debug("Game started, posting coin toss comment")
-	message = "Welcome to week 5. There has been a substantial change in how the clock works this week. The between " \
-			  "play runoff now happens before the play rather than after. If the previous play did not stop the clock, " \
-			  "you can call chew the clock, hurry up, timeout or a kneel to effect the between play runoff for the " \
-			  "current play.\n\n" \
+	message = "Welcome to week 6.\n\n" \
 			  "The game has started! {}, you're home. {}, you're away, call **heads** or **tails** in the air." \
 		.format(getCoachString(game, True), getCoachString(game, False))
 	sendGameComment(game, message, getActionTable(game, Action.COIN))
@@ -510,7 +507,10 @@ def resetWaitingId(game):
 
 
 def addWaitingId(game, waitingId):
-	game.status.waitingId = "{},{}".format(game.status.waitingId, waitingId)
+	if game.status.waitingId == "":
+		game.status.waitingId = waitingId
+	else:
+		game.status.waitingId = "{},{}".format(game.status.waitingId, waitingId)
 
 
 def setWaitingId(game, waitingId):
@@ -626,7 +626,7 @@ def getWaitingOnString(game):
 def sendDefensiveNumberMessage(game):
 	defenseHomeAway = game.status.possession.negate()
 	log.debug("Sending get defence number to {}".format(getCoachString(game, defenseHomeAway)))
-	reddit.sendMessage(recipients=game.team(defenseHomeAway).coaches,
+	results = reddit.sendMessage(recipients=game.team(defenseHomeAway).coaches,
 						subject="{} vs {}".format(game.away.name, game.home.name),
 						message=embedTableInMessage(
 							"{}\n\nReply with a number between **1** and **1500**, inclusive.\n\nYou have until {}."
@@ -636,8 +636,9 @@ def sendDefensiveNumberMessage(game):
 							),
 							getActionTable(game, game.status.waitingAction)
 						))
-	messageResult = reddit.getRecentSentMessage()
-	addWaitingId(game, messageResult.fullname)
+	resetWaitingId(game)
+	for message in results:
+		addWaitingId(game, message.fullname)
 	log.debug("Defensive number sent, now waiting on: {}".format(game.status.waitingId))
 
 
