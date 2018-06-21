@@ -837,7 +837,7 @@ def renderGameStatusMessage(game):
 		bldr.append(" in the ")
 		bldr.append(getNthWord(status.quarter))
 		bldr.append("|")
-		primaryWaitingId = getPrimaryWaitingId(game.status.waitingId)
+		primaryWaitingId = getPrimaryWaitingId(status.waitingId)
 		bldr.append(getLinkFromGameThing(game.thread, primaryWaitingId))
 		bldr.append(" ")
 		bldr.append(status.waitingOn.name())
