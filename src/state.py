@@ -238,6 +238,32 @@ def getTimeByPlay(play, result, yards):
 		return timeObject['time']
 
 
+def betweenPlayRunoff(game, actualResult, offenseHomeAway, timeOption):
+	timeOffClock = 0
+	if game.status.timeRunoff:
+		if game.status.state(offenseHomeAway).requestedTimeout == TimeoutOption.REQUESTED:
+			log.debug("Using offensive timeout")
+			game.status.state(offenseHomeAway).requestedTimeout = TimeoutOption.USED
+			game.status.state(offenseHomeAway).timeouts -= 1
+		elif game.status.state(offenseHomeAway.negate()).requestedTimeout == TimeoutOption.REQUESTED:
+			log.debug("Using defensive timeout")
+			game.status.state(offenseHomeAway.negate()).requestedTimeout = TimeoutOption.USED
+			game.status.state(offenseHomeAway.negate()).timeouts -= 1
+		else:
+			if actualResult == Result.KNEEL:
+				timeOffClock = 39
+			elif timeOption == TimeOption.CHEW:
+				timeOffClock = 35
+			elif timeOption == TimeOption.HURRY:
+				timeOffClock = 5
+			else:
+				timeOffClock = getTimeAfterForOffense(game, offenseHomeAway)
+
+	log.debug("Between play runoff: {} : {} : {}".format(game.status.clock, timeOffClock, game.status.timeRunoff))
+	game.status.clock -= timeOffClock
+	game.status.timeRunoff = False
+
+
 def updateTime(game, play, result, actualResult, yards, offenseHomeAway, timeOption):
 	timeOffClock = 0
 	if game.status.timeRunoff:
