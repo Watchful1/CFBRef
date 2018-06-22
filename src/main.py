@@ -169,7 +169,7 @@ while True:
 							.format(
 							utils.getCoachString(game, game.status.waitingOn),
 							game.thread,
-							','.join(results)
+							','.join([result.fullname for result in results])
 						))
 				game.playclockWarning = True
 				utils.saveGameObject(game)
