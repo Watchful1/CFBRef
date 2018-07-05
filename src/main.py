@@ -156,6 +156,25 @@ while True:
 				utils.updateGameThread(game)
 
 			utils.clearLogGameID()
+
+			for game in index.getGamesPastPlayclockWarning():
+				warningText = "This is a warning that your [game]({}) is waiting on a reply from you to " \
+								"this {}. You have 12 hours until a delay of game penalty."\
+								.format(utils.getLinkToThread(game.thread),
+										utils.getLinkFromGameThing(game.thread, utils.getPrimaryWaitingId(game.status.waitingId)))
+				results = reddit.sendMessage(recipients=game.team(game.status.waitingOn).coaches,
+									subject="{} vs {} 12 hour warning".format(game.away.name, game.home.name),
+									message=warningText)
+				log.debug("12 hour warning sent to {} for game {}: {}"
+							.format(
+							utils.getCoachString(game, game.status.waitingOn),
+							game.thread,
+							','.join([result.fullname for result in results])
+						))
+				game.playclockWarning = True
+				utils.saveGameObject(game)
+
+			utils.clearLogGameID()
 			if once:
 				break
 

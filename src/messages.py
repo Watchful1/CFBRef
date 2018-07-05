@@ -75,7 +75,7 @@ def processMessageCoin(game, isHeads, author):
 		log.debug("User won coin toss, asking if they want to defer")
 		game.status.waitingAction = Action.DEFER
 		game.status.waitingOn.set(False)
-		game.status.waitingId = 'return'
+		utils.setWaitingId(game, 'return')
 		game.dirty = True
 
 		if utils.isGameOvertime(game):
@@ -88,7 +88,7 @@ def processMessageCoin(game, isHeads, author):
 		log.debug("User lost coin toss, asking other team if they want to defer")
 		game.status.waitingAction = Action.DEFER
 		game.status.waitingOn.set(True)
-		game.status.waitingId = 'return'
+		utils.setWaitingId(game, 'return')
 		game.dirty = True
 
 		if utils.isGameOvertime(game):
@@ -301,7 +301,7 @@ def processMessageOffensePlay(game, message, author):
 		message = "Overtime has started! {}, you're away, call **heads** or **tails** in the air.".format(
 			utils.getCoachString(game, False))
 		comment = utils.sendGameComment(game, message, utils.getActionTable(game, Action.COIN))
-		game.status.waitingId = comment.fullname
+		utils.setWaitingId(game, comment.fullname)
 		game.status.waitingAction = Action.COIN
 		game.status.waitingOn = classes.HomeAway(False)
 
@@ -463,6 +463,7 @@ def processMessage(message, force=False):
 	body = message.body.lower()
 	author = str(message.author)
 	game = None
+	appendMessageId = False
 	if dataTable is not None:
 		game = index.reloadAndReturn(dataTable['thread'])
 		if game is not None:
@@ -512,6 +513,7 @@ def processMessage(message, force=False):
 
 				elif dataTable['action'] in classes.playActions and isMessage:
 					success, response = processMessageDefenseNumber(game, body, author)
+					appendMessageId = not success
 
 				elif dataTable['action'] in classes.playActions and not isMessage:
 					success, response = processMessageOffensePlay(game, body, author)
@@ -542,20 +544,27 @@ def processMessage(message, force=False):
 			log.debug("Embedding datatable in reply on failure")
 			response = utils.embedTableInMessage(response, dataTable)
 			if updateWaiting and game is not None:
-				game.status.waitingId = 'return'
+				if appendMessageId:
+					utils.addWaitingId(game, 'return')
+				else:
+					utils.setWaitingId(game, 'return')
 		resultMessage = reddit.replyMessage(message, response)
 		if resultMessage is None:
 			log.warning("Could not send message")
 
-		elif game is not None and game.status.waitingId == 'return':
-			game.status.waitingId = resultMessage.fullname
+		elif game is not None and 'return' in game.status.waitingId:
+			if appendMessageId:
+				utils.clearReturnWaitingId(game)
+				utils.addWaitingId(game, resultMessage.fullname)
+			else:
+				utils.setWaitingId(game, resultMessage.fullname)
 			game.dirty = True
 			log.debug("Message/comment replied, now waiting on: {}".format(game.status.waitingId))
 	else:
 		if isMessage:
 			log.debug("Couldn't understand message")
 			resultMessage = reddit.replyMessage(message,
-			                                    "I couldn't understand your message, please try again or message /u/Watchful1 if you need help.")
+												"I couldn't understand your message, please try again or message /u/Watchful1 if you need help.")
 			if resultMessage is None:
 				log.warning("Could not send message")
 

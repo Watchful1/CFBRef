@@ -43,6 +43,7 @@ def setStateKickoff(game, homeAway):
 	game.status.location = 35
 	game.status.down = 1
 	game.status.yards = 10
+	game.status.timeRunoff = False
 	game.status.possession = homeAway.copy()
 	game.status.waitingAction = Action.KICKOFF
 	game.status.waitingOn = homeAway.copy()
@@ -237,7 +238,7 @@ def getTimeByPlay(play, result, yards):
 		return timeObject['time']
 
 
-def updateTime(game, play, result, yards, offenseHomeAway, timeOption):
+def betweenPlayRunoff(game, actualResult, offenseHomeAway, timeOption):
 	timeOffClock = 0
 	if game.status.timeRunoff:
 		if game.status.state(offenseHomeAway).requestedTimeout == TimeoutOption.REQUESTED:
@@ -249,7 +250,7 @@ def updateTime(game, play, result, yards, offenseHomeAway, timeOption):
 			game.status.state(offenseHomeAway.negate()).requestedTimeout = TimeoutOption.USED
 			game.status.state(offenseHomeAway.negate()).timeouts -= 1
 		else:
-			if result == Result.KNEEL:
+			if actualResult == Result.KNEEL:
 				timeOffClock = 39
 			elif timeOption == TimeOption.CHEW:
 				timeOffClock = 35
@@ -258,25 +259,53 @@ def updateTime(game, play, result, yards, offenseHomeAway, timeOption):
 			else:
 				timeOffClock = getTimeAfterForOffense(game, offenseHomeAway)
 
-	if result in [Result.TOUCHDOWN, Result.TOUCHBACK, Result.SAFETY] and play not in classes.kickoffPlays:
-		actualResult = Result.GAIN
+	log.debug("Between play runoff: {} : {} : {}".format(game.status.clock, timeOffClock, game.status.timeRunoff))
+	game.status.clock -= timeOffClock
+	game.status.timeRunoff = False
+
+
+def updateTime(game, play, result, actualResult, yards, offenseHomeAway, timeOption):
+	timeOffClock = 0
+	if game.status.timeRunoff:
+		if game.status.state(offenseHomeAway).requestedTimeout == TimeoutOption.REQUESTED:
+			log.debug("Using offensive timeout")
+			game.status.state(offenseHomeAway).requestedTimeout = TimeoutOption.USED
+			game.status.state(offenseHomeAway).timeouts -= 1
+		elif game.status.state(offenseHomeAway.negate()).requestedTimeout == TimeoutOption.REQUESTED:
+			log.debug("Using defensive timeout")
+			game.status.state(offenseHomeAway.negate()).requestedTimeout = TimeoutOption.USED
+			game.status.state(offenseHomeAway.negate()).timeouts -= 1
+		else:
+			if actualResult == Result.KNEEL:
+				timeOffClock = 39
+			elif timeOption == TimeOption.CHEW:
+				timeOffClock = 35
+			elif timeOption == TimeOption.HURRY:
+				timeOffClock = 5
+			else:
+				timeOffClock = getTimeAfterForOffense(game, offenseHomeAway)
+
+	if actualResult in [Result.TOUCHDOWN, Result.TOUCHBACK, Result.SAFETY] and play not in classes.kickoffPlays:
+		timeResult = Result.GAIN
+	elif actualResult == Result.TURNOVER and result == Result.GAIN:
+		timeResult = Result.GAIN
 	else:
-		actualResult = result
+		timeResult = actualResult
 
 	game.status.timeRunoff = False
-	if result == Result.SPIKE:
+	if actualResult == Result.SPIKE:
 		timeOffClock += 3
 	elif play == Play.PAT:
 		timeOffClock += 0
 	elif play == Play.TWO_POINT:
 		timeOffClock += 0
 	else:
-		if result == Result.KNEEL:
+		if actualResult == Result.KNEEL:
 			timeOffClock += 1
 		else:
-			timeOffClock += getTimeByPlay(play, actualResult, yards)
+			timeOffClock += getTimeByPlay(play, timeResult, yards)
 
-		if result in [Result.GAIN, Result.KNEEL]:
+		if actualResult in [Result.GAIN, Result.KNEEL]:
 			game.status.timeRunoff = True
 
 	log.debug("Time off clock: {} : {} : {}".format(game.status.clock, timeOffClock, game.status.timeRunoff))
@@ -289,8 +318,10 @@ def updateTime(game, play, result, yards, offenseHomeAway, timeOption):
 		actualTimeOffClock = timeOffClock + game.status.clock
 		if game.status.quarter == 1:
 			timeMessage = "end of the first quarter"
+			game.status.timeRunoff = False
 		elif game.status.quarter == 3:
 			timeMessage = "end of the third quarter"
+			game.status.timeRunoff = False
 		else:
 			if game.status.quarter == 4:
 				if game.status.state(T.home).points == game.status.state(T.away).points:
@@ -666,6 +697,7 @@ def executePlay(game, play, number, timeOption):
 				resultMessage = "Turnover on downs"
 			else:
 				resultMessage = "The quarterback spikes the ball"
+		result = {'result': actualResult}
 
 	else:
 		log.debug("Something went wrong, invalid play: {}".format(play))
@@ -676,7 +708,7 @@ def executePlay(game, play, number, timeOption):
 	timeOffClock = None
 	if actualResult is not None and game.status.quarterType == QuarterType.NORMAL:
 		if timeMessage is None:
-			timeMessage, timeOffClock = updateTime(game, play, actualResult, yards, startingPossessionHomeAway, timeOption)
+			timeMessage, timeOffClock = updateTime(game, play, result['result'], actualResult, yards, startingPossessionHomeAway, timeOption)
 
 	if timeMessage is not None:
 		messages.append(timeMessage)
