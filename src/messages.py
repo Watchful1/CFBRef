@@ -71,6 +71,7 @@ def processMessageNewGame(body, author):
 def processMessageCoin(game, isHeads, author):
 	log.debug("Processing coin toss message: {}".format(str(isHeads)))
 
+	utils.setGamePlayed(game)
 	if isHeads == utils.coinToss():
 		log.debug("User won coin toss, asking if they want to defer")
 		game.status.waitingAction = Action.DEFER
@@ -103,6 +104,7 @@ def processMessageDefer(game, isDefer, author):
 	log.debug("Processing defer message: {}".format(str(isDefer)))
 
 	authorHomeAway = utils.coachHomeAway(game, author)
+	utils.setGamePlayed(game)
 	if utils.isGameOvertime(game):
 		if isDefer:
 			log.debug("User deferred, {} is attacking".format(authorHomeAway.negate().name()))
