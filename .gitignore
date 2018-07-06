@@ -4,3 +4,4 @@ games/*
 __pycache__/*
 *.db
 *.ini
+src/__pycache__/
