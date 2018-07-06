@@ -480,7 +480,7 @@ def getRange(rangeString):
 def getLinkFromGameThing(threadId, thingId):
 	if thingId.startswith("t1"):
 		waitingMessageType = "comment"
-		link = "{}//{}".format(getLinkToThread(threadId), thingId[3:])
+		link = "{}/_/{}".format(getLinkToThread(threadId), thingId[3:])
 	elif thingId.startswith("t4"):
 		waitingMessageType = "message"
 		link = "{}{}".format(globals.MESSAGE_LINK, thingId[3:])
