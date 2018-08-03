@@ -560,11 +560,12 @@ def executePlay(game, play, number, timeOption):
 			utils.addStat(game, 'fieldGoalsAttempted', 1)
 
 		actualResult = result['result']
-		if play == Play.PUNT and result['result'] == Result.GAIN:
-			if game.status.location + result['yards'] >= 100:
-				result['result'] = Result.PUNT
-				actualResult = Result.PUNT
-			else:
+		if play == Play.PUNT and result['result'] == Result.GAIN and game.status.location + result['yards'] >= 100:
+			result['result'] = Result.PUNT
+			actualResult = Result.PUNT
+
+		if result['result'] == Result.GAIN:
+			if play == Play.PUNT:
 				log.debug("Muffed punt. Ball moved from {} to {}".format(game.status.location, game.status.location + result['yards']))
 				game.status.location = game.status.location + result['yards']
 				game.status.yards = 10
@@ -572,19 +573,19 @@ def executePlay(game, play, number, timeOption):
 				yards = result['yards']
 				resultMessage = "The receiver drops the ball! {} recovers on the {}.".format(game.team(game.status.possession).name, utils.getLocationString(game))
 
-		elif result['result'] == Result.GAIN:
-			if 'yards' not in result:
-				log.warning("Result is a gain, but I couldn't find any yards")
-				resultMessage = "Result of play is a number of yards, but something went wrong and I couldn't find what number"
-				success = False
 			else:
-				log.debug("Result is a gain of {} yards".format(result['yards']))
-				gainResult, yards, resultMessage = executeGain(game, play, result['yards'])
-				if gainResult != Result.ERROR:
-					if yards is not None:
-						actualResult = gainResult
-				else:
+				if 'yards' not in result:
+					log.warning("Result is a gain, but I couldn't find any yards")
+					resultMessage = "Result of play is a number of yards, but something went wrong and I couldn't find what number"
 					success = False
+				else:
+					log.debug("Result is a gain of {} yards".format(result['yards']))
+					gainResult, yards, resultMessage = executeGain(game, play, result['yards'])
+					if gainResult != Result.ERROR:
+						if yards is not None:
+							actualResult = gainResult
+					else:
+						success = False
 
 		elif result['result'] == Result.INCOMPLETE:
 			log.debug("Result is an incomplete pass")
