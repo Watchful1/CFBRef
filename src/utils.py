@@ -778,6 +778,8 @@ def endGame(game, winner, postThread=True):
 	game.status.quarterType = QuarterType.END
 	game.status.waitingAction = Action.END
 	game.status.winner = winner
+	if game.status.down > 4:
+		game.status.down = 4
 	index.endGame(game)
 
 	if postThread:
