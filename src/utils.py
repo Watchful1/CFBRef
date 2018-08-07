@@ -362,7 +362,7 @@ def renderPostGame(game):
 		bldr.append("\n\n___\n")
 
 	bldr.append("Team|")
-	numQuarters = len(game.status.homeState.quarters)
+	numQuarters = max(len(game.status.homeState.quarters), len(game.status.awayState.quarters))
 	for i in range(numQuarters):
 		bldr.append("Q")
 		bldr.append(str(i + 1))
