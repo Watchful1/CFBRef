@@ -407,12 +407,15 @@ def executeGain(game, play, yards, incomplete=False):
 			game.status.down += 1
 			if game.status.down > 4:
 				log.debug("Turnover on downs")
-				turnover(game)
 				if incomplete:
 					resultMessage = "The pass is incomplete. Turnover on downs"
 				else:
 					resultMessage = "{} play for {} yards, but that's not enough for the first down. Turnover on downs".format(play.name.lower().capitalize(), yards)
 
+				if utils.isGameOvertime(game):
+					resultMessage = "{}\n\n{}".format(resultMessage, overtimeTurnover(game))
+				else:
+					turnover(game)
 				return Result.TURNOVER, game.status.location - previousLocation, resultMessage
 			else:
 				log.debug("Now {} down and {}".format(utils.getDownString(game.status.down), yardsRemaining))
@@ -440,8 +443,11 @@ def executePunt(game, yards):
 			return "The punt goes into the end zone, touchback"
 	else:
 		log.debug("Punt caught, setting up turnover")
-		turnover(game)
-		return "It's a {} yard punt".format(yards)
+		if utils.isGameOvertime(game):
+			return overtimeTurnover(game)
+		else:
+			turnover(game)
+			return "It's a {} yard punt".format(yards)
 
 
 def executePlay(game, play, number, timeOption):
