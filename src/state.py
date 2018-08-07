@@ -519,7 +519,10 @@ def executePlay(game, play, number, timeOption):
 				log.debug("Result is a kick of {} yards".format(result['yards']))
 				yards = result['yards']
 				game.status.location = game.status.location + yards
-				turnover(game)
+				if utils.isGameOvertime(game):
+					timeMessage = overtimeTurnover(game)
+				else:
+					turnover(game)
 				resultMessage = "{} yard kick.".format(yards)
 
 		elif result['result'] == Result.GAIN:
