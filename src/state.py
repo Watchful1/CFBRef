@@ -265,6 +265,7 @@ def betweenPlayRunoff(game, actualResult, offenseHomeAway, timeOption):
 
 
 def updateTime(game, play, result, actualResult, yards, offenseHomeAway, timeOption):
+	log.debug("Updating time with: {} : {} : {} : {} : {} : {}".format(play, result, actualResult, yards, offenseHomeAway, timeOption))
 	timeOffClock = 0
 	if game.status.timeRunoff:
 		if game.status.state(offenseHomeAway).requestedTimeout == TimeoutOption.REQUESTED:
@@ -598,7 +599,7 @@ def executePlay(game, play, number, timeOption):
 
 		elif result['result'] == Result.INCOMPLETE:
 			log.debug("Result is an incomplete pass")
-			gainResult, yards, resultMessage = executeGain(game, play, 0, True)
+			actualResult, yards, resultMessage = executeGain(game, play, 0, True)
 
 		elif result['result'] == Result.TOUCHDOWN:
 			log.debug("Result is a touchdown")
