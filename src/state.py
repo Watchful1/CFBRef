@@ -404,7 +404,7 @@ def executeGain(game, play, yards, incomplete=False):
 			log.debug("First down")
 			game.status.yards = 10
 			game.status.down = 1
-			return Result.GAIN, game.status.location - previousLocation, "{} play for {} yards, first down".format(play.name.lower().capitalize(), yards)
+			return Result.GAIN, game.status.location - previousLocation, "{} play for {} yard(s), first down".format(play.name.lower().capitalize(), yards)
 		else:
 			log.debug("Not a first down, incrementing down")
 			game.status.down += 1
@@ -413,7 +413,7 @@ def executeGain(game, play, yards, incomplete=False):
 				if incomplete:
 					resultMessage = "The pass is incomplete. Turnover on downs"
 				else:
-					resultMessage = "{} play for {} yards, but that's not enough for the first down. Turnover on downs".format(play.name.lower().capitalize(), yards)
+					resultMessage = "{} play for {} yard(s), but that's not enough for the first down. Turnover on downs".format(play.name.lower().capitalize(), yards)
 
 				if utils.isGameOvertime(game):
 					resultMessage = "{}\n\n{}".format(resultMessage, overtimeTurnover(game))
@@ -426,7 +426,7 @@ def executeGain(game, play, yards, incomplete=False):
 				if incomplete:
 					resultMessage = "The pass is incomplete. {} and {}".format(utils.getDownString(game.status.down), yardsRemaining)
 				else:
-					resultMessage = "{} play for {} yards, {} and {}".format(
+					resultMessage = "{} play for {} yard(s), {} and {}".format(
 						play.name.lower().capitalize(),
 						yards, utils.getDownString(game.status.down),
 						"goal" if game.status.location + yardsRemaining >= 100 else yardsRemaining)
@@ -668,9 +668,11 @@ def executePlay(game, play, number, timeOption):
 			elif play == Play.PASS:
 				utils.addStat(game, 'turnoverInterceptions', 1)
 				resultMessage = "Picked off! The pass is intercepted and it's run all the way back. Touchdown {}!".format(game.team(game.status.possession.negate()).name)
-			elif play == Play.FIELD_GOAL or play == Play.PUNT:
+			elif play == Play.FIELD_GOAL:
+				resultMessage = "It's blocked! The ball is picked up and run all the way back. Touchdown {}!".format(game.team(game.status.possession.negate()).name)
+			elif play == Play.PUNT:
 				utils.addStat(game, 'turnoverFumble', 1)
-				resultMessage = "It's blocked! The ball is picked up and run all the back. Touchdown {}!".format(game.team(game.status.possession.negate()).name)
+				resultMessage = "The punt is returned all the way! Touchdown {}!".format(game.team(game.status.possession.negate()).name)
 			else:
 				utils.addStat(game, 'turnoverFumble', 1)
 				resultMessage = "It's a turnover and run back for a touchdown!"
