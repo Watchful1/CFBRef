@@ -44,6 +44,8 @@ def init():
 					if message is None:
 						return "Something went wrong. Not valid fullname: {}".format(game.status.messageId)
 					messages.processMessage(message, True)
+
+					game = reloadAndReturn(game.thread)
 				except Exception as err:
 					log.warning(traceback.format_exc())
 					log.warning("Unable to revert game when changing coaches")
