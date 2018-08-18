@@ -288,6 +288,8 @@ def updateTime(game, play, result, actualResult, yards, offenseHomeAway, timeOpt
 
 	if actualResult in [Result.TOUCHDOWN, Result.TOUCHBACK, Result.SAFETY] and play not in classes.kickoffPlays:
 		timeResult = Result.GAIN
+	elif result == Result.INCOMPLETE:
+		timeResult = Result.INCOMPLETE
 	elif actualResult == Result.TURNOVER and result == Result.GAIN:
 		timeResult = Result.GAIN
 	else:
