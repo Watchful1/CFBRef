@@ -74,9 +74,9 @@ def startGame(homeTeam, awayTeam, startTime=None, location=None, station=None, h
 		log.debug("Coach added to away: {}".format(user))
 
 	log.debug("Game started, posting coin toss comment")
-	message = "Welcome to week 6.\n\n" \
+	message = "{}\n\n" \
 			  "The game has started! {}, you're home. {}, you're away, call **heads** or **tails** in the air." \
-		.format(getCoachString(game, True), getCoachString(game, False))
+		.format(wiki.intro, getCoachString(game, True), getCoachString(game, False))
 	sendGameComment(game, message, getActionTable(game, Action.COIN))
 	log.debug("Comment posted, now waiting on: {}".format(game.status.waitingId))
 	updateGameThread(game)

@@ -20,6 +20,7 @@ coaches = {}
 plays = {}
 times = {}
 admins = set()
+intro = "Welcome to /r/FakeCollegeFootball!"
 
 lastTime = None
 
@@ -34,6 +35,7 @@ def loadPages(force=False):
 		loadPlays()
 		loadTimes()
 		loadAdmins()
+		loadIntro()
 		log.debug("Done loading pages in: %d", int(time.perf_counter() - startTime))
 
 
@@ -343,3 +345,10 @@ def loadAdmins():
 		admins.add(line.lower())
 
 	admins.add(globals.OWNER)
+
+
+def loadIntro():
+	global intro
+	intro = reddit.getWikiPage(globals.CONFIG_SUBREDDIT, "intro")
+
+
