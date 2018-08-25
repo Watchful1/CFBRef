@@ -115,6 +115,8 @@ def parseResult(resultString):
 		return Result.PUNT
 	elif resultString == "kick":
 		return Result.KICK
+	elif resultString == "turnoverPat":
+		return Result.TURNOVER_PAT
 	else:
 		return None
 

@@ -524,6 +524,15 @@ def executePlay(game, play, number, timeOption):
 				else:
 					setStateKickoff(game, game.status.possession)
 
+			elif result['result'] == Result.TURNOVER_PAT:
+				log.debug("Turnover PAT")
+				resultMessage = "The attempt was fumbled and run all the way back! Touchdown {}!".format(game.team(game.status.possession.negate()).name)
+				scorePAT(game, game.status.possession.negate)
+				if utils.isGameOvertime(game):
+					timeMessage = overtimeTurnover(game)
+				else:
+					setStateKickoff(game, game.status.possession)
+
 			game.status.defensiveNumber = None
 
 		elif play in classes.kickoffPlays:

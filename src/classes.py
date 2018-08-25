@@ -84,6 +84,7 @@ class Result(Enum):
 	KNEEL = 15
 	SAFETY = 16
 	ERROR = 17
+	TURNOVER_PAT = 18
 
 
 class T:
