@@ -223,6 +223,7 @@ class GameStatus:
 		self.messageId = None
 		self.winner = None
 		self.timeRunoff = False
+		self.plays = []
 
 	def state(self, isHome):
 		if isHome:
@@ -257,7 +258,6 @@ class Game:
 		self.thread = "empty"
 		self.status = GameStatus()
 		self.previousStatus = []
-		self.plays = []
 		self.startTime = None
 		self.location = None
 		self.station = None

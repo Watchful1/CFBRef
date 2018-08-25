@@ -772,7 +772,7 @@ def executePlay(game, play, number, timeOption):
 	playSummary.time = timeOffClock
 
 	if success:
-		game.plays.append(playSummary)
+		game.status.plays.append(playSummary)
 
 
 

@@ -396,7 +396,7 @@ def renderPostGame(game):
 		bldr.append("**\n")
 
 	playBldr = []
-	for play in game.plays:
+	for play in game.status.plays:
 		playBldr.append(str(play))
 	playString = '\n'.join(playBldr)
 	pasteOutput = paste("Thread summary", ''.join(playString)).decode('utf-8')
@@ -908,7 +908,7 @@ driveEnders = [Result.TURNOVER, Result.TOUCHDOWN, Result.TURNOVER_TOUCHDOWN, Res
 def getDrives(game):
 	drives = []
 	drive = None
-	for i, playSummary in enumerate(game.plays):
+	for i, playSummary in enumerate(game.status.plays):
 		# if playSummary in classes.kickoffPlays:
 
 		# if playSummary not in classes.kickoffPlays and playSummary.posHome != previousPlay.posHome:
