@@ -99,3 +99,11 @@ def clearGameErrored(game):
 	game.errored = False
 	game.deadline = game.deadline + (datetime.utcnow() - game.playclock)
 	game.playclock = datetime.utcnow() + timedelta(hours=24)
+
+
+def getGameFromTeamTag(tag):
+	for thread in games:
+		game = games[thread]
+		if game.home.tag == tag or game.away.tag == tag:
+			return game
+	return None

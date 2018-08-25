@@ -35,9 +35,9 @@ def getLinkToThread(threadID):
 def startGame(homeTeam, awayTeam, startTime=None, location=None, station=None, homeRecord=None, awayRecord=None):
 	log.debug("Creating new game between {} and {}".format(homeTeam, awayTeam))
 
-	i, result = verifyTeams([homeTeam, awayTeam])
-	if i != -1:
-		log.debug("Coaches not verified, {} : {}".format(i, result))
+	result = verifyTeams([homeTeam, awayTeam])
+	if result is not None:
+		log.debug("Coaches not verified, {}".format(result))
 		return "Something went wrong, someone is no longer an acceptable coach. Please try to start the game again"
 
 	homeTeam = wiki.getTeamByTag(homeTeam.lower())
@@ -134,14 +134,22 @@ def verifyTeams(teamTags):
 	teamSet = set()
 	for i, tag in enumerate(teamTags):
 		if tag in teamSet:
-			return i, 'duplicate'
+			log.debug("Teams are the same")
+			return "You can't have a team play itself"
 		teamSet.add(tag)
 
 		team = wiki.getTeamByTag(tag)
 		if team is None:
-			return i, 'team'
+			homeAway = 'home' if i == 0 else 'away'
+			log.debug("{} is not a valid team".format(homeAway))
+			return "The {} team is not valid".format(homeAway)
 
-	return -1, None
+		existingGame = index.getGameFromTeamTag(tag)
+		if existingGame is not None:
+			log.debug("{} is already in a game".format(tag))
+			return "The team {} is already in a [game]({})".format(homeAway, getLinkToThread(existingGame.thread))
+
+	return None
 
 
 def verifyCoaches(coaches):

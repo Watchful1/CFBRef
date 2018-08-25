@@ -21,26 +21,17 @@ def processMessageNewGame(body, author):
 	log.debug("Processing new game message")
 	teams = re.findall('(\w+)', body)
 	if len(teams) < 3:
-		log.debug("Could not find an two teams in create game message")
+		log.debug("Could not find two teams in create game message")
 		return "Please resend the message and specify two teams"
 
 	homeTeam = teams[1]
 	awayTeam = teams[2]
 	log.debug("Found teams in message {} vs {}".format(homeTeam, awayTeam))
 
-	i, result = utils.verifyTeams([homeTeam, awayTeam])
+	result = utils.verifyTeams([homeTeam, awayTeam])
 
-	if result == 'duplicate':
-		log.debug("Teams are the same")
-		return "You can't have a team play itself"
-
-	if i == 0 and result == 'team':
-		log.debug("Home is not a valid team")
-		return "The home team is not valid"
-
-	if i == 1 and result == 'team':
-		log.debug("Away is not a valid team")
-		return "The away team is not valid"
+	if result is not None:
+		return result
 
 	startTime = None
 	location = None
