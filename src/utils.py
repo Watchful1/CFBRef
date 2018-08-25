@@ -615,11 +615,11 @@ def getLocationString(game):
 def getCurrentPlayString(game):
 	bldr = []
 	if game.status.waitingAction == Action.CONVERSION:
-		bldr.append("{} just scored.".format(game.team(game.status.possession).name))
+		bldr.append("{} just scored. ".format(game.team(game.status.possession).name))
 	elif game.status.waitingAction == Action.KICKOFF:
-		bldr.append("{} is kicking off".format(game.team(game.status.possession).name))
+		bldr.append("{} is kicking off. ".format(game.team(game.status.possession).name))
 	else:
-		bldr.append("It's {} and {} on the {}.".format(
+		bldr.append("It's {} and {} on the {}. ".format(
 			getDownString(game.status.down),
 			"goal" if game.status.location + game.status.yards >= 100 else game.status.yards,
 			getLocationString(game)

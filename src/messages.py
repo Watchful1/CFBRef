@@ -429,7 +429,9 @@ def processMessageGameList(body):
 	log.debug("Processing game list message")
 
 	bldr = ['Teams|Link|Quarter|Clock\n:-:|:-:|:-:|:-:\n']
-	for game in index.getAllGames():
+	games = index.getAllGames()
+	log.debug("Listing {} games".format(len(games)))
+	for game in games:
 		bldr.append(game.away.name)
 		bldr.append(" vs ")
 		bldr.append(game.home.name)

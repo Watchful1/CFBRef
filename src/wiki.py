@@ -165,7 +165,7 @@ def loadTeams():
 	team1.coaches.append(coach1)
 	teams[team1.tag] = team1
 
-	coach2 = "watchful12"
+	coach2 = "watchful1bot"
 	team2 = Team(tag="team2", name="Team 2", offense=OffenseType.SPREAD, defense=DefenseType.FOUR_THREE)
 	team2.coaches.append(coach2)
 	teams[team2.tag] = team2

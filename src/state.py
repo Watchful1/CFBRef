@@ -483,7 +483,7 @@ def executePlay(game, play, number, timeOption):
 	runoffResult, timeMessageBetweenPlay = betweenPlayRunoff(game, play, startingPossessionHomeAway, timeOption)
 
 	if runoffResult == RunStatus.STOP_QUARTER:
-		log.debug("Hit STOP_QUARTER, not running play")
+		log.debug("Hit stop_quarter, not running play")
 	else:
 		if play in classes.conversionPlays:
 			numberResult, diffMessage, defenseNumber = getNumberDiffForGame(game, number)
@@ -743,7 +743,10 @@ def executePlay(game, play, number, timeOption):
 			resultMessage = "Something went wrong, invalid play: {}".format(play)
 			success = False
 
-	messages = [resultMessage]
+	if runoffResult == RunStatus.STOP_QUARTER:
+		messages = []
+	else:
+		messages = [resultMessage]
 	timeOffClock = None
 	if actualResult is not None and game.status.quarterType == QuarterType.NORMAL:
 		if timeMessage is None:
