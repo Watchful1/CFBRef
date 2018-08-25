@@ -53,6 +53,13 @@ def init():
 			games[game.thread] = game
 
 
+def getAllGames():
+	allGames = []
+	for thread in games:
+		allGames.append(games[thread])
+	return allGames.sort(key=utils.gameSortValue)
+
+
 def addNewGame(game):
 	games[game.thread] = game
 

@@ -425,6 +425,25 @@ def processMessageDefaultChew(body):
 	return result
 
 
+def processMessageGameList(body):
+	log.debug("Processing game list message")
+
+	bldr = ['Teams|Link|Quarter|Clock\n:-:|:-:|:-:|:-:\n']
+	for game in index.getAllGames():
+		bldr.append(game.away.name)
+		bldr.append(" vs ")
+		bldr.append(game.home.name)
+		bldr.append("|[Link](")
+		bldr.append(utils.getLinkToThread(game.thread))
+		bldr.append(")|")
+		bldr.append(str(game.status.quarter))
+		bldr.append("|")
+		bldr.append(utils.renderTime(game.status.clock))
+		bldr.append("\n")
+
+	return ''.join(bldr)
+
+
 def processMessage(message, force=False):
 	if isinstance(message, praw.models.Message):
 		isMessage = True
@@ -529,6 +548,8 @@ def processMessage(message, force=False):
 				response = processMessageReindex(message.body)
 			elif body.startswith("chew"):
 				response = processMessageDefaultChew(message.body)
+			elif body.startswith("gamelist"):
+				response = processMessageGameList(message.body)
 
 	message.mark_read()
 	if response is not None:

@@ -446,6 +446,10 @@ def loadGameObject(threadID):
 	return game
 
 
+def gameSortValue(game):
+	return game.status.quarter * 1000 + game.status.clock
+
+
 def updateGameThread(game):
 	if game.thread is None:
 		log.error("No thread ID in game when trying to update")
