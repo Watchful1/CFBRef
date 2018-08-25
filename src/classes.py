@@ -5,6 +5,12 @@ from enum import Enum
 import globals
 
 
+class RunStatus(Enum):
+	CONTINUE = 1
+	CONTINUE_QUARTER = 2
+	STOP_QUARTER = 3
+
+
 class OffenseType(Enum):
 	SPREAD = 1
 	PRO = 2
