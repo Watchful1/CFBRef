@@ -87,6 +87,7 @@ def getGamesPastPlayclockWarning():
 def endGame(game):
 	if game.thread in games:
 		del games[game.thread]
+	utils.archiveGameFile(game.thread)
 
 
 def setGameErrored(game):

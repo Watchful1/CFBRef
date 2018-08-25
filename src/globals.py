@@ -3,6 +3,7 @@ from pytz import timezone
 ### Config ###
 LOG_FOLDER_NAME = "logs"
 SAVE_FOLDER_NAME = "games"
+ARCHIVE_FOLDER_NAME = "gamesOld"
 SUBREDDIT = "FakeCollegeFootball"
 CONFIG_SUBREDDIT = "FakeCollegeFootball"
 USER_AGENT = "FakeCFBRef (by /u/Watchful1)"

@@ -47,6 +47,8 @@ if LOG_FILENAME is not None:
 
 if not os.path.exists(globals.SAVE_FOLDER_NAME):
 	os.makedirs(globals.SAVE_FOLDER_NAME)
+if not os.path.exists(globals.ARCHIVE_FOLDER_NAME):
+	os.makedirs(globals.ARCHIVE_FOLDER_NAME)
 
 
 def signal_handler(signal, frame):

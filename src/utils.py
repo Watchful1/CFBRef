@@ -7,6 +7,7 @@ import math
 import copy
 import traceback
 import pytz
+import os
 import urllib.parse
 import urllib.request
 from datetime import datetime
@@ -772,6 +773,17 @@ def newDebugGameObject():
 						defense=classes.DefenseType.FOUR_THREE)
 	away.coaches.append("watchful12")
 	return classes.Game(home, away)
+
+
+def archiveGameFile(threadID):
+	log.debug("Archiving game: {}".format(threadID))
+	try:
+		os.rename("{}/{}".format(globals.SAVE_FOLDER_NAME, threadID), "{}/{}".format(globals.ARCHIVE_FOLDER_NAME, threadID))
+	except Exception as err:
+		log.warning("Can't archive game file: {}".format(threadID))
+		log.warning(traceback.format_exc())
+		return False
+	return True
 
 
 def endGame(game, winner, postThread=True):
