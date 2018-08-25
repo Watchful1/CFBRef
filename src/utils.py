@@ -613,16 +613,24 @@ def getLocationString(game):
 
 
 def getCurrentPlayString(game):
+	bldr = []
 	if game.status.waitingAction == Action.CONVERSION:
-		return "{} just scored.".format(game.team(game.status.possession).name)
+		bldr.append("{} just scored.".format(game.team(game.status.possession).name))
 	elif game.status.waitingAction == Action.KICKOFF:
-		return "{} is kicking off".format(game.team(game.status.possession).name)
+		bldr.append("{} is kicking off".format(game.team(game.status.possession).name))
 	else:
-		return "It's {} and {} on the {}.".format(
+		bldr.append("It's {} and {} on the {}.".format(
 			getDownString(game.status.down),
 			"goal" if game.status.location + game.status.yards >= 100 else game.status.yards,
 			getLocationString(game)
-		)
+		))
+
+	if isGameOvertime(game):
+		bldr.append("In the {}.".format(getNthWord(game.status.quarter)))
+	else:
+		bldr.append("{} left in the {}.".format(renderTime(game.status.clock), getNthWord(game.status.quarter)))
+
+	return ''.join(bldr)
 
 
 def getWaitingOnString(game):

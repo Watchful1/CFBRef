@@ -755,6 +755,10 @@ def executePlay(game, play, number, timeOption):
 	if timeMessage is not None:
 		messages.append(timeMessage)
 
+	messages.append("{}\n\n".format(
+		utils.getCurrentPlayString(game)
+	))
+
 	if diffMessage is not None:
 		messages.append(diffMessage)
 
