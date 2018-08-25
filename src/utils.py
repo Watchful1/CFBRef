@@ -147,7 +147,7 @@ def verifyTeams(teamTags):
 		existingGame = index.getGameFromTeamTag(tag)
 		if existingGame is not None:
 			log.debug("{} is already in a game".format(tag))
-			return "The team {} is already in a [game]({})".format(homeAway, getLinkToThread(existingGame.thread))
+			return "The team {} is already in a [game]({})".format(tag, getLinkToThread(existingGame.thread))
 
 	return None
 
@@ -199,6 +199,21 @@ def renderTime(time):
 		return "0:00"
 	else:
 		return "{}:{}".format(str(math.trunc(time / 60)), str(time % 60).zfill(2))
+
+
+def renderBallLocation(game, useFlair):
+	if game.status.location < 50:
+		if useFlair:
+			return "{} {}".format(str(game.status.location), flair(game.team(game.status.possession)))
+		else:
+			return "{} {}".format(game.team(game.status.possession).name, str(game.status.location))
+	elif game.status.location > 50:
+		if useFlair:
+			return "{} {}".format(str(100 - game.status.location), flair(game.team(game.status.possession.negate())))
+		else:
+			return "{} {}".format(game.team(game.status.possession.negate()).name, str(100 - game.status.location))
+	else:
+		return str(game.status.location)
 
 
 def renderGame(game):
@@ -267,16 +282,7 @@ def renderGame(game):
 	bldr.append(" & ")
 	bldr.append(str(game.status.yards))
 	bldr.append("|")
-	if game.status.location < 50:
-		bldr.append(str(game.status.location))
-		bldr.append(" ")
-		bldr.append(flair(game.team(game.status.possession)))
-	elif game.status.location > 50:
-		bldr.append(str(100 - game.status.location))
-		bldr.append(" ")
-		bldr.append(flair(game.team(game.status.possession.negate())))
-	else:
-		bldr.append(str(game.status.location))
+	bldr.append(renderBallLocation(game, True))
 	bldr.append("|")
 	bldr.append(flair(game.team(game.status.possession)))
 	bldr.append("|")
