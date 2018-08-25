@@ -57,10 +57,10 @@ def startGame(homeTeam, awayTeam, startTime=None, location=None, station=None, h
 
 	gameThread = renderGame(game)
 	gameTitle = "[GAME THREAD] {}{} @ {}{}".format(
+		"{} ".format(unescapeMarkdown(awayRecord)) if awayRecord is not None else "",
 		game.away.name,
-		" {}".format(unescapeMarkdown(awayRecord)) if awayRecord is not None else "",
-		game.home.name,
-		" {}".format(unescapeMarkdown(homeRecord)) if homeRecord is not None else "")
+		"{} ".format(unescapeMarkdown(homeRecord)) if homeRecord is not None else "",
+		game.home.name)
 
 	threadID = str(reddit.submitSelfPost(globals.SUBREDDIT, gameTitle, gameThread))
 	game.thread = threadID
