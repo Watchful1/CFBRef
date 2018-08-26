@@ -330,10 +330,10 @@ def betweenPlayRunoff(game, play, offenseHomeAway, timeOption):
 	elif runStatus == RunStatus.STOP_QUARTER:
 		timeMessage = "The clock ran out before the play was run. That's the {}".format(timeMessage)
 
-	return runStatus, timeMessage
+	return runStatus, timeMessage, timeOffClock
 
 
-def updateTime(game, play, result, actualResult, yards, offenseHomeAway, timeOption):
+def updateTime(game, play, result, actualResult, yards, offenseHomeAway, timeOption, timeBetweenPlay):
 	log.debug("Updating time with: {} : {} : {} : {} : {} : {}".format(play, result, actualResult, yards, offenseHomeAway, timeOption))
 	timeOffClock = 0
 
@@ -372,7 +372,7 @@ def updateTime(game, play, result, actualResult, yards, offenseHomeAway, timeOpt
 
 	utils.addStat(game, 'posTime', timeOffClock, offenseHomeAway)
 
-	return "The play took {} seconds, {}".format(timeOffClock, timeMessage), timeOffClock
+	return "The play took {} seconds, {}".format(timeOffClock + timeBetweenPlay, timeMessage), timeOffClock
 
 
 def executeGain(game, play, yards, incomplete=False):
@@ -480,7 +480,7 @@ def executePlay(game, play, number, timeOption):
 	playSummary.offNum = number
 	playSummary.posHome = game.status.possession.isHome
 
-	runoffResult, timeMessageBetweenPlay = betweenPlayRunoff(game, play, startingPossessionHomeAway, timeOption)
+	runoffResult, timeMessageBetweenPlay, timeBetweenPlay = betweenPlayRunoff(game, play, startingPossessionHomeAway, timeOption)
 
 	if runoffResult == RunStatus.STOP_QUARTER:
 		log.debug("Hit stop_quarter, not running play")
@@ -750,7 +750,7 @@ def executePlay(game, play, number, timeOption):
 	timeOffClock = None
 	if actualResult is not None and game.status.quarterType == QuarterType.NORMAL:
 		if timeMessage is None:
-			timeMessage, timeOffClock = updateTime(game, play, result['result'], actualResult, yards, startingPossessionHomeAway, timeOption)
+			timeMessage, timeOffClock = updateTime(game, play, result['result'], actualResult, yards, startingPossessionHomeAway, timeOption, timeBetweenPlay)
 
 	if timeMessageBetweenPlay is not None:
 		messages.append(timeMessageBetweenPlay)
