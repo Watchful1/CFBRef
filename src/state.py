@@ -372,7 +372,7 @@ def updateTime(game, play, result, actualResult, yards, offenseHomeAway, timeOpt
 
 	utils.addStat(game, 'posTime', timeOffClock, offenseHomeAway)
 
-	return "The play took {} seconds, {}".format(timeOffClock + timeBetweenPlay, timeMessage), timeOffClock
+	return "The play took {} seconds, {}".format(max(timeOffClock + timeBetweenPlay, 0), timeMessage), timeOffClock
 
 
 def executeGain(game, play, yards, incomplete=False):
