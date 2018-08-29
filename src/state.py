@@ -526,8 +526,8 @@ def executePlay(game, play, number, timeOption):
 
 			elif result['result'] == Result.TURNOVER_PAT:
 				log.debug("Turnover PAT")
-				resultMessage = "The attempt was fumbled and run all the way back! Touchdown {}!".format(game.team(game.status.possession.negate()).name)
-				scorePAT(game, game.status.possession.negate)
+				resultMessage = "The attempt was fumbled and run all the way back! Two points {}!".format(game.team(game.status.possession.negate()).name)
+				scorePAT(game, game.status.possession.negate())
 				if utils.isGameOvertime(game):
 					timeMessage = overtimeTurnover(game)
 				else:
