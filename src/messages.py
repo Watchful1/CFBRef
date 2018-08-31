@@ -353,7 +353,7 @@ def processMessagePauseGame(body):
 	log.debug("Found hours: {}".format(hours[0]))
 
 	game = index.reloadAndReturn(threadIds[0])
-	utils.pauseGame(game, hours[0])
+	utils.pauseGame(game, int(hours[0]))
 	utils.saveGameObject(game)
 
 	return "Game {} paused for {} hours".format(threadIds[0], hours[0])
