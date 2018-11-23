@@ -1,6 +1,6 @@
 import os
 
-import utils
+import file_utils
 import globals
 import classes
 
@@ -10,11 +10,11 @@ def addWinnerFieldToGames():
 	for fileName in os.listdir(folder):
 		if not os.path.isfile(os.path.join(folder, fileName)):
 			continue
-		game = utils.loadGameObject(fileName)
+		game = file_utils.loadGameObject(fileName)
 		game.status.winner = None
 		for status in game.previousStatus:
 			status.winner = None
-		utils.saveGameObject(game)
+			file_utils.saveGameObject(game)
 
 
 def archiveOutstandingFinishedGames():
@@ -22,6 +22,6 @@ def archiveOutstandingFinishedGames():
 	for fileName in os.listdir(folder):
 		if not os.path.isfile(os.path.join(folder, fileName)):
 			continue
-		game = utils.loadGameObject(fileName)
+		game = file_utils.loadGameObject(fileName)
 		if game.status.quarterType == classes.QuarterType.END:
-			utils.archiveGameFile(game.thread)
+			file_utils.archiveGameFile(game.thread)

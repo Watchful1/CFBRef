@@ -5,6 +5,7 @@ import wiki
 import utils
 import classes
 import globals
+import string_utils
 from classes import T
 from classes import HomeAway
 from classes import PlaySummary
@@ -102,7 +103,7 @@ def overtimeTurnover(game):
 		log.debug("End of first overtime possession, starting second")
 		game.status.overtimePossession = 2
 		setStateOvertimeDrive(game, game.status.possession.negate())
-		return "End of the drive. {} has possession now".format(utils.flair(game.team(game.status.possession)))
+		return "End of the drive. {} has possession now".format(string_utils.flair(game.team(game.status.possession)))
 	elif game.status.overtimePossession == 2:
 		if game.status.state(T.home).points == game.status.state(T.away).points:
 			if game.status.quarterType == QuarterType.OVERTIME_TIME and game.status.quarter >= 6:
@@ -116,14 +117,14 @@ def overtimeTurnover(game):
 
 				output = utils.endGame(game, game.team(victor).name)
 				return "It is the end of the 6th quarter in an overtime forced by the game clock and the score is still tied. " \
-				       "I'm flipping a coin to determine the victor. {} has won!\n\n{}".format(utils.flair(game.team(victor)), output)
+				       "I'm flipping a coin to determine the victor. {} has won!\n\n{}".format(string_utils.flair(game.team(victor)), output)
 			else:
 				log.debug("End of second overtime possession, still tied, starting new quarter")
 				game.status.overtimePossession = 1
 				game.status.quarter += 1
 				setStateOvertimeDrive(game, game.status.receivingNext)
 				game.status.receivingNext.reverse()
-				return "It's still tied! Going to the {} quarter.".format(utils.getNthWord(game.status.quarter))
+				return "It's still tied! Going to the {} quarter.".format(string_utils.getNthWord(game.status.quarter))
 
 		else:
 			log.debug("End of game")
@@ -132,7 +133,7 @@ def overtimeTurnover(game):
 			else:
 				victor = HomeAway(T.away)
 			output = utils.endGame(game, game.team(victor).name)
-			return "That's the end of the game. {} has won!\n\n".format(utils.flair(game.team(victor)), output)
+			return "That's the end of the game. {} has won!\n\n".format(string_utils.flair(game.team(victor)), output)
 
 	else:
 		log.warning("Something went wrong. Invalid overtime possession: {}".format(game.status.overtimePossession))
@@ -269,7 +270,7 @@ def checkQuarterStatus(game, timeOffClock):
 					else:
 						victor = HomeAway(T.away)
 					output = utils.endGame(game, game.team(victor).name)
-					timeMessage = "that's the end of the game! {} has won!\n\n{}".format(utils.flair(game.team(victor)), output)
+					timeMessage = "that's the end of the game! {} has won!\n\n{}".format(string_utils.flair(game.team(victor)), output)
 				game.status.clock = 0
 			else:
 				if game.status.quarter == 2:
@@ -368,7 +369,7 @@ def updateTime(game, play, result, actualResult, yards, offenseHomeAway, timeOpt
 
 	runStatus, timeOffClock, timeMessage = checkQuarterStatus(game, timeOffClock)
 	if timeMessage is None:
-		timeMessage = "{} left".format(utils.renderTime(game.status.clock))
+		timeMessage = "{} left".format(string_utils.renderTime(game.status.clock))
 
 	utils.addStat(game, 'posTime', timeOffClock, offenseHomeAway)
 
@@ -431,14 +432,14 @@ def executeGain(game, play, yards, incomplete=False):
 					turnover(game)
 				return Result.TURNOVER, game.status.location - previousLocation, resultMessage
 			else:
-				log.debug("Now {} down and {}".format(utils.getDownString(game.status.down), yardsRemaining))
+				log.debug("Now {} down and {}".format(string_utils.getDownString(game.status.down), yardsRemaining))
 				game.status.yards = yardsRemaining
 				if incomplete:
-					resultMessage = "The pass is incomplete. {} and {}".format(utils.getDownString(game.status.down), yardsRemaining)
+					resultMessage = "The pass is incomplete. {} and {}".format(string_utils.getDownString(game.status.down), yardsRemaining)
 				else:
 					resultMessage = "{} play for {} yard(s), {} and {}".format(
 						play.name.lower().capitalize(),
-						yards, utils.getDownString(game.status.down),
+						yards, string_utils.getDownString(game.status.down),
 						"goal" if game.status.location + yardsRemaining >= 100 else yardsRemaining)
 
 				return Result.GAIN, game.status.location - previousLocation, resultMessage
@@ -567,7 +568,7 @@ def executePlay(game, play, number, timeOption):
 					log.debug("Result is a dropped kick of {} yards".format(result['yards']))
 					yards = result['yards']
 					game.status.location = game.status.location + yards
-					resultMessage = "It's dropped! Recovered by {} on the {}".format(game.team(game.status.possession).name, utils.getLocationString(game))
+					resultMessage = "It's dropped! Recovered by {} on the {}".format(game.team(game.status.possession).name, string_utils.getLocationString(game))
 					game.status.waitingAction = Action.PLAY
 
 			elif result['result'] == Result.TOUCHBACK:
@@ -607,7 +608,7 @@ def executePlay(game, play, number, timeOption):
 					game.status.yards = 10
 					game.status.down = 1
 					yards = result['yards']
-					resultMessage = "The receiver drops the ball! {} recovers on the {}.".format(game.team(game.status.possession).name, utils.getLocationString(game))
+					resultMessage = "The receiver drops the ball! {} recovers on the {}.".format(game.team(game.status.possession).name, string_utils.getLocationString(game))
 
 				else:
 					if 'yards' not in result:
@@ -704,7 +705,7 @@ def executePlay(game, play, number, timeOption):
 				scoreTouchdown(game, game.status.possession.negate())
 				if utils.isGameOvertime(game):
 					output = utils.endGame(game, game.team(game.status.possession).name)
-					timeMessage = "Game over! {} wins!\n\n{}".format(utils.flair(game.team(game.status.possession)), output)
+					timeMessage = "Game over! {} wins!\n\n{}".format(string_utils.flair(game.team(game.status.possession)), output)
 
 			game.status.defensiveNumber = None
 
@@ -759,7 +760,7 @@ def executePlay(game, play, number, timeOption):
 		messages.append(timeMessage)
 
 	messages.append("{}\n\n".format(
-		utils.getCurrentPlayString(game)
+		string_utils.getCurrentPlayString(game)
 	))
 
 	if diffMessage is not None:

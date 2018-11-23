@@ -14,7 +14,8 @@ import wiki
 import utils
 import state
 import index
-from classes import QuarterType
+import file_utils
+import string_utils
 from classes import Action
 
 ### Logging setup ###
@@ -101,8 +102,8 @@ while True:
 				if globals.game is not None:
 					log.debug("Setting game {} as errored".format(globals.game.thread))
 					index.setGameErrored(globals.game)
-					utils.saveGameObject(globals.game)
-					ownerMessage = utils.renderGameStatusMessage(globals.game)
+					file_utils.saveGameObject(globals.game)
+					ownerMessage = string_utils.renderGameStatusMessage(globals.game)
 
 					message.reply("This game has errored. Please wait for the bot owner to help.")
 				else:
@@ -123,11 +124,11 @@ while True:
 				utils.cycleStatus(game, None)
 				game.status.state(game.status.waitingOn).playclockPenalties += 1
 				penaltyMessage = "{} has not sent their number in over 24 hours, playclock penalty. This is their {} penalty.".format(
-					utils.getCoachString(game, game.status.waitingOn), utils.getNthWord(game.status.state(game.status.waitingOn).playclockPenalties))
+					string_utils.getCoachString(game, game.status.waitingOn), string_utils.getNthWord(game.status.state(game.status.waitingOn).playclockPenalties))
 				if game.status.state(game.status.waitingOn).playclockPenalties >= 3:
 					log.debug("3 penalties, game over")
 					result = utils.endGame(game, game.team(game.status.waitingOn.negate()).name)
-					resultMessage = "They forfeit the game. {} has won!\n\n{}".format(utils.flair(game.team(game.status.waitingOn.negate())), result)
+					resultMessage = "They forfeit the game. {} has won!\n\n{}".format(string_utils.flair(game.team(game.status.waitingOn.negate())), result)
 
 				elif game.status.waitingOn == game.status.possession:
 					log.debug("Waiting on offense, turnover")
@@ -139,7 +140,7 @@ while True:
 						state.turnover(game)
 						game.status.waitingOn = game.status.possession.negate()
 						utils.sendDefensiveNumberMessage(game)
-						resultMessage = "Turnover, {} has the ball.".format(utils.flair(game.team(game.status.waitingOn)))
+						resultMessage = "Turnover, {} has the ball.".format(string_utils.flair(game.team(game.status.waitingOn)))
 
 				else:
 					log.debug("Waiting on defense, touchdown")
@@ -153,7 +154,7 @@ while True:
 						state.setStateTouchback(game, game.status.possession.negate())
 						game.status.waitingOn.reverse()
 						utils.sendDefensiveNumberMessage(game)
-						resultMessage = "Automatic 7 point touchdown, {} has the ball.".format(utils.flair(game.team(game.status.waitingOn)))
+						resultMessage = "Automatic 7 point touchdown, {} has the ball.".format(string_utils.flair(game.team(game.status.waitingOn)))
 
 				utils.sendGameComment(game, "{}\n\n{}".format(penaltyMessage, resultMessage), None, False)
 				utils.setGamePlayed(game)
@@ -164,19 +165,19 @@ while True:
 			for game in index.getGamesPastPlayclockWarning():
 				warningText = "This is a warning that your [game]({}) is waiting on a reply from you to " \
 								"this {}. You have 12 hours until a delay of game penalty."\
-								.format(utils.getLinkToThread(game.thread),
-										utils.getLinkFromGameThing(game.thread, utils.getPrimaryWaitingId(game.status.waitingId)))
+								.format(string_utils.getLinkToThread(game.thread),
+				                        string_utils.getLinkFromGameThing(game.thread, utils.getPrimaryWaitingId(game.status.waitingId)))
 				results = reddit.sendMessage(recipients=game.team(game.status.waitingOn).coaches,
 									subject="{} vs {} 12 hour warning".format(game.away.name, game.home.name),
 									message=warningText)
 				log.debug("12 hour warning sent to {} for game {}: {}"
 							.format(
-							utils.getCoachString(game, game.status.waitingOn),
+							string_utils.getCoachString(game, game.status.waitingOn),
 							game.thread,
 							','.join([result.fullname for result in results])
 						))
 				game.playclockWarning = True
-				utils.saveGameObject(game)
+				file_utils.saveGameObject(game)
 
 			utils.clearLogGameID()
 			if once:

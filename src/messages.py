@@ -9,6 +9,8 @@ import globals
 import state
 import classes
 import index
+import string_utils
+import file_utils
 from classes import Play
 from classes import Action
 from classes import TimeoutOption
@@ -41,19 +43,19 @@ def processMessageNewGame(body, author):
 
 	for match in re.finditer('(?: )(\w+)(?:=")([^"]*)', body):
 		if match.group(1) == "start":
-			startTime = utils.escapeMarkdown(match.group(2))
+			startTime = string_utils.escapeMarkdown(match.group(2))
 			log.debug("Found start time: {}".format(startTime))
 		elif match.group(1) == "location":
-			location = utils.escapeMarkdown(match.group(2))
+			location = string_utils.escapeMarkdown(match.group(2))
 			log.debug("Found location: {}".format(location))
 		elif match.group(1) == "station":
-			station = utils.escapeMarkdown(match.group(2))
+			station = string_utils.escapeMarkdown(match.group(2))
 			log.debug("Found station: {}".format(station))
 		elif match.group(1) == "homeRecord":
-			homeRecord = utils.escapeMarkdown(match.group(2))
+			homeRecord = string_utils.escapeMarkdown(match.group(2))
 			log.debug("Found home record: {}".format(homeRecord))
 		elif match.group(1) == "awayRecord":
-			awayRecord = utils.escapeMarkdown(match.group(2))
+			awayRecord = string_utils.escapeMarkdown(match.group(2))
 			log.debug("Found away record: {}".format(awayRecord))
 
 	return utils.startGame(homeTeam, awayTeam, startTime, location, station, homeRecord, awayRecord)
@@ -74,8 +76,8 @@ def processMessageCoin(game, isHeads, author):
 			questionString = "do you want to **defend** or **attack**?"
 		else:
 			questionString = "do you want to **receive** or **defer**?"
-		message = "{}, {} won the toss, {}".format(utils.getCoachString(game, False), game.away.name, questionString)
-		return True, utils.embedTableInMessage(message, utils.getActionTable(game, Action.DEFER))
+		message = "{}, {} won the toss, {}".format(string_utils.getCoachString(game, False), game.away.name, questionString)
+		return True, string_utils.embedTableInMessage(message, utils.getActionTable(game, Action.DEFER))
 	else:
 		log.debug("User lost coin toss, asking other team if they want to defer")
 		game.status.waitingAction = Action.DEFER
@@ -87,8 +89,8 @@ def processMessageCoin(game, isHeads, author):
 			questionString = "do you want to **defend** or **attack**?"
 		else:
 			questionString = "do you want to **receive** or **defer**?"
-		message = "{}, {} won the toss, {}".format(utils.getCoachString(game, True), game.home.name, questionString)
-		return True, utils.embedTableInMessage(message, utils.getActionTable(game, Action.DEFER))
+		message = "{}, {} won the toss, {}".format(string_utils.getCoachString(game, True), game.home.name, questionString)
+		return True, string_utils.embedTableInMessage(message, utils.getActionTable(game, Action.DEFER))
 
 
 def processMessageDefer(game, isDefer, author):
@@ -108,8 +110,8 @@ def processMessageDefer(game, isDefer, author):
 
 			return True, "{} deferred and will attack next. Overtime has started!\n\n{}\n\n{}".format(
 				game.team(authorHomeAway).name,
-				utils.getCurrentPlayString(game),
-				utils.getWaitingOnString(game))
+				string_utils.getCurrentPlayString(game),
+				string_utils.getWaitingOnString(game))
 		else:
 			log.debug("User elected to attack, {} is attacking".format(authorHomeAway))
 
@@ -121,8 +123,8 @@ def processMessageDefer(game, isDefer, author):
 
 			return True, "{} elected to attack. Overtime has started!\n\n{}\n\n{}".format(
 				game.team(authorHomeAway).name,
-				utils.getCurrentPlayString(game),
-				utils.getWaitingOnString(game))
+				string_utils.getCurrentPlayString(game),
+				string_utils.getWaitingOnString(game))
 	else:
 		if isDefer:
 			log.debug("User deferred, {} is receiving".format(authorHomeAway.negate()))
@@ -135,8 +137,8 @@ def processMessageDefer(game, isDefer, author):
 
 			return True, "{} deferred and will receive the ball in the second half. The game has started!\n\n{}\n\n{}".format(
 				game.team(authorHomeAway).name,
-				utils.getCurrentPlayString(game),
-				utils.getWaitingOnString(game))
+				string_utils.getCurrentPlayString(game),
+				string_utils.getWaitingOnString(game))
 		else:
 			log.debug("User elected to receive, {} is receiving".format(authorHomeAway))
 
@@ -148,8 +150,8 @@ def processMessageDefer(game, isDefer, author):
 
 			return True, "{} elected to receive. The game has started!\n\n{}\n\n{}".format(
 				game.team(authorHomeAway).name,
-				utils.getCurrentPlayString(game),
-				utils.getWaitingOnString(game))
+				string_utils.getCurrentPlayString(game),
+				string_utils.getWaitingOnString(game))
 
 
 def processMessageDefenseNumber(game, message, author):
@@ -178,10 +180,10 @@ def processMessageDefenseNumber(game, message, author):
 	resultMessage = "{} has submitted their number. {} you're up. You have until {}.\n\n{}\n\n{} reply with {} and your number. [Play list]({}){}".format(
 		game.team(game.status.waitingOn.negate()).name,
 		game.team(game.status.waitingOn).name,
-		utils.renderDatetime(game.playclock),
-		utils.getCurrentPlayString(game),
-		utils.getCoachString(game, game.status.waitingOn),
-		utils.listSuggestedPlays(game),
+		string_utils.renderDatetime(game.playclock),
+		string_utils.getCurrentPlayString(game),
+		string_utils.getCoachString(game, game.status.waitingOn),
+		string_utils.listSuggestedPlays(game),
 		"https://www.reddit.com/r/FakeCollegeFootball/wiki/refbot",
 		"\n\nThe clock has stopped" if not game.status.timeRunoff else ""
 	)
@@ -292,13 +294,13 @@ def processMessageOffensePlay(game, message, author):
 	elif game.status.waitingAction == Action.OVERTIME:
 		log.debug("Starting overtime, posting coin toss comment")
 		message = "Overtime has started! {}, you're away, call **heads** or **tails** in the air.".format(
-			utils.getCoachString(game, False))
+			string_utils.getCoachString(game, False))
 		comment = utils.sendGameComment(game, message, utils.getActionTable(game, Action.COIN))
 		utils.setWaitingId(game, comment.fullname)
 		game.status.waitingAction = Action.COIN
 		game.status.waitingOn = classes.HomeAway(False)
 
-	return success, utils.embedTableInMessage('\n\n'.join(result), utils.getActionTable(game, game.status.waitingAction))
+	return success, string_utils.embedTableInMessage('\n\n'.join(result), utils.getActionTable(game, game.status.waitingAction))
 
 
 def processMessageKickGame(body):
@@ -309,20 +311,20 @@ def processMessageKickGame(body):
 		return "Couldn't find a thread id in message"
 	log.debug("Found thread id: {}".format(threadIds[0]))
 
-	game = utils.loadGameObject(threadIds[0])
+	game = file_utils.loadGameObject(threadIds[0])
 	if game is None:
 		return "Game not found: {}".format(threadIds[0])
 
 	game = index.reloadAndReturn(threadIds[0])
 	index.clearGameErrored(game)
-	utils.saveGameObject(game)
+	file_utils.saveGameObject(game)
 	result = ["Kicked game: {}".format(threadIds[0])]
 
 	statusIndex = re.findall('(?:revert:)(\d+)', body)
 	if len(statusIndex) > 0:
 		log.debug("Reverting to status: {}".format(statusIndex[0]))
 		utils.revertStatus(game, int(statusIndex[0]))
-		utils.saveGameObject(game)
+		file_utils.saveGameObject(game)
 		result.append("Reverted to status: {}".format(statusIndex[0]))
 
 	messageFullname = re.findall('(?:message:)(t\d_[\da-z]{6,})', body)
@@ -354,7 +356,7 @@ def processMessagePauseGame(body):
 
 	game = index.reloadAndReturn(threadIds[0])
 	utils.pauseGame(game, int(hours[0]))
-	utils.saveGameObject(game)
+	file_utils.saveGameObject(game)
 
 	return "Game {} paused for {} hours".format(threadIds[0], hours[0])
 
@@ -367,13 +369,13 @@ def processMessageAbandonGame(body):
 		return "Couldn't find a thread id in message"
 	log.debug("Found thread id: {}".format(threadIds[0]))
 
-	game = utils.loadGameObject(threadIds[0])
+	game = file_utils.loadGameObject(threadIds[0])
 	if game is None:
 		return "Game not found: {}".format(threadIds[0])
 
 	utils.endGame(game, "Abandoned", False)
 	utils.updateGameThread(game)
-	utils.saveGameObject(game)
+	file_utils.saveGameObject(game)
 
 	return "Game {} abandoned".format(threadIds[0])
 
@@ -386,11 +388,11 @@ def processMessageGameStatus(body):
 		return "Couldn't find a thread id in message"
 	log.debug("Found thread id: {}".format(threadIds[0]))
 
-	game = utils.loadGameObject(threadIds[0])
+	game = file_utils.loadGameObject(threadIds[0])
 	if game is None:
 		return "Game {} doesn't exist".format(threadIds[0])
 	else:
-		return utils.renderGameStatusMessage(game)
+		return string_utils.renderGameStatusMessage(game)
 
 
 def processMessageReindex(body):
@@ -408,7 +410,7 @@ def processMessageDefaultChew(body):
 		return "Couldn't find a thread id in message"
 	log.debug("Found thread id: {}".format(threadIds[0]))
 
-	game = utils.loadGameObject(threadIds[0])
+	game = file_utils.loadGameObject(threadIds[0])
 	if game is None:
 		return "Game not found: {}".format(threadIds[0])
 
@@ -420,7 +422,7 @@ def processMessageDefaultChew(body):
 		result = "Game changed to chew the clock plays by default: {}".format(threadIds[0])
 
 	utils.updateGameThread(game)
-	utils.saveGameObject(game)
+	file_utils.saveGameObject(game)
 
 	return result
 
@@ -436,11 +438,11 @@ def processMessageGameList(body):
 		bldr.append(" vs ")
 		bldr.append(game.home.name)
 		bldr.append("|[Link](")
-		bldr.append(utils.getLinkToThread(game.thread))
+		bldr.append(string_utils.getLinkToThread(game.thread))
 		bldr.append(")|")
 		bldr.append(str(game.status.quarter))
 		bldr.append("|")
-		bldr.append(utils.renderTime(game.status.clock))
+		bldr.append(string_utils.renderTime(game.status.clock))
 		bldr.append("\n")
 
 	return ''.join(bldr)
@@ -466,7 +468,7 @@ def processMessage(message, force=False):
 			parent = reddit.getComment(message.parent_id[3:])
 
 		if parent is not None and str(parent.author).lower() == globals.ACCOUNT_NAME:
-			dataTable = utils.extractTableFromMessage(parent.body)
+			dataTable = string_utils.extractTableFromMessage(parent.body)
 			if dataTable is not None:
 				if 'action' not in dataTable or 'thread' not in dataTable:
 					dataTable = None
@@ -555,10 +557,10 @@ def processMessage(message, force=False):
 
 	message.mark_read()
 	if response is not None:
-		if success is not None and not success and dataTable is not None and utils.extractTableFromMessage(
+		if success is not None and not success and dataTable is not None and string_utils.extractTableFromMessage(
 				response) is None:
 			log.debug("Embedding datatable in reply on failure")
-			response = utils.embedTableInMessage(response, dataTable)
+			response = string_utils.embedTableInMessage(response, dataTable)
 			if updateWaiting and game is not None:
 				if appendMessageId:
 					utils.addWaitingId(game, 'return')

@@ -9,6 +9,7 @@ import utils
 import wiki
 import reddit
 import messages
+import file_utils
 from classes import Action
 
 log = logging.getLogger("bot")
@@ -39,7 +40,7 @@ def init():
 				try:
 					log.debug("Reverting status and reprocessing {}".format(game.previousStatus[0].messageId))
 					utils.revertStatus(game, 0)
-					utils.saveGameObject(game)
+					file_utils.saveGameObject(game)
 					message = reddit.getThingFromFullname(game.status.messageId)
 					if message is None:
 						return "Something went wrong. Not valid fullname: {}".format(game.status.messageId)
@@ -66,7 +67,7 @@ def addNewGame(game):
 
 
 def reloadAndReturn(thread):
-	game = utils.loadGameObject(thread)
+	game = file_utils.loadGameObject(thread)
 	if game.status.waitingAction != Action.END:
 		games[game.thread] = game
 		return game
@@ -95,7 +96,7 @@ def getGamesPastPlayclockWarning():
 def endGame(game):
 	if game.thread in games:
 		del games[game.thread]
-	utils.archiveGameFile(game.thread)
+	file_utils.archiveGameFile(game.thread)
 
 
 def setGameErrored(game):
