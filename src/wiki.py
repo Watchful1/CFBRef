@@ -222,9 +222,10 @@ def parsePlayPart(playPart):
 def loadPlays():
 	global plays
 	plays = {}
-	playsPage = reddit.getWikiPage(globals.CONFIG_SUBREDDIT, "plays")
+	with open("src/plays.txt", 'r') as playsFile:
+		playsPage = playsFile.readlines()
 
-	for playLine in playsPage.splitlines():
+	for playLine in playsPage:
 		items = playLine.split('|')
 
 		playType = parsePlay(items[0])
@@ -274,9 +275,10 @@ def loadPlays():
 def loadTimes():
 	global times
 	times = {}
-	timesPage = reddit.getWikiPage(globals.CONFIG_SUBREDDIT, "times")
+	with open("src/times.txt", 'r') as timesFile:
+		timesPage = timesFile.readlines()
 
-	for timeLine in timesPage.splitlines():
+	for timeLine in timesPage:
 		items = timeLine.split('|')
 
 		playType = parsePlay(items[0])
