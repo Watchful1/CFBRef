@@ -226,7 +226,7 @@ def loadPlays():
 		playsPage = playsFile.readlines()
 
 	for playLine in playsPage:
-		items = playLine.split('|')
+		items = playLine.strip().split('|')
 
 		playType = parsePlay(items[0])
 		if playType is None:
@@ -279,7 +279,7 @@ def loadTimes():
 		timesPage = timesFile.readlines()
 
 	for timeLine in timesPage:
-		items = timeLine.split('|')
+		items = timeLine.strip().split('|')
 
 		playType = parsePlay(items[0])
 		if playType is None:
