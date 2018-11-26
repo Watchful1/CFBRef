@@ -4,6 +4,7 @@ import logging
 import file_utils
 import globals
 import classes
+from enum import Enum
 
 import wiki
 
@@ -55,11 +56,27 @@ def archiveOutstandingFinishedGames():
 			file_utils.archiveGameFile(game.thread)
 
 
+def replaceEnums(d):
+	newd = {}
+	for k, v in d.items():
+		if isinstance(k, Enum):
+			k = k.name
+		if isinstance(v, dict):
+			newd[k] = replaceEnums(v)
+		elif isinstance(v, Enum):
+			newd[k] = v.name
+		else:
+			newd[k] = v
+	return newd
+
+
 def testPlaysTimes():
 	wiki.loadPlays()
 	log.info(f"Loaded plays: {len(wiki.plays)}")
+	log.info(str(replaceEnums(wiki.plays)))
 	wiki.loadTimes()
 	log.info(f"Loaded times: {len(wiki.times)}")
+	log.info(str(replaceEnums(wiki.times)))
 
 
 if len(sys.argv) < 2:
