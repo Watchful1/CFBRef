@@ -778,6 +778,6 @@ def executePlay(game, play, number, timeOption):
 	if success:
 		game.status.plays.append(playSummary)
 
-
+	messages.append(string_utils.getCoachString(game, game.status.waitingOn.negate()))
 
 	return success, '\n\n'.join(messages)
