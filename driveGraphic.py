@@ -9,9 +9,13 @@ run_color = "red"
 pass_color = "blue"
 
 driveEnders = [Result.TURNOVER, Result.TOUCHDOWN, Result.TURNOVER_TOUCHDOWN, Result.FIELD_GOAL, Result.PUNT]
-
-def makeNewField(homeHasPossession,startingLocation):
+    
+def makeField(fieldFileName, List_of_Plays):
+    #currently, keeping track of play results
+    #places starting line of scrimmage for drive, and then lines for each play
     field = Image.new(mode='RGB', size=(width,height), color="green")
+    draw - ImageDraw.Draw(field)
+    line = ((0,0),(0,0))
     x_start = 10*adj
     x_end = 110*adj
     x_step = 5*adj
@@ -28,25 +32,14 @@ def makeNewField(homeHasPossession,startingLocation):
         else:
             draw.line(line,fill="grey")
     #only time file should not exist is when drive first starts. Adds initial LoS here.
-    if homeHasPossession: #home goes left to right, away goes right to left
-         line = (((startingLocation+10)*adj,0),((startingLocation+10)*adj,field.height))
+    if List_Of_Plays[0].posHome: #home goes left to right, away goes right to left
+         line = (((List_of_Plays[0].location+10)*adj,0),((List_of_Plays[0].location+10)*adj,field.height))
     else:
-         line = ((((100-startingLocation)+10)*adj,0),(((100-startingLocation)+10)*adj,field.height))
+         line = ((((100-List_of_Plays[0].location)+10)*adj,0),(((100-List_of_Plays[0].location)+10)*adj,field.height))
     draw.line(line,fill="white")
-    return field
-    
-def addToField(List_of_Plays):
-    #currently, keeping track of play results
-    #places starting line of scrimmage for drive, and then lines for each play
-    field = ""
-    if Path("field_ID.png").is_file():
-        field = Image.open('field_ID.png')
-    else:
-        field = makeNewField(List_of_Plays[0].posHome,List_of_Plays[0].location)
-        field.save('field_ID.png',"PNG")
+    #field = makeNewField(List_of_Plays[0].posHome,List_of_Plays[0].location)
+    #field.save('field_ID.png',"PNG")
     line_y_position = 5
-    draw = ImageDraw.Draw(field)
-    line = ((0,0),(0,0))
     for play in List_of_Plays:
         if play.result in driveEnders: #drive is over, need to handle FG, TOUCHDOWNS, and KICKOFFS eventually. Currently showing only non-scoring runs and passes
             field.save('field_ID.png',"PNG")
@@ -63,4 +56,4 @@ def addToField(List_of_Plays):
             if play.play == PASS:
                 draw.line(line,color=pass_color)
             line_y_position = line_y_position + 5
-    field.save('field_ID.png',"PNG")
+    field.save(fieldFileName,"PNG")
