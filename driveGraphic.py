@@ -10,7 +10,7 @@ pass_color = "blue"
 
 driveEnders = [Result.TURNOVER, Result.TOUCHDOWN, Result.TURNOVER_TOUCHDOWN, Result.FIELD_GOAL, Result.PUNT]
 
-def makeNewField(team_with_possession,list_of_teams,location): #later, implement unique ids for filenames to correspond with games
+def makeNewField(homeHasPossession,startingLocation):
     field = Image.new(mode='RGB', size=(width,height), color="green")
     x_start = 10*adj
     x_end = 110*adj
@@ -28,21 +28,21 @@ def makeNewField(team_with_possession,list_of_teams,location): #later, implement
         else:
             draw.line(line,fill="grey")
     #only time file should not exist is when drive first starts. Adds initial LoS here.
-    if team_with_possession == list_of_teams[0]: #team1 goes left to right, team2 goes right to left
-         line = (((position+10)*adj,0),((position+10)*adj,field.height))
+    if homeHasPossession: #home goes left to right, away goes right to left
+         line = (((startingLocation+10)*adj,0),((startingLocation+10)*adj,field.height))
     else:
-         line = ((((100-position)+10)*adj,0),(((100-position)+10)*adj,field.height))
+         line = ((((100-startingLocation)+10)*adj,0),(((100-startingLocation)+10)*adj,field.height))
     draw.line(line,fill="white")
     return field
     
-def addToField(list_of_teams,List_of_Plays):
+def addToField(List_of_Plays):
     #currently, keeping track of play results
     #places starting line of scrimmage for drive, and then lines for each play
     field = ""
     if Path("field_ID.png").is_file():
         field = Image.open('field_ID.png')
     else:
-        field = makeNewField(team_with_possession,list_of_teams,location) #need starting position (LoS from kickoff/punt/pick)
+        field = makeNewField(List_of_Plays[0].posHome,List_of_Plays[0].location)
         field.save('field_ID.png',"PNG")
     line_y_position = 5
     draw = ImageDraw.Draw(field)
