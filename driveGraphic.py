@@ -62,4 +62,5 @@ def addToField(list_of_teams,List_of_Plays):
                 draw.line(line,color=run_color)
             if play.play == PASS:
                 draw.line(line,color=pass_color)
+            line_y_position = line_y_position + 5
     field.save('field_ID.png',"PNG")
