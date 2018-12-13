@@ -348,7 +348,7 @@ def processMessagePauseGame(body):
 		return "Couldn't find a thread id in message"
 	log.debug("Found thread id: {}".format(threadIds[0]))
 
-	hours = re.findall('(\b\d{1,3}\b)', body)
+	hours = re.findall(r'(\b\d{1,3}\b)', body)
 	if len(hours) < 1:
 		log.debug("Couldn't find a number of hours in message")
 		return "Couldn't find a number of hours in message"
