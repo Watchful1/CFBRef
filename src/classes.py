@@ -223,7 +223,7 @@ class GameStatus:
 		self.messageId = None
 		self.winner = None
 		self.timeRunoff = False
-		self.plays = []
+		self.plays = [[]]
 
 	def state(self, isHome):
 		if isHome:

@@ -776,7 +776,9 @@ def executePlay(game, play, number, timeOption):
 	playSummary.time = timeOffClock
 
 	if success:
-		game.status.plays.append(playSummary)
+		driveList = utils.appendPlay(game, playSummary)
+		if driveList is not None:
+			messages.append("That's the end of the drive")
 
 	messages.append(string_utils.getCoachString(game, game.status.waitingOn.negate()))
 

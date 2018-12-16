@@ -377,6 +377,14 @@ def setGamePlayed(game):
 driveEnders = [Result.TURNOVER, Result.TOUCHDOWN, Result.TURNOVER_TOUCHDOWN, Result.FIELD_GOAL, Result.PUNT]
 
 
+def appendPlay(game, playSummary):
+	game.status.plays[-1].append(playSummary)
+	if playSummary.result in driveEnders:
+		game.status.plays.append([])
+		return game.status.plays[-2]
+	return None
+
+
 def getDrives(game):
 	drives = []
 	drive = None

@@ -283,8 +283,9 @@ def renderPostGame(game):
 		bldr.append("**\n")
 
 	playBldr = []
-	for play in game.status.plays:
-		playBldr.append(str(play))
+	for drive in game.status.plays:
+		for play in drive:
+			playBldr.append(str(play))
 	playString = '\n'.join(playBldr)
 	pasteOutput = utils.paste("Thread summary", ''.join(playString)).decode('utf-8')
 
