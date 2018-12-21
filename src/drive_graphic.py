@@ -42,16 +42,18 @@ def makeField(fieldFileName, plays):
 		if play.result in classes.driveEnders or play.yards is None:  # drive is over, need to handle FG, TOUCHDOWNS, and KICKOFFS eventually. Currently showing only non-scoring runs and passes
 			continue
 		else:
+			print("Drawing play: "+str(play))
 			if line_y_position > field.height:
 				line_y_position = 5
 			if play.posHome:  # home team has it, going left to right
 				line = (((play.yards + 10) * adj, line_y_position), ((play.location + 10) * adj, line_y_position))
 			else:  # away team has it, going right to left
 				line = (
-				((100 - play.yards + 10) * adj, line_y_position), ((100 - play.location + 10) * adj, line_y_position))
+				((((100 - play.location) - play.yards) + 10) * adj, line_y_position), (((100 - play.location) + 10) * adj, line_y_position))
+			print(str(line) + " : " + str(line_y_position))
 			if play.play == Play.RUN:
-				draw.line(line, color=run_color)
-			if play.play == Play.PASS:
-				draw.line(line, color=pass_color)
+				draw.line(line, fill=run_color)
+			elif play.play == Play.PASS:
+				draw.line(line, fill=pass_color)
 			line_y_position = line_y_position + 5
 	field.save(fieldFileName, "PNG")
