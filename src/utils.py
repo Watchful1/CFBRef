@@ -374,28 +374,23 @@ def setGamePlayed(game):
 	game.playclockWarning = False
 
 
-driveEnders = [Result.TURNOVER, Result.TURNOVER_TOUCHDOWN, Result.FIELD_GOAL, Result.PUNT]
-postTouchdownEnders = [Result.PAT, Result.TWO_POINT]
-lookbackTouchdownEnders = [Result.TURNOVER_PAT]
-
-
 def appendPlay(game, playSummary):
 	if len(game.status.plays[-1]) > 0:
 		previousPlay = game.status.plays[-1][-1]
 	else:
 		previousPlay = None
-	if playSummary.actualResult in driveEnders or \
-			(previousPlay is not None and previousPlay.actualResult == Result.TOUCHDOWN and playSummary.actualResult in postTouchdownEnders):
+	if playSummary.actualResult in classes.driveEnders or \
+			(previousPlay is not None and previousPlay.actualResult == Result.TOUCHDOWN and playSummary.actualResult in classes.postTouchdownEnders):
 		game.status.plays[-1].append(playSummary)
 		game.status.plays.append([])
-	elif previousPlay is not None and previousPlay.actualResult == Result.TOUCHDOWN and playSummary.actualResult in lookbackTouchdownEnders:
+	elif previousPlay is not None and previousPlay.actualResult == Result.TOUCHDOWN and playSummary.actualResult in classes.lookbackTouchdownEnders:
 		game.status.plays.append([])
 		game.status.plays[-1].append(playSummary)
 	else:
 		game.status.plays[-1].append(playSummary)
 
 	game.status.plays[-1].append(playSummary)
-	if playSummary.actualResult in driveEnders:
+	if playSummary.actualResult in classes.driveEnders:
 		game.status.plays.append([])
 		return game.status.plays[-2]
 	return None
@@ -410,7 +405,7 @@ def summarizeDrive(drive):
 			if play.actualResult not in [Result.TURNOVER]:
 				summary.yards += play.yards
 				summary.time += play.time
-	if drive[-1].actualResult in postTouchdownEnders:
+	if drive[-1].actualResult in classes.postTouchdownEnders:
 		summary.result = drive[-2].actualResult
 	else:
 		summary.result = drive[-1].actualResult

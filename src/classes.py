@@ -282,3 +282,7 @@ timePlays = [Play.KNEEL, Play.SPIKE]
 conversionPlays = [Play.PAT, Play.TWO_POINT]
 kickoffPlays = [Play.KICKOFF_NORMAL, Play.KICKOFF_SQUIB, Play.KICKOFF_ONSIDE]
 playActions = [Action.PLAY, Action.CONVERSION, Action.KICKOFF]
+
+driveEnders = [Result.TURNOVER, Result.TURNOVER_TOUCHDOWN, Result.FIELD_GOAL, Result.PUNT]
+postTouchdownEnders = [Result.PAT, Result.TWO_POINT]
+lookbackTouchdownEnders = [Result.TURNOVER_PAT]
