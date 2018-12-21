@@ -479,7 +479,7 @@ def executePlay(game, play, number, timeOption):
 	playSummary.toGo = game.status.yards
 	playSummary.location = game.status.location
 	playSummary.offNum = number
-	playSummary.posHome = game.status.possession.isHome
+	playSummary.posHome = game.status.possession.copy()
 
 	runoffResult, timeMessageBetweenPlay, timeBetweenPlay = betweenPlayRunoff(game, play, startingPossessionHomeAway, timeOption)
 

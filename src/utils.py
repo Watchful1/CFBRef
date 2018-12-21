@@ -374,35 +374,44 @@ def setGamePlayed(game):
 	game.playclockWarning = False
 
 
-driveEnders = [Result.TURNOVER, Result.TOUCHDOWN, Result.TURNOVER_TOUCHDOWN, Result.FIELD_GOAL, Result.PUNT]
+driveEnders = [Result.TURNOVER, Result.TURNOVER_TOUCHDOWN, Result.FIELD_GOAL, Result.PUNT]
+postTouchdownEnders = [Result.PAT, Result.TWO_POINT]
+lookbackTouchdownEnders = [Result.TURNOVER_PAT]
 
 
 def appendPlay(game, playSummary):
+	if len(game.status.plays[-1]) > 0:
+		previousPlay = game.status.plays[-1][-1]
+	else:
+		previousPlay = None
+	if playSummary.actualResult in driveEnders or \
+			(previousPlay is not None and previousPlay.actualResult == Result.TOUCHDOWN and playSummary.actualResult in postTouchdownEnders):
+		game.status.plays[-1].append(playSummary)
+		game.status.plays.append([])
+	elif previousPlay is not None and previousPlay.actualResult == Result.TOUCHDOWN and playSummary.actualResult in lookbackTouchdownEnders:
+		game.status.plays.append([])
+		game.status.plays[-1].append(playSummary)
+	else:
+		game.status.plays[-1].append(playSummary)
+
 	game.status.plays[-1].append(playSummary)
-	if playSummary.result in driveEnders:
+	if playSummary.actualResult in driveEnders:
 		game.status.plays.append([])
 		return game.status.plays[-2]
 	return None
 
 
-def getDrives(game):
-	drives = []
-	drive = None
-	for i, playSummary in enumerate(game.status.plays):
-		# if playSummary in classes.kickoffPlays:
-
-		# if playSummary not in classes.kickoffPlays and playSummary.posHome != previousPlay.posHome:
-
-		if drive is None:
-			drive = DriveSummary()
-			drive.posHome = playSummary.posHome
-		if playSummary.yards is not None:
-			drive.yards += playSummary.yards
-		drive.time += playSummary.time
-
-		if playSummary.result in driveEnders:
-			drives.append(drive)
-			print(drive)
-			drive = None
-
-		previousPlay = playSummary
+def summarizeDrive(drive):
+	summary = DriveSummary()
+	for play in drive:
+		if play.play in classes.movementPlays:
+			if summary.posHome is None and play.result == Result.GAIN:
+				summary.posHome = play.posHome
+			if play.actualResult not in [Result.TURNOVER]:
+				summary.yards += play.yards
+				summary.time += play.time
+	if drive[-1].actualResult in postTouchdownEnders:
+		summary.result = drive[-2].actualResult
+	else:
+		summary.result = drive[-1].actualResult
+	return summary
