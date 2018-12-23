@@ -31,26 +31,29 @@ def makeField(fieldFileName, plays):
 		else:
 			draw.line(line, fill="grey")
 
-	if plays[0].posHome:  # home goes left to right, away goes right to left
-		line = (((plays[0].location + 10) * adj, 0), ((plays[0].location + 10) * adj, field.height))
-	else:
-		line = ((((100 - plays[0].location) + 10) * adj, 0), (((100 - plays[0].location) + 10) * adj, field.height))
-	draw.line(line, fill="white")
-
 	line_y_position = 5
+	start_line_drawn = False
 	for play in plays:
-		if play.result in classes.driveEnders or play.yards is None:  # drive is over, need to handle FG, TOUCHDOWNS, and KICKOFFS eventually. Currently showing only non-scoring runs and passes
+		if not start_line_drawn and play.play in classes.movementPlays:
+			if play.posHome:  # home goes left to right, away goes right to left
+				line = (((play.location + 10) * adj, 0), ((play.location + 10) * adj, field.height))
+			else:
+				line = ((((100 - play.location) + 10) * adj, 0), (((100 - play.location) + 10) * adj, field.height))
+			draw.line(line, fill="white")
+			start_line_drawn = True
+
+		if play.yards is None:  # drive is over, need to handle FG, TOUCHDOWNS, and KICKOFFS eventually. Currently showing only non-scoring runs and passes
 			continue
 		else:
 			print("Drawing play: "+str(play))
 			if line_y_position > field.height:
 				line_y_position = 5
 			if play.posHome:  # home team has it, going left to right
-				line = (((play.yards + 10) * adj, line_y_position), ((play.location + 10) * adj, line_y_position))
+				line = (((play.location + play.yards + 10) * adj, line_y_position),
+							((play.location + 10) * adj, line_y_position))
 			else:  # away team has it, going right to left
-				line = (
-				((((100 - play.location) - play.yards) + 10) * adj, line_y_position), (((100 - play.location) + 10) * adj, line_y_position))
-			print(str(line) + " : " + str(line_y_position))
+				line = (((((100 - play.location) - play.yards) + 10) * adj, line_y_position),
+							(((100 - play.location) + 10) * adj, line_y_position))
 			if play.play == Play.RUN:
 				draw.line(line, fill=run_color)
 			elif play.play == Play.PASS:
