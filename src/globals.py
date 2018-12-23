@@ -15,6 +15,15 @@ MESSAGE_LINK = "https://www.reddit.com/message/messages/"
 ACCOUNT_NAME = "default"
 EASTERN = timezone('US/Eastern')
 PASTEBIN_KEY = None
+CLOUDINARY_BUCKET = "fakecfb"
+CLOUDINARY_KEY = None
+CLOUDINARY_SECRET = None
+
+
+### Images ###
+field_height = 212
+field_width = 480
+
 
 ### Constants ###
 datatag = " [](#datatag"

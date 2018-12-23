@@ -1,20 +1,40 @@
-from PIL import Image, ImageColor, ImageDraw
+import cloudinary
+from cloudinary.uploader import upload
+from io import BytesIO
+from PIL import Image, ImageDraw
 
 import classes
+import globals
 from classes import Play
 
-height = 53
-width = 120
-adj = int(width / 120)
+adj = int(globals.field_width / 120)
 
 run_color = "red"
 pass_color = "blue"
 
 
-def makeField(fieldFileName, plays):
-	field = Image.new(mode='RGB', size=(width, height), color="green")
+def init():
+	cloudinary.config(
+		cloud_name=globals.CLOUDINARY_BUCKET,
+		api_key=globals.CLOUDINARY_KEY,
+		api_secret=globals.CLOUDINARY_SECRET
+	)
+
+
+def uploadField(field, gameId, driveNum):
+	imageFile = BytesIO()
+	field.save(imageFile, format='PNG')
+	image = imageFile.getvalue()
+	try:
+		upload_result = upload(image, public_id=f"{gameId}/{driveNum}")
+		return upload_result['secure_url']
+	except Exception as err:
+		return None
+
+
+def makeField(plays):
+	field = Image.new(mode='RGB', size=(globals.field_width, globals.field_height), color="green")
 	draw = ImageDraw.Draw(field)
-	line = ((0, 0), (0, 0))
 	x_start = 10 * adj
 	x_end = 110 * adj
 	x_step = 5 * adj
@@ -45,18 +65,17 @@ def makeField(fieldFileName, plays):
 		if play.yards is None:  # drive is over, need to handle FG, TOUCHDOWNS, and KICKOFFS eventually. Currently showing only non-scoring runs and passes
 			continue
 		else:
-			print("Drawing play: "+str(play))
 			if line_y_position > field.height:
 				line_y_position = 5
 			if play.posHome:  # home team has it, going left to right
 				line = (((play.location + play.yards + 10) * adj, line_y_position),
-							((play.location + 10) * adj, line_y_position))
+							((play.location + 10) * adj, line_y_position + 1))
 			else:  # away team has it, going right to left
 				line = (((((100 - play.location) - play.yards) + 10) * adj, line_y_position),
-							(((100 - play.location) + 10) * adj, line_y_position))
+							(((100 - play.location) + 10) * adj, line_y_position + 1))
 			if play.play == Play.RUN:
-				draw.line(line, fill=run_color)
+				draw.rectangle(line, fill=run_color)
 			elif play.play == Play.PASS:
-				draw.line(line, fill=pass_color)
-			line_y_position = line_y_position + 5
-	field.save(fieldFileName, "PNG")
+				draw.rectangle(line, fill=pass_color)
+			line_y_position = line_y_position + 10
+	return field

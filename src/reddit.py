@@ -24,11 +24,17 @@ def init(user):
 
 	log.info("Logged into reddit as /u/" + globals.ACCOUNT_NAME)
 
-	if reddit.config.CONFIG.has_option(user, 'pastebin'):
-		globals.PASTEBIN_KEY = reddit.config.CONFIG[user]['pastebin']
-	else:
-		log.error("Pastebin key not in config, aborting")
-		return False
+	config_keys = [
+		{'var': "PASTEBIN_KEY", 'name': "pastebin"},
+		{'var': "CLOUDINARY_KEY", 'name': "cloudinary_key"},
+		{'var': "CLOUDINARY_SECRET", 'name': "cloudinary_secret"},
+	]
+	for key in config_keys:
+		if reddit.config.CONFIG.has_option(user, key['name']):
+			setattr(globals, key['var'], reddit.config.CONFIG[user][key['name']])
+		else:
+			log.error(f"{key['name']} key not in config, aborting")
+			return False
 
 	return True
 
