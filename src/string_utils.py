@@ -238,70 +238,15 @@ def renderGame(game):
 def renderPostGame(game):
 	bldr = []
 
-	bldr.append(flair(game.away))
-	bldr.append(" **")
-	bldr.append(game.away.name)
-	bldr.append("** @ ")
-	bldr.append(flair(game.home))
-	bldr.append(" **")
-	bldr.append(game.home.name)
-	bldr.append("**\n\n")
-
-	if game.startTime is not None:
-		bldr.append(" **Game Start Time:** ")
-		bldr.append(unescapeMarkdown(game.startTime))
-		bldr.append("\n\n")
-
-	if game.location is not None:
-		bldr.append(" **Location:** ")
-		bldr.append(unescapeMarkdown(game.location))
-		bldr.append("\n\n")
-
-	if game.station is not None:
-		bldr.append(" **Watch:** ")
-		bldr.append(unescapeMarkdown(game.station))
-		bldr.append("\n\n")
-
+	renderGameInfo(game, bldr)
 	bldr.append("\n\n")
 
 	for homeAway in [False, True]:
-		bldr.append(flair(game.team(homeAway)))
-		bldr.append("\n\n")
-		bldr.append(
-			"Total Passing Yards|Total Rushing Yards|Total Yards|Interceptions Lost|Fumbles Lost|Field Goals|Time of Possession|Timeouts\n")
-		bldr.append(":-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:\n")
-		bldr.append("{} yards|{} yards|{} yards|{}|{}|{}/{}|{}|{}".format(
-			game.status.stats(homeAway).yardsPassing,
-			game.status.stats(homeAway).yardsRushing,
-			game.status.stats(homeAway).yardsTotal,
-			game.status.stats(homeAway).turnoverInterceptions,
-			game.status.stats(homeAway).turnoverFumble,
-			game.status.stats(homeAway).fieldGoalsScored,
-			game.status.stats(homeAway).fieldGoalsAttempted,
-			renderTime(game.status.stats(homeAway).posTime),
-			game.status.state(homeAway).timeouts
-		)
-		)
-		bldr.append("\n\n___\n")
+		renderTeamStats(game, bldr, homeAway)
 
-	bldr.append("Team|")
-	numQuarters = max(len(game.status.homeState.quarters), len(game.status.awayState.quarters))
-	for i in range(numQuarters):
-		bldr.append("Q")
-		bldr.append(str(i + 1))
-		bldr.append("|")
-	bldr.append("Total\n")
-	bldr.append((":-:|" * (numQuarters + 2))[:-1])
-	bldr.append("\n")
-	for homeAway in [True, False]:
-		bldr.append(flair(game.team(homeAway)))
-		bldr.append("|")
-		for quarter in game.status.state(homeAway).quarters:
-			bldr.append(str(quarter))
-			bldr.append("|")
-		bldr.append("**")
-		bldr.append(str(game.status.state(homeAway).points))
-		bldr.append("**\n")
+	renderDrives(game, bldr)
+	bldr.append("___\n\n")
+	renderScore(game, bldr)
 
 	playBldr = []
 	for drive in game.status.plays:
