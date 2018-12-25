@@ -6,6 +6,7 @@ import utils
 import classes
 import globals
 import string_utils
+import drive_graphic
 from classes import T
 from classes import HomeAway
 from classes import PlaySummary
@@ -778,7 +779,11 @@ def executePlay(game, play, number, timeOption):
 	if success:
 		driveList = utils.appendPlay(game, playSummary)
 		if driveList is not None:
-			messages.append("That's the end of the drive")
+			driveSummary = utils.summarizeDrive(driveList)
+			field = drive_graphic.makeField(driveList)
+			driveImageUrl = drive_graphic.uploadField(field, game.thread, str(len(game.status.plays) - 2))
+			game.status.drives.append({'summary': driveSummary, 'url': driveImageUrl})
+			messages.append(f"Drive: [{str(driveSummary)}]({driveImageUrl})")
 
 	messages.append(string_utils.getCoachString(game, game.status.waitingOn.negate()))
 

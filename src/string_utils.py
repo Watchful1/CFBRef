@@ -103,9 +103,7 @@ def renderBallLocation(game, useFlair):
 		return str(game.status.location)
 
 
-def renderGame(game):
-	bldr = []
-
+def renderGameInfo(game, bldr):
 	bldr.append(flair(game.away))
 	bldr.append(" **")
 	bldr.append(game.away.name)
@@ -130,35 +128,42 @@ def renderGame(game):
 		bldr.append(unescapeMarkdown(game.station))
 		bldr.append("\n\n")
 
+
+def renderTeamStats(game, bldr, homeAway):
+	bldr.append(flair(game.team(homeAway)))
 	bldr.append("\n\n")
+	bldr.append(
+		"Total Passing Yards|Total Rushing Yards|Total Yards|Interceptions Lost|Fumbles Lost|Field Goals|Time of Possession|Timeouts\n")
+	bldr.append(":-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:\n")
+	bldr.append("{} yards|{} yards|{} yards|{}|{}|{}/{}|{}|{}".format(
+		game.status.stats(homeAway).yardsPassing,
+		game.status.stats(homeAway).yardsRushing,
+		game.status.stats(homeAway).yardsTotal,
+		game.status.stats(homeAway).turnoverInterceptions,
+		game.status.stats(homeAway).turnoverFumble,
+		game.status.stats(homeAway).fieldGoalsScored,
+		game.status.stats(homeAway).fieldGoalsAttempted,
+		renderTime(game.status.stats(homeAway).posTime),
+		game.status.state(homeAway).timeouts
+	)
+	)
+	bldr.append("\n\n___\n")
 
-	for homeAway in [False, True]:
-		bldr.append(flair(game.team(homeAway)))
-		bldr.append("\n\n")
-		bldr.append(
-			"Total Passing Yards|Total Rushing Yards|Total Yards|Interceptions Lost|Fumbles Lost|Field Goals|Time of Possession|Timeouts\n")
-		bldr.append(":-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:\n")
-		bldr.append("{} yards|{} yards|{} yards|{}|{}|{}/{}|{}|{}".format(
-			game.status.stats(homeAway).yardsPassing,
-			game.status.stats(homeAway).yardsRushing,
-			game.status.stats(homeAway).yardsTotal,
-			game.status.stats(homeAway).turnoverInterceptions,
-			game.status.stats(homeAway).turnoverFumble,
-			game.status.stats(homeAway).fieldGoalsScored,
-			game.status.stats(homeAway).fieldGoalsAttempted,
-			renderTime(game.status.stats(homeAway).posTime),
-			game.status.state(homeAway).timeouts
-		)
-		)
-		bldr.append("\n\n___\n")
 
-	bldr.append("Game Summary|Time\n")
-	bldr.append(":-:|:-:\n")
-	for drive in []:
-		bldr.append("test|test\n")
+def renderDrives(game, bldr):
+	bldr.append("Drive Summary\n")
+	bldr.append(":-:\n")
+	for drive in game.status.drives:
+		bldr.append("[")
+		bldr.append(str(drive['summary']))
+		bldr.append("]")
+		bldr.append("(")
+		bldr.append(drive['url'])
+		bldr.append(")\n")
+	bldr.append(")\n")
 
-	bldr.append("\n___\n\n")
 
+def renderGameStatus(game, bldr):
 	bldr.append("Clock|Quarter|Down|Ball Location|Possession|Playclock|Deadline\n")
 	bldr.append(":-:|:-:|:-:|:-:|:-:|:-:|:-:\n")
 	bldr.append(renderTime(game.status.clock))
@@ -176,9 +181,10 @@ def renderGame(game):
 	bldr.append(renderDatetime(game.playclock))
 	bldr.append("|")
 	bldr.append(renderDatetime(game.deadline))
+	bldr.append("\n\n")
 
-	bldr.append("\n\n___\n\n")
 
+def renderScore(game, bldr):
 	bldr.append("Team|")
 	numQuarters = max(len(game.status.homeState.quarters), len(game.status.awayState.quarters))
 	for i in range(numQuarters):
@@ -198,6 +204,22 @@ def renderGame(game):
 		bldr.append(str(game.status.state(homeAway).points))
 		bldr.append("**\n")
 
+
+def renderGame(game):
+	bldr = []
+
+	renderGameInfo(game, bldr)
+	bldr.append("\n\n")
+
+	for homeAway in [False, True]:
+		renderTeamStats(game, bldr, homeAway)
+
+	renderDrives(game, bldr)
+	bldr.append("___\n\n")
+	renderGameStatus(game, bldr)
+	bldr.append("___\n\n")
+	renderScore(game, bldr)
+
 	if game.forceChew:
 		bldr.append("\n#This game is in default chew the clock mode.\n")
 
@@ -206,7 +228,6 @@ def renderGame(game):
 					.format(
 						getCoachString(game, game.status.waitingOn),
 						getLinkFromGameThing(game.thread, utils.getPrimaryWaitingId(game.status.waitingId))))
-
 
 	if game.status.quarterType == QuarterType.END:
 		bldr.append("\n#Game complete, {} wins!\n".format(game.status.winner))

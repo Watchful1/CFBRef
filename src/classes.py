@@ -224,6 +224,7 @@ class GameStatus:
 		self.winner = None
 		self.timeRunoff = False
 		self.plays = [[]]
+		self.drives = []
 
 	def state(self, isHome):
 		if isHome:
