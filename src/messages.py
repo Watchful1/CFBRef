@@ -311,11 +311,10 @@ def processMessageKickGame(body):
 		return "Couldn't find a thread id in message"
 	log.debug("Found thread id: {}".format(threadIds[0]))
 
-	game = file_utils.loadGameObject(threadIds[0])
+	game = index.reloadAndReturn(threadIds[0], alwaysReturn=True)
 	if game is None:
 		return "Game not found: {}".format(threadIds[0])
 
-	game = index.reloadAndReturn(threadIds[0])
 	index.clearGameErrored(game)
 	file_utils.saveGameObject(game)
 	result = ["Kicked game: {}".format(threadIds[0])]

@@ -66,10 +66,12 @@ def addNewGame(game):
 	games[game.thread] = game
 
 
-def reloadAndReturn(thread):
+def reloadAndReturn(thread, alwaysReturn=False):
 	game = file_utils.loadGameObject(thread)
 	if game.status.waitingAction != Action.END:
 		games[game.thread] = game
+		return game
+	elif alwaysReturn:
 		return game
 	else:
 		return None
