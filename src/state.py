@@ -431,7 +431,7 @@ def executeGain(game, play, yards, incomplete=False):
 					resultMessage = "{}\n\n{}".format(resultMessage, overtimeTurnover(game))
 				else:
 					turnover(game)
-				return Result.TURNOVER, game.status.location - previousLocation, resultMessage
+				return Result.TURNOVER, yards, resultMessage
 			else:
 				log.debug("Now {} down and {}".format(string_utils.getDownString(game.status.down), yardsRemaining))
 				game.status.yards = yardsRemaining
