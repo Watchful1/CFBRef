@@ -2,6 +2,7 @@ import os
 import sys
 import logging
 import file_utils
+import utils
 import globals
 import classes
 from enum import Enum
@@ -79,6 +80,18 @@ def testPlaysTimes():
 	log.info(str(replaceEnums(wiki.times)))
 
 
+def pastebinPlaylist():
+	gameName = "ansdda"
+	pasteKey = ""
+	game = file_utils.loadGameObject(gameName)
+	playBldr = []
+	for play in game.status.plays:
+		playBldr.append(str(play))
+	playString = '\n'.join(playBldr)
+	pasteOutput = utils.paste("Thread summary", ''.join(playString), pasteKey).decode('utf-8')
+	print(pasteOutput)
+
+
 if len(sys.argv) < 2:
 	print("No arguments")
 	sys.exit(0)
@@ -86,3 +99,5 @@ if len(sys.argv) < 2:
 functionName = sys.argv[1]
 if functionName == "testPlaysTimes":
 	testPlaysTimes()
+elif functionName == "pastebinPlaylist":
+	pastebinPlaylist()

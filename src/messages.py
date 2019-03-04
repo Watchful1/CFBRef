@@ -329,10 +329,13 @@ def processMessageKickGame(body):
 	messageFullname = re.findall('(?:message:)(t\d_[\da-z]{6,})', body)
 	if len(messageFullname) > 0:
 		log.debug("Reprocessing message/comment: {}".format(messageFullname[0]))
-		message = reddit.getThingFromFullname(messageFullname[0])
-		if message is None:
-			return "Something went wrong. Not valid fullname: {}".format(messageFullname[0])
-		processMessage(message, True)
+		if messageFullname[0] == "DelayOfGame":
+			state.executeDelayOfGame(game)
+		else:
+			message = reddit.getThingFromFullname(messageFullname[0])
+			if message is None:
+				return "Something went wrong. Not valid fullname: {}".format(messageFullname[0])
+			processMessage(message, True)
 		result.append("Reprocessed message: {}".format(messageFullname[0]))
 
 	log.debug("Finished kicking game")

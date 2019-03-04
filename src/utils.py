@@ -103,10 +103,10 @@ def verifyTeams(teamTags):
 	return None
 
 
-def paste(title, content):  # used for posting a new paste
+def paste(title, content, paste_key=globals.PASTEBIN_KEY):  # used for posting a new paste
 	pastebin_vars = dict(
 		api_option='paste',
-		api_dev_key=globals.PASTEBIN_KEY,
+		api_dev_key=paste_key,
 		api_paste_name=title,
 		api_paste_code=content,
 	)
