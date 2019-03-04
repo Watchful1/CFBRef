@@ -61,9 +61,9 @@ def setStateOvertimeDrive(game, homeAway):
 	game.status.location = 75
 
 
-def forceTouchdown(game, homeAway):
-	log.debug("Forcing touchdown for: {}".format(homeAway))
-	scoreForTeam(game, 7, homeAway)
+def forceEightPointTouchdown(game, homeAway):
+	log.debug("Forcing touchdown and two point for: {}".format(homeAway))
+	scoreForTeam(game, 8, homeAway)
 
 
 def scoreTouchdown(game, homeAway):
@@ -799,37 +799,26 @@ def executeDelayOfGame(game):
 	penaltyMessage = "{} has not sent their number in over 24 hours, playclock penalty. This is their {} penalty.".format(
 		string_utils.getCoachString(game, game.status.waitingOn),
 		string_utils.getNthWord(game.status.state(game.status.waitingOn).playclockPenalties))
+
 	if game.status.state(game.status.waitingOn).playclockPenalties >= 3:
 		log.debug("3 penalties, game over")
 		result = utils.endGame(game, game.team(game.status.waitingOn.negate()).name)
 		resultMessage = "They forfeit the game. {} has won!\n\n{}".format(
 			string_utils.flair(game.team(game.status.waitingOn.negate())), result)
 
-	elif game.status.waitingOn == game.status.possession:
-		log.debug("Waiting on offense, turnover")
-		if utils.isGameOvertime(game):
-			resultMessage = overtimeTurnover(game)
-			if game.status.waitingAction != Action.END:
-				utils.sendDefensiveNumberMessage(game)
-		else:
-			turnover(game)
-			game.status.waitingOn = game.status.possession.negate()
-			utils.sendDefensiveNumberMessage(game)
-			resultMessage = "Turnover, {} has the ball.".format(string_utils.flair(game.team(game.status.waitingOn)))
-
 	else:
 		log.debug("Waiting on defense, touchdown")
 		if utils.isGameOvertime(game):
-			forceTouchdown(game, game.status.possession)
+			forceEightPointTouchdown(game, game.status.possession)
 			resultMessage = overtimeTurnover(game)
 			if game.status.waitingAction != Action.END:
 				utils.sendDefensiveNumberMessage(game)
 		else:
-			forceTouchdown(game, game.status.possession)
-			setStateTouchback(game, game.status.possession.negate())
+			forceEightPointTouchdown(game, game.status.waitingOn.negate())
+			setStateKickoff(game, game.status.possession.negate())
 			game.status.waitingOn.reverse()
 			utils.sendDefensiveNumberMessage(game)
-			resultMessage = "Automatic 7 point touchdown, {} has the ball.".format(
+			resultMessage = "Automatic touchdown and two point conversion, {} has the ball.".format(
 				string_utils.flair(game.team(game.status.waitingOn)))
 
 	utils.sendGameComment(game, "{}\n\n{}".format(penaltyMessage, resultMessage), None, False)

@@ -1,9 +1,9 @@
 Release 3/x/19
 - Implemented game summaries with drive summary images
+- Fix rerunning delay of game penalties
 
 
 TODO
-- Fix rerunning delay of game penalties
 - Implement strings for play results
 - Implement string suggestions for play results
 - Fix delay of game during kickoffs/coin toss
