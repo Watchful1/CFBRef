@@ -715,6 +715,11 @@ def executePlay(game, play, number, timeOption):
 				log.debug("Running kneel play")
 				actualResult = Result.KNEEL
 				game.status.down += 1
+
+				newLocation = max(game.status.location + 2, 100)
+				log.debug("Kneel moved ball from {} to {}".format(game.status.location, newLocation))
+				game.status.location = newLocation
+
 				if game.status.down > 4:
 					log.debug("Turnover on downs")
 					if utils.isGameOvertime(game):

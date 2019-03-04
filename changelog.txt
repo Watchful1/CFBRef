@@ -2,6 +2,9 @@ Release 3/x/19
 - Implemented game summaries with drive summary images
 - Fix rerunning delay of game penalties
 
+Rule changes
+- Delay of games always result in a touchdown and successful 2 point conversion
+- Kneel plays result in 2 yard loss
 
 TODO
 - Implement strings for play results
@@ -14,6 +17,4 @@ TODO
 - Switch to gist for play lists and update on every play
 
 Rule changes
-- Kneel plays result in 2 yard loss
 - Safeties result in the ball on the 20 yard line, no kickoff
-- Delay of games always result in a touchdown and successful 2 point conversion
