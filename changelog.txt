@@ -5,6 +5,7 @@ Release 3/x/19
 Rule changes
 - Delay of games always result in a touchdown and successful 2 point conversion
 - Kneel plays result in 2 yard loss
+- Safeties result in the ball on the 20 yard line, no kickoff
 
 TODO
 - Implement strings for play results
@@ -15,6 +16,3 @@ TODO
 - You can use "chew" for chew the clock plays
 - Automatically handle reddit outage exceptions
 - Switch to gist for play lists and update on every play
-
-Rule changes
-- Safeties result in the ball on the 20 yard line, no kickoff

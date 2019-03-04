@@ -31,9 +31,9 @@ def scoreForTeam(game, points, homeAway):
 	game.status.state(homeAway).quarters[game.status.quarter - 1] += points
 
 
-def setStateTouchback(game, homeAway):
+def setStateTouchback(game, homeAway, yards=25):
 	log.debug("Setting state to touchback for: {}".format(homeAway))
-	game.status.location = 25
+	game.status.location = yards
 	game.status.down = 1
 	game.status.yards = 10
 	game.status.possession = homeAway.copy()
@@ -142,7 +142,7 @@ def overtimeTurnover(game):
 
 def scoreSafety(game, homeAway):
 	scoreForTeam(game, 2, homeAway)
-	setStateKickoff(game, homeAway.negate())
+	setStateTouchback(game, homeAway.negate(), 20)
 
 
 def getNumberDiffForGame(game, offenseNumber):
