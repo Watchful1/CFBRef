@@ -41,10 +41,7 @@ def init():
 					log.debug("Reverting status and reprocessing {}".format(game.previousStatus[0].messageId))
 					utils.revertStatus(game, 0)
 					file_utils.saveGameObject(game)
-					message = reddit.getThingFromFullname(game.status.messageId)
-					if message is None:
-						return "Something went wrong. Not valid fullname: {}".format(game.status.messageId)
-					messages.processMessage(message, True)
+					messages.reprocessPlay(game, game.status.messageId)
 
 					game = reloadAndReturn(game.thread)
 				except Exception as err:

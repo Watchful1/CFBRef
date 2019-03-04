@@ -303,6 +303,18 @@ def processMessageOffensePlay(game, message, author):
 	return success, string_utils.embedTableInMessage('\n\n'.join(result), utils.getActionTable(game, game.status.waitingAction))
 
 
+def reprocessPlay(game, messageId):
+	log.debug("Reprocessing message/comment: {}".format(messageId))
+	if messageId == "DelayOfGame":
+		state.executeDelayOfGame(game)
+	else:
+		message = reddit.getThingFromFullname(messageId)
+		if message is None:
+			return "Something went wrong. Not valid fullname: {}".format(messageId)
+		processMessage(message, True)
+	return "Reprocessed message: {}".format(messageId)
+
+
 def processMessageKickGame(body):
 	log.debug("Processing kick game message")
 	threadIds = re.findall('([\da-z]{6})', body)
@@ -328,15 +340,7 @@ def processMessageKickGame(body):
 
 	messageFullname = re.findall('(?:message:)(t\d_[\da-z]{6,})', body)
 	if len(messageFullname) > 0:
-		log.debug("Reprocessing message/comment: {}".format(messageFullname[0]))
-		if messageFullname[0] == "DelayOfGame":
-			state.executeDelayOfGame(game)
-		else:
-			message = reddit.getThingFromFullname(messageFullname[0])
-			if message is None:
-				return "Something went wrong. Not valid fullname: {}".format(messageFullname[0])
-			processMessage(message, True)
-		result.append("Reprocessed message: {}".format(messageFullname[0]))
+		result.append(reprocessPlay(game, messageFullname[0]))
 
 	log.debug("Finished kicking game")
 	return '\n\n'.join(result)
