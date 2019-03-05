@@ -2,8 +2,8 @@ import logging.handlers
 import random
 import re
 import copy
-import urllib.parse
-import urllib.request
+import requests
+import json
 from datetime import datetime
 from datetime import timedelta
 
@@ -103,15 +103,46 @@ def verifyTeams(teamTags):
 	return None
 
 
-def paste(title, content, paste_key=globals.PASTEBIN_KEY):  # used for posting a new paste
-	pastebin_vars = dict(
-		api_option='paste',
-		api_dev_key=paste_key,
-		api_paste_name=title,
-		api_paste_code=content,
+def paste(title, content, gist_username=globals.GIST_USERNAME, gist_token=globals.GIST_TOKEN):
+	result = requests.post(
+		'https://api.github.com/gists',
+		json.dumps(
+			{'files': {title: {"content": content}}}
+		),
+		auth=requests.auth.HTTPBasicAuth(gist_username, gist_token)
 	)
-	return urllib.request.urlopen('http://pastebin.com/api/api_post.php',
-								  urllib.parse.urlencode(pastebin_vars).encode('utf8')).read()
+
+	if result.ok:
+		result_json = result.json()
+		if 'id' not in result_json:
+			log.warning("id not in gist response")
+			return None
+		log.debug("Pasted to gist {}".format(result_json['id']))
+		return result_json['id']
+	else:
+		log.warning("Could not create gist: {}".format(result.status_code))
+		return None
+
+
+def edit_paste(title, content, id, gist_username=globals.GIST_USERNAME, gist_token=globals.GIST_TOKEN):
+	result = requests.patch(
+		'https://api.github.com/gists/'+id,
+		json.dumps(
+			{'files': {title: {"content": content}}}
+		),
+		auth=requests.auth.HTTPBasicAuth(gist_username, gist_token)
+	)
+
+	if result.ok:
+		result_json = result.json()
+		if 'id' not in result_json:
+			log.warning("id not in gist response")
+			return None
+		log.debug("Edited gist {}".format(result_json['id']))
+		return result_json['id']
+	else:
+		log.warning("Could not edit gist: {}".format(result.status_code))
+		return None
 
 
 def coinToss():

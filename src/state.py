@@ -792,6 +792,12 @@ def executePlay(game, play, number, timeOption):
 
 	messages.append(string_utils.getCoachString(game, game.status.waitingOn.negate()))
 
+	playString = string_utils.renderPlays(game)
+	if game.playGist is None:
+		game.playGist = utils.paste("Play summary", ''.join(playString))
+	else:
+		utils.edit_paste("Play summary", ''.join(playString), game.playGist)
+
 	return success, '\n\n'.join(messages)
 
 

@@ -25,7 +25,8 @@ def init(user):
 	log.info("Logged into reddit as /u/" + globals.ACCOUNT_NAME)
 
 	config_keys = [
-		{'var': "PASTEBIN_KEY", 'name': "pastebin"},
+		{'var': "GIST_USERNAME", 'name': "gist_username"},
+		{'var': "GIST_TOKEN", 'name': "gist_token"},
 		{'var': "CLOUDINARY_KEY", 'name': "cloudinary_key"},
 		{'var': "CLOUDINARY_SECRET", 'name': "cloudinary_secret"},
 	]

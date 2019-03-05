@@ -10,6 +10,7 @@ cloudinary = "*"
 praw = "*"
 pytz = "*"
 pillow = "*"
+requests = "*"
 
 [requires]
 python_version = "3.7"

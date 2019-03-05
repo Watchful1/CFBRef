@@ -5,6 +5,7 @@ import file_utils
 import utils
 import globals
 import classes
+import configparser
 from enum import Enum
 
 import wiki
@@ -80,24 +81,36 @@ def testPlaysTimes():
 	log.info(str(replaceEnums(wiki.times)))
 
 
-def pastebinPlaylist():
-	gameName = "ansdda"
-	pasteKey = ""
-	game = file_utils.loadGameObject(gameName)
+def pastebinPlaylist(game_id, config_section):
+	game = file_utils.loadGameObject(game_id)
 	playBldr = []
 	for play in game.status.plays:
 		playBldr.append(str(play))
 	playString = '\n'.join(playBldr)
-	pasteOutput = utils.paste("Thread summary", ''.join(playString), pasteKey).decode('utf-8')
-	print(pasteOutput)
+	gistId = utils.paste(
+		"Thread summary",
+		''.join(playString),
+		config_section['gist_username'],
+		config_section['gist_token']
+	)
+	print(globals.GIST_BASE_URL + config_section['gist_username'] + "/" + gistId)
 
 
 if len(sys.argv) < 2:
 	print("No arguments")
 	sys.exit(0)
 
+config = configparser.ConfigParser()
+if 'APPDATA' in os.environ:  # Windows
+	os_config_path = os.environ['APPDATA']
+else:
+	log.error("Couldn't find config")
+	sys.exit()
+os_config_path = os.path.join(os_config_path, 'praw.ini')
+config.read(os_config_path)
+
 functionName = sys.argv[1]
 if functionName == "testPlaysTimes":
 	testPlaysTimes()
 elif functionName == "pastebinPlaylist":
-	pastebinPlaylist()
+	pastebinPlaylist("test", config['Watchful1BotTest'])

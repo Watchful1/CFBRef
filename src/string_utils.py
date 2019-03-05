@@ -220,6 +220,18 @@ def renderGame(game):
 	bldr.append("___\n\n")
 	renderScore(game, bldr)
 
+	bldr.append("\n\n")
+
+	if game.playGist is not None:
+		bldr.append("[Plays](")
+		bldr.append(globals.GIST_BASE_URL)
+		bldr.append(globals.GIST_USERNAME)
+		bldr.append("/")
+		bldr.append(game.playGist)
+		bldr.append(")\n")
+	else:
+		bldr.append("Unable to generate play list\n")
+
 	if game.forceChew:
 		bldr.append("\n#This game is in default chew the clock mode.\n")
 
@@ -235,6 +247,15 @@ def renderGame(game):
 	return ''.join(bldr)
 
 
+def renderPlays(game):
+	playBldr = []
+	for drive in game.status.plays:
+		for play in drive:
+			playBldr.append(str(play))
+
+	return '\n'.join(playBldr)
+
+
 def renderPostGame(game):
 	bldr = []
 
@@ -248,25 +269,18 @@ def renderPostGame(game):
 	bldr.append("___\n\n")
 	renderScore(game, bldr)
 
-	playBldr = []
-	for drive in game.status.plays:
-		for play in drive:
-			playBldr.append(str(play))
-
 	bldr.append("\n\n")
 	bldr.append("[Game thread](")
 	bldr.append(globals.SUBREDDIT_LINK)
 	bldr.append(game.thread)
 	bldr.append(")\n\n")
 
-	playString = '\n'.join(playBldr)
-	pasteOutput = utils.paste("Thread summary", ''.join(playString)).decode('utf-8')
-
-	bldr.append("\n")
-	if "pastebin.com" in pasteOutput:
-		log.debug("Finished pasting: {}".format(pasteOutput))
+	if game.playGist is not None:
 		bldr.append("[Plays](")
-		bldr.append(pasteOutput)
+		bldr.append(globals.GIST_BASE_URL)
+		bldr.append(globals.GIST_USERNAME)
+		bldr.append("/")
+		bldr.append(game.playGist)
 		bldr.append(")\n")
 	else:
 		bldr.append("Unable to generate play list\n")

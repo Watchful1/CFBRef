@@ -4,6 +4,7 @@ Release 3/x/19
 - Link to game thread in post game thread
 - You can use "chew" for chew the clock plays
 - Spikes are automatically hurry up
+- Switch to gist for play lists and update on every play
 
 Rule changes
 - Delay of games always result in a touchdown and successful 2 point conversion
@@ -14,4 +15,3 @@ TODO
 - Implement strings for play results
 - Implement string suggestions for play results
 - Automatically handle reddit outage exceptions
-- Switch to gist for play lists and update on every play
