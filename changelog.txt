@@ -1,4 +1,4 @@
-Release 3/x/19
+Release March 2019
 - Implemented game summaries with drive summary images (credit nwithan8)
 - Fix rerunning delay of game penalties
 - Link to game thread in post game thread
