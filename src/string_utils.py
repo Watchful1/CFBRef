@@ -252,6 +252,13 @@ def renderPostGame(game):
 	for drive in game.status.plays:
 		for play in drive:
 			playBldr.append(str(play))
+
+	bldr.append("\n\n")
+	bldr.append("[Game thread](")
+	bldr.append(globals.SUBREDDIT_LINK)
+	bldr.append(game.thread)
+	bldr.append(")\n\n")
+
 	playString = '\n'.join(playBldr)
 	pasteOutput = utils.paste("Thread summary", ''.join(playString)).decode('utf-8')
 
