@@ -1,6 +1,6 @@
 Release March 2019
 - Implemented game summaries with drive summary images (credit nwithan8)
-- Fix rerunning delay of game penalties
+- Fix rerunning delay of game penalties, including when changing coaches
 - Link to game thread in post game thread
 - You can use "chew" for chew the clock plays
 - Spikes are automatically hurry up
