@@ -2,6 +2,8 @@ Release 3/x/19
 - Implemented game summaries with drive summary images (credit nwithan8)
 - Fix rerunning delay of game penalties
 - Link to game thread in post game thread
+- You can use "chew" for chew the clock plays
+- Spikes are automatically hurry up
 
 Rule changes
 - Delay of games always result in a touchdown and successful 2 point conversion
@@ -11,7 +13,5 @@ Rule changes
 TODO
 - Implement strings for play results
 - Implement string suggestions for play results
-- Spikes are automatically hurry up
-- You can use "chew" for chew the clock plays
 - Automatically handle reddit outage exceptions
 - Switch to gist for play lists and update on every play

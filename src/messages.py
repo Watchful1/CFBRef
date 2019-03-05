@@ -206,17 +206,6 @@ def processMessageOffensePlay(game, message, author):
 		else:
 			timeoutMessageOffense = "The offense requested a timeout, but they don't have any left"
 
-	if game.forceChew:
-		timeOption = TimeOption.CHEW
-	else:
-		timeOption = TimeOption.NORMAL
-	if any(x in message for x in ['chew', 'chew the clock', 'milk the clock', 'chew clock']):
-		timeOption = TimeOption.CHEW
-	elif any(x in message for x in ['hurry up', 'no huddle', 'no-huddle']):
-		timeOption = TimeOption.HURRY
-	elif any(x in message for x in ['normal']):
-		timeOption = TimeOption.NORMAL
-
 	normalOptions = ["run", "pass", "punt", "field goal", "kneel", "spike"]
 	conversionOptions = ["two point", "pat"]
 	kickoffOptions = ["normal", "squib", "onside"]
@@ -257,6 +246,20 @@ def processMessageOffensePlay(game, message, author):
 	else:
 		log.debug("Didn't find any plays")
 		return False, "I couldn't find a play in your message"
+
+	if game.forceChew:
+		timeOption = TimeOption.CHEW
+	else:
+		if play == Play.SPIKE:
+			timeOption = TimeOption.HURRY
+		else:
+			timeOption = TimeOption.NORMAL
+	if any(x in message for x in ['chew', 'chew the clock', 'milk the clock', 'chew clock']):
+		timeOption = TimeOption.CHEW
+	elif any(x in message for x in ['hurry up', 'no huddle', 'no-huddle']):
+		timeOption = TimeOption.HURRY
+	elif any(x in message for x in ['normal']):
+		timeOption = TimeOption.NORMAL
 
 	number, numberMessage = utils.extractPlayNumber(message)
 	if play not in classes.timePlays and number == -1:
