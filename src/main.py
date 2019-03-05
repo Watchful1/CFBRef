@@ -6,7 +6,6 @@ import time
 import sys
 import signal
 import traceback
-import cloudinary
 
 import globals
 import reddit
