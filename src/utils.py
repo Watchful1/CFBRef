@@ -377,7 +377,6 @@ def endGame(game, winner, postThread=True):
 	game.status.winner = winner
 	if game.status.down > 4:
 		game.status.down = 4
-	index.endGame(game)
 
 	if postThread:
 		postGameThread = string_utils.renderPostGame(game)

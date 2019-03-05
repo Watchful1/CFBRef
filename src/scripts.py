@@ -6,9 +6,11 @@ import utils
 import globals
 import classes
 import configparser
+import traceback
 from enum import Enum
 
 import wiki
+from classes import Action
 
 ### Logging setup ###
 LOG_LEVEL = logging.DEBUG
@@ -96,6 +98,17 @@ def pastebinPlaylist(game_id, config_section):
 	print(globals.GIST_BASE_URL + config_section['gist_username'] + "/" + gistId)
 
 
+def archiveEndedGames():
+	for gameFile in os.listdir(globals.SAVE_FOLDER_NAME):
+		try:
+			game = file_utils.loadGameObject(gameFile)
+			if game.status.waitingAction == Action.END:
+				file_utils.archiveGameFile(gameFile)
+		except Exception as err:
+			log.warning("Can't archive game: {}".format(gameFile))
+			log.warning(traceback.format_exc())
+
+
 if len(sys.argv) < 2:
 	print("No arguments")
 	sys.exit(0)
@@ -103,6 +116,10 @@ if len(sys.argv) < 2:
 config = configparser.ConfigParser()
 if 'APPDATA' in os.environ:  # Windows
 	os_config_path = os.environ['APPDATA']
+elif 'XDG_CONFIG_HOME' in os.environ:  # Modern Linux
+	os_config_path = os.environ['XDG_CONFIG_HOME']
+elif 'HOME' in os.environ:  # Legacy Linux
+	os_config_path = os.path.join(os.environ['HOME'], '.config')
 else:
 	log.error("Couldn't find config")
 	sys.exit()
@@ -114,3 +131,5 @@ if functionName == "testPlaysTimes":
 	testPlaysTimes()
 elif functionName == "pastebinPlaylist":
 	pastebinPlaylist("test", config['Watchful1BotTest'])
+elif functionName == "archiveEndedGames":
+	archiveEndedGames()

@@ -27,8 +27,13 @@ def loadGameObject(threadID):
 
 def archiveGameFile(threadID):
 	log.debug("Archiving game: {}".format(threadID))
+	sourcePath = "{}/{}".format(globals.SAVE_FOLDER_NAME, threadID)
+	destinationPath = "{}/{}".format(globals.ARCHIVE_FOLDER_NAME, threadID)
+	if os.path.exists(destinationPath):
+		log.info("Game already exists in archive, deleting")
+		os.remove(destinationPath)
 	try:
-		os.rename("{}/{}".format(globals.SAVE_FOLDER_NAME, threadID), "{}/{}".format(globals.ARCHIVE_FOLDER_NAME, threadID))
+		os.rename(sourcePath, destinationPath)
 	except Exception as err:
 		log.warning("Can't archive game file: {}".format(threadID))
 		log.warning(traceback.format_exc())

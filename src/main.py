@@ -121,6 +121,8 @@ while True:
 
 			for game in index.getGamesPastPlayclock():
 				state.executeDelayOfGame(game)
+				if game.status.waitingAction == Action.END:
+					index.endGame(game)
 
 			for game in index.getGamesPastPlayclockWarning():
 				warningText = "This is a warning that your [game]({}) is waiting on a reply from you to " \
