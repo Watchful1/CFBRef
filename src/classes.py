@@ -246,6 +246,7 @@ class Team:
 		self.offense = offense
 		self.defense = defense
 		self.coaches = []
+		self.pastCoaches = []
 		self.record = None
 
 

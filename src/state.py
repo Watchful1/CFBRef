@@ -41,9 +41,9 @@ def setStateTouchback(game, homeAway, yards=25):
 	game.status.waitingOn = homeAway.copy()
 
 
-def setStateKickoff(game, homeAway):
+def setStateKickoff(game, homeAway, yards=35):
 	log.debug("Setting state to kickoff for: {}".format(homeAway))
-	game.status.location = 35
+	game.status.location = yards
 	game.status.down = 1
 	game.status.yards = 10
 	game.status.timeRunoff = False
@@ -142,7 +142,7 @@ def overtimeTurnover(game):
 
 def scoreSafety(game, homeAway):
 	scoreForTeam(game, 2, homeAway)
-	setStateTouchback(game, homeAway.negate(), 20)
+	setStateKickoff(game, homeAway.negate(), 20)
 
 
 def getNumberDiffForGame(game, offenseNumber):
@@ -717,6 +717,7 @@ def executePlay(game, play, number, timeOption):
 				game.status.down += 1
 
 				newLocation = max(game.status.location + 2, 100)
+				utils.addStatRunPass(game, Play.RUN, game.status.location - newLocation)
 				log.debug("Kneel moved ball from {} to {}".format(game.status.location, newLocation))
 				game.status.location = newLocation
 

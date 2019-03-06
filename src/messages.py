@@ -93,10 +93,10 @@ def processMessageCoin(game, isHeads, author):
 		return True, string_utils.embedTableInMessage(message, utils.getActionTable(game, Action.DEFER))
 
 
-def processMessageDefer(game, isDefer, author):
+def processMessageDefer(game, isDefer, author, force=False):
 	log.debug("Processing defer message: {}".format(str(isDefer)))
 
-	authorHomeAway = utils.coachHomeAway(game, author)
+	authorHomeAway = utils.coachHomeAway(game, author, force)
 	utils.setGamePlayed(game)
 	if utils.isGameOvertime(game):
 		if isDefer:
@@ -528,9 +528,9 @@ def processMessage(message, force=False):
 						keywords = ["defer", "receive"]
 					keyword = utils.findKeywordInMessage(keywords, body)
 					if keyword == "defer" or keyword == "defend":
-						success, response = processMessageDefer(game, True, author)
+						success, response = processMessageDefer(game, True, author, force)
 					elif keyword == "receive" or keyword == "attack":
-						success, response = processMessageDefer(game, False, author)
+						success, response = processMessageDefer(game, False, author, force)
 					elif keyword == "mult":
 						success = False
 						response = "I found both {} in your message. Please reply with just one of them.".format(

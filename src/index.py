@@ -34,6 +34,7 @@ def init():
 						wikiTeam.coaches
 					))
 					changed = True
+					team.pastCoaches.append(team.coaches)
 					team.coaches = wikiTeam.coaches
 
 			if changed:

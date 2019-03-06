@@ -166,13 +166,19 @@ def updateGameThread(game):
 	reddit.editThread(game.thread, threadText)
 
 
-def coachHomeAway(game, coach):
+def coachHomeAway(game, coach, checkPast=False):
 	if coach.lower() in game.home.coaches:
 		return HomeAway(True)
 	elif coach.lower() in game.away.coaches:
 		return HomeAway(False)
-	else:
-		return None
+
+	if checkPast:
+		if coach.lower() in game.home.pastCoaches:
+			return HomeAway(True)
+		elif coach.lower() in game.away.pastCoaches:
+			return HomeAway(False)
+
+	return None
 
 
 def sendGameMessage(isHome, game, message, dataTable):
