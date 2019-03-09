@@ -1,0 +1,12 @@
+Key,Value
+scoredTwoPointConversion,The two point conversion is successful
+scoredPAT,The PAT was successful
+failedTwoPointConversion,The two point conversion attempt was unsuccessful
+failedPAT,The PAT attempt was unsuccessful
+failedConversion,Conversion unsuccessful
+turnoverPAT,The attempt was fumbled and run all the way back! Two points {team}!
+successfulKickoff,{yards} yard kick
+turnoverKickoff,It's dropped! Recovered by {team} on the {location}
+touchback,"The kick goes into the end zone, touchback"
+touchdownKickoff,It's dropped! The kicking team recovers and runs it into the end zone! Touchdown {team}!
+turnoverTouchdownKickoff,It's run all the way back! Touchdown {team}!

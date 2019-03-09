@@ -499,7 +499,7 @@ def executePlay(game, play, number, timeOption):
 
 			if result['result'] == Result.TWO_POINT:
 				log.debug("Successful two point conversion")
-				resultMessage = "The two point conversion is successful"
+				resultMessage = wiki.getStringFromKey("scoredTwoPointConversion")
 				scoreTwoPoint(game, game.status.possession)
 				if utils.isGameOvertime(game):
 					timeMessage = overtimeTurnover(game)
@@ -508,7 +508,7 @@ def executePlay(game, play, number, timeOption):
 
 			elif result['result'] == Result.PAT:
 				log.debug("Successful PAT")
-				resultMessage = "The PAT was successful"
+				resultMessage = wiki.getStringFromKey("scoredPAT")
 				scorePAT(game, game.status.possession)
 				if utils.isGameOvertime(game):
 					timeMessage = overtimeTurnover(game)
@@ -518,11 +518,11 @@ def executePlay(game, play, number, timeOption):
 			elif result['result'] == Result.KICKOFF:
 				log.debug("Attempt unsuccessful")
 				if play == Play.TWO_POINT:
-					resultMessage = "The two point conversion attempt was unsuccessful"
+					resultMessage = wiki.getStringFromKey("failedTwoPointConversion")
 				elif play == Play.PAT:
-					resultMessage = "The PAT attempt was unsuccessful"
+					resultMessage = wiki.getStringFromKey("failedPAT")
 				else:
-					resultMessage = "Conversion unsuccessful"
+					resultMessage = wiki.getStringFromKey("failedConversion")
 				if utils.isGameOvertime(game):
 					timeMessage = overtimeTurnover(game)
 				else:
@@ -530,7 +530,7 @@ def executePlay(game, play, number, timeOption):
 
 			elif result['result'] == Result.TURNOVER_PAT:
 				log.debug("Turnover PAT")
-				resultMessage = "The attempt was fumbled and run all the way back! Two points {}!".format(game.team(game.status.possession.negate()).name)
+				resultMessage = wiki.getStringFromKey("turnoverPAT", {'team': game.team(game.status.possession.negate()).name})
 				scoreTwoPoint(game, game.status.possession.negate())
 				if utils.isGameOvertime(game):
 					timeMessage = overtimeTurnover(game)
@@ -560,7 +560,7 @@ def executePlay(game, play, number, timeOption):
 						timeMessage = overtimeTurnover(game)
 					else:
 						turnover(game)
-					resultMessage = "{} yard kick.".format(yards)
+					resultMessage = wiki.getStringFromKey("successfulKickoff", {'yards': yards})
 
 			elif result['result'] == Result.GAIN:
 				if 'yards' not in result:
@@ -571,22 +571,22 @@ def executePlay(game, play, number, timeOption):
 					log.debug("Result is a dropped kick of {} yards".format(result['yards']))
 					yards = result['yards']
 					game.status.location = game.status.location + yards
-					resultMessage = "It's dropped! Recovered by {} on the {}".format(game.team(game.status.possession).name, string_utils.getLocationString(game))
+					resultMessage = wiki.getStringFromKey("turnoverKickoff", {'team': game.team(game.status.possession).name, 'location': string_utils.getLocationString(game)})
 					game.status.waitingAction = Action.PLAY
 
 			elif result['result'] == Result.TOUCHBACK:
 				log.debug("Result is a touchback")
 				setStateTouchback(game, game.status.possession.negate())
-				resultMessage = "The kick goes into the end zone, touchback."
+				resultMessage = wiki.getStringFromKey("touchback")
 
 			elif result['result'] == Result.TOUCHDOWN:
 				log.debug("Result is a touchdown")
-				resultMessage = "It's dropped! The kicking team recovers and runs it into the end zone! Touchdown {}!".format(game.team(game.status.possession).name)
+				resultMessage = wiki.getStringFromKey("touchdownKickoff", {'team': game.team(game.status.possession).name})
 				scoreTouchdown(game, game.status.possession)
 
 			elif result['result'] == Result.TURNOVER_TOUCHDOWN:
 				log.debug("Result is a run back for touchdown")
-				resultMessage = "It's run all the way back! Touchdown {}!".format(game.team(game.status.possession.negate()).name)
+				resultMessage = wiki.getStringFromKey("turnoverTouchdownKickoff", {'team': game.team(game.status.possession.negate()).name})
 				scoreTouchdown(game, game.status.possession.negate())
 
 		elif play in classes.normalPlays:

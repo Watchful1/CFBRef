@@ -1,6 +1,7 @@
 .idea/*
 logs/*
 games/*
+gamesOld/*
 __pycache__/*
 *.db
 *.ini

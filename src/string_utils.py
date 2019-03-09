@@ -405,12 +405,15 @@ def listSuggestedPlays(game):
 			return "**run** or **pass**"
 
 
-def buildMessageLink(recipient, subject, content):
-	return "https://np.reddit.com/message/compose/?to={}&subject={}&message={}".format(
-		recipient,
-		subject.replace(" ", "%20"),
-		content.replace(" ", "%20")
-	)
+def buildMessageLink(recipient, subject, content=None):
+	base = "https://np.reddit.com/message/compose/?"
+	bldr = []
+	bldr.append(f"to={recipient}")
+	bldr.append(f"subject={subject.replace(' ', '%20')}")
+	if content is not None:
+		bldr.append(f"message={content.replace(' ', '%20')}")
+
+	return base + '&'.join(bldr)
 
 
 def renderDatetime(dtTm, includeLink=True):
