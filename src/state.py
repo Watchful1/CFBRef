@@ -104,7 +104,7 @@ def overtimeTurnover(game):
 		log.debug("End of first overtime possession, starting second")
 		game.status.overtimePossession = 2
 		setStateOvertimeDrive(game, game.status.possession.negate())
-		return "End of the drive. {} has possession now".format(string_utils.flair(game.team(game.status.possession)))
+		return wiki.getStringFromKey("overtimeDriveEnd", {'team': string_utils.flair(game.team(game.status.possession))})
 	elif game.status.overtimePossession == 2:
 		if game.status.state(T.home).points == game.status.state(T.away).points:
 			if game.status.quarterType == QuarterType.OVERTIME_TIME and game.status.quarter >= 6:
@@ -117,15 +117,14 @@ def overtimeTurnover(game):
 					victor = HomeAway(T.away)
 
 				output = utils.endGame(game, game.team(victor).name)
-				return "It is the end of the 6th quarter in an overtime forced by the game clock and the score is still tied. " \
-				       "I'm flipping a coin to determine the victor. {} has won!\n\n{}".format(string_utils.flair(game.team(victor)), output)
+				return wiki.getStringFromKey("overtimeForcedGameEnd", {'team': string_utils.flair(game.team(victor))}) + "\n\n" + output
 			else:
 				log.debug("End of second overtime possession, still tied, starting new quarter")
 				game.status.overtimePossession = 1
 				game.status.quarter += 1
 				setStateOvertimeDrive(game, game.status.receivingNext)
 				game.status.receivingNext.reverse()
-				return "It's still tied! Going to the {} quarter.".format(string_utils.getNthWord(game.status.quarter))
+				return wiki.getStringFromKey("overtimeTiedQuarterEnd", {'quarter': string_utils.getNthWord(game.status.quarter)})
 
 		else:
 			log.debug("End of game")
@@ -134,7 +133,7 @@ def overtimeTurnover(game):
 			else:
 				victor = HomeAway(T.away)
 			output = utils.endGame(game, game.team(victor).name)
-			return "That's the end of the game. {} has won!\n\n".format(string_utils.flair(game.team(victor)), output)
+			return wiki.getStringFromKey("overtimeGameEnd", {'team': string_utils.flair(game.team(victor))}) + "\n\n" + output
 
 	else:
 		log.warning("Something went wrong. Invalid overtime possession: {}".format(game.status.overtimePossession))
@@ -393,7 +392,14 @@ def executeGain(game, play, yards, incomplete=False):
 		utils.addStatRunPass(game, play, 100 - previousLocation)
 		scoreTouchdown(game, game.status.possession)
 
-		return Result.TOUCHDOWN, 100 - previousLocation, "{} with a {} yard {} into the end zone for a touchdown!".format(game.team(game.status.possession).name, yards, play.name.lower())
+		if play == Play.RUN:
+			resultMessage = wiki.getStringFromKey("runTouchdown", {'team': game.team(game.status.possession).name, 'yards': yards})
+		elif play == Play.PASS:
+			resultMessage = wiki.getStringFromKey("passTouchdown", {'team': game.team(game.status.possession).name, 'yards': yards})
+		else:
+			resultMessage = "It's a touchdown!"
+
+		return Result.TOUCHDOWN, 100 - previousLocation, resultMessage
 	elif game.status.location <= 0:
 		log.debug("Ball went back over the line, safety for the defense")
 
@@ -401,9 +407,9 @@ def executeGain(game, play, yards, incomplete=False):
 		scoreSafety(game, game.status.possession.negate())
 
 		if play == Play.RUN:
-			resultMessage = "The runner is taken down in the end zone for a safety."
+			resultMessage = wiki.getStringFromKey("runSafety")
 		elif play == Play.PASS:
-			resultMessage = "Sack! The quarterback is taken down in the endzone for a safety."
+			resultMessage = wiki.getStringFromKey("passSafety")
 		else:
 			resultMessage = "It's a safety!"
 
@@ -418,16 +424,29 @@ def executeGain(game, play, yards, incomplete=False):
 			log.debug("First down")
 			game.status.yards = 10
 			game.status.down = 1
-			return Result.GAIN, game.status.location - previousLocation, "{} play for {} yard(s), first down".format(play.name.lower().capitalize(), yards)
+
+			if play == Play.RUN:
+				resultMessage = wiki.getStringFromKey("runFirstDown", {'yards': yards})
+			elif play == Play.PASS:
+				resultMessage = wiki.getStringFromKey("passFirstDown", {'yards': yards})
+			else:
+				resultMessage = "It's a first down"
+
+			return Result.GAIN, game.status.location - previousLocation, resultMessage
 		else:
 			log.debug("Not a first down, incrementing down")
 			game.status.down += 1
 			if game.status.down > 4:
 				log.debug("Turnover on downs")
 				if incomplete:
-					resultMessage = "The pass is incomplete. Turnover on downs"
+					resultMessage = wiki.getStringFromKey("turnoverDownsIncomplete")
 				else:
-					resultMessage = "{} play for {} yard(s), but that's not enough for the first down. Turnover on downs".format(play.name.lower().capitalize(), yards)
+					if play == Play.RUN:
+						resultMessage = wiki.getStringFromKey("turnoverDownsRun", {'yards': yards})
+					elif play == Play.PASS:
+						resultMessage = wiki.getStringFromKey("turnoverDownsPass", {'yards': yards})
+					else:
+						resultMessage = "Turnover on downs"
 
 				if utils.isGameOvertime(game):
 					resultMessage = "{}\n\n{}".format(resultMessage, overtimeTurnover(game))
@@ -437,13 +456,28 @@ def executeGain(game, play, yards, incomplete=False):
 			else:
 				log.debug("Now {} down and {}".format(string_utils.getDownString(game.status.down), yardsRemaining))
 				game.status.yards = yardsRemaining
+
 				if incomplete:
-					resultMessage = "The pass is incomplete. {} and {}".format(string_utils.getDownString(game.status.down), yardsRemaining)
+					resultMessage = wiki.getStringFromKey("incompletePass", {'down': string_utils.getDownString(game.status.down), 'yardsLeft': yardsRemaining})
 				else:
-					resultMessage = "{} play for {} yard(s), {} and {}".format(
-						play.name.lower().capitalize(),
-						yards, string_utils.getDownString(game.status.down),
-						"goal" if game.status.location + yardsRemaining >= 100 else yardsRemaining)
+					if play == Play.RUN:
+						resultMessage = wiki.getStringFromKey(
+							"gainRun",
+							{
+								'yards': yards,
+								'down': string_utils.getDownString(game.status.down),
+								'yardsLeft': "goal" if game.status.location + yardsRemaining >= 100 else yardsRemaining
+							})
+					elif play == Play.PASS:
+						resultMessage = wiki.getStringFromKey(
+							"gainPass",
+							{
+								'yards': yards,
+								'down': string_utils.getDownString(game.status.down),
+								'yardsLeft': "goal" if game.status.location + yardsRemaining >= 100 else yardsRemaining
+							})
+					else:
+						resultMessage = "Yards gained"
 
 				return Result.GAIN, game.status.location - previousLocation, resultMessage
 
@@ -455,16 +489,16 @@ def executePunt(game, yards):
 		log.debug("Punted into the end zone, touchback")
 		setStateTouchback(game, game.status.possession.negate())
 		if game.status.location > 110:
-			return "The punt goes out the back of the end zone, touchback"
+			return wiki.getStringFromKey("puntOutOfEndZone")
 		else:
-			return "The punt goes into the end zone, touchback"
+			return wiki.getStringFromKey("puntInEndZone")
 	else:
 		log.debug("Punt caught, setting up turnover")
 		if utils.isGameOvertime(game):
 			return overtimeTurnover(game)
 		else:
 			turnover(game)
-			return "It's a {} yard punt".format(yards)
+			return wiki.getStringFromKey("puntYards", {'yards': yards})
 
 
 def executePlay(game, play, number, timeOption):
@@ -611,7 +645,7 @@ def executePlay(game, play, number, timeOption):
 					game.status.yards = 10
 					game.status.down = 1
 					yards = result['yards']
-					resultMessage = "The receiver drops the ball! {} recovers on the {}.".format(game.team(game.status.possession).name, string_utils.getLocationString(game))
+					resultMessage = wiki.getStringFromKey("turnoverPunt", {'team': game.team(game.status.possession).name, 'location': string_utils.getLocationString(game)})
 
 				else:
 					if 'yards' not in result:
@@ -633,7 +667,14 @@ def executePlay(game, play, number, timeOption):
 
 			elif result['result'] == Result.TOUCHDOWN:
 				log.debug("Result is a touchdown")
-				resultMessage = "It's a {} into the endzone! Touchdown {}!".format(play.name.lower(), game.team(game.status.possession).name)
+
+				if play == Play.RUN:
+					resultMessage = wiki.getStringFromKey("runTouchdown", {'team': game.team(game.status.possession).name})
+				elif play == Play.PASS:
+					resultMessage = wiki.getStringFromKey("passTouchdown", {'team': game.team(game.status.possession).name})
+				else:
+					resultMessage = "It's a touchdown!"
+
 				previousLocation = game.status.location
 				utils.addStatRunPass(game, play, 100 - previousLocation)
 				scoreTouchdown(game, game.status.possession)
@@ -641,7 +682,7 @@ def executePlay(game, play, number, timeOption):
 
 			elif result['result'] == Result.FIELD_GOAL:
 				log.debug("Result is a field goal")
-				resultMessage = "The {} yard field goal is good!".format(100 - game.status.location + 17)
+				resultMessage = wiki.getStringFromKey("successfulFieldGoal", {'yards': 100 - game.status.location + 17})
 				utils.addStat(game, 'fieldGoalsScored', 1)
 				scoreFieldGoal(game, game.status.possession)
 				if utils.isGameOvertime(game):
@@ -666,20 +707,20 @@ def executePlay(game, play, number, timeOption):
 				log.debug("Play results in a turnover")
 				if play == Play.RUN:
 					utils.addStat(game, 'turnoverFumble', 1)
-					resultMessage = "Fumble! The ball is dropped, {} recovers!".format(game.team(game.status.possession.negate()).name)
+					resultMessage = wiki.getStringFromKey("turnoverFumble", {'team': game.team(game.status.possession.negate()).name})
 				elif play == Play.PASS:
 					utils.addStat(game, 'turnoverInterceptions', 1)
-					resultMessage = "Picked off! The pass is intercepted, {} ball!".format(game.team(game.status.possession.negate()).name)
+					resultMessage = wiki.getStringFromKey("turnoverInterception", {'team': game.team(game.status.possession.negate()).name})
 				elif play == Play.FIELD_GOAL:
 					if result['result'] == Result.TURNOVER:
 						utils.addStat(game, 'turnoverFumble', 1)
-						resultMessage = "It's blocked!"
+						resultMessage = wiki.getStringFromKey("blockedFieldGoal")
 					else:
-						resultMessage = "The kick is wide."
+						resultMessage = wiki.getStringFromKey("missedFieldGoal")
 
 				elif play == Play.PUNT:
 					utils.addStat(game, 'turnoverFumble', 1)
-					resultMessage = "It's blocked!"
+					resultMessage = wiki.getStringFromKey("blockedPunt")
 				else:
 					utils.addStat(game, 'turnoverFumble', 1)
 					resultMessage = "It's a turnover!"
@@ -692,15 +733,15 @@ def executePlay(game, play, number, timeOption):
 				log.debug("Play results in a turnover and run back")
 				if play == Play.RUN:
 					utils.addStat(game, 'turnoverFumble', 1)
-					resultMessage = "Fumble! The ball is dropped and it's run all the way back. Touchdown {}!".format(game.team(game.status.possession.negate()).name)
+					resultMessage = wiki.getStringFromKey("turnoverTouchdownRun", {'team': game.team(game.status.possession.negate()).name})
 				elif play == Play.PASS:
 					utils.addStat(game, 'turnoverInterceptions', 1)
-					resultMessage = "Picked off! The pass is intercepted and it's run all the way back. Touchdown {}!".format(game.team(game.status.possession.negate()).name)
+					resultMessage = wiki.getStringFromKey("turnoverTouchdownPass", {'team': game.team(game.status.possession.negate()).name})
 				elif play == Play.FIELD_GOAL:
-					resultMessage = "It's blocked! The ball is picked up and run all the way back. Touchdown {}!".format(game.team(game.status.possession.negate()).name)
+					resultMessage = wiki.getStringFromKey("turnoverTouchdownFieldGoal", {'team': game.team(game.status.possession.negate()).name})
 				elif play == Play.PUNT:
 					utils.addStat(game, 'turnoverFumble', 1)
-					resultMessage = "The punt is returned all the way! Touchdown {}!".format(game.team(game.status.possession.negate()).name)
+					resultMessage = wiki.getStringFromKey("turnoverTouchdownPunt", {'team': game.team(game.status.possession.negate()).name})
 				else:
 					utils.addStat(game, 'turnoverFumble', 1)
 					resultMessage = "It's a turnover and run back for a touchdown!"
@@ -729,9 +770,9 @@ def executePlay(game, play, number, timeOption):
 						timeMessage = overtimeTurnover(game)
 					else:
 						turnover(game)
-					resultMessage = "Turnover on downs"
+					resultMessage = wiki.getStringFromKey("turnoverDownsKneel")
 				else:
-					resultMessage = "The quarterback takes a knee"
+					resultMessage = wiki.getStringFromKey("kneel")
 
 			elif play == Play.SPIKE:
 				log.debug("Running spike play")
@@ -743,9 +784,9 @@ def executePlay(game, play, number, timeOption):
 						timeMessage = overtimeTurnover(game)
 					else:
 						turnover(game)
-					resultMessage = "Turnover on downs"
+					resultMessage = wiki.getStringFromKey("turnoverDownsSpike")
 				else:
-					resultMessage = "The quarterback spikes the ball"
+					resultMessage = wiki.getStringFromKey("spike")
 			result = {'result': actualResult}
 
 		else:

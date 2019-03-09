@@ -381,16 +381,18 @@ def getStringFromKey(stringKey, replacements=None):
 		log.warning(f"Tried to fetch key that doesn't exist {stringKey}")
 		return f"Key not found {stringKey}"
 
+	bldr = []
 	choice = random.choice(strings[stringKey])
 	if replacements is not None:
-		choice = choice.format(**replacements)
+		bldr.append(choice.format(**replacements))
+	else:
+		bldr.append(choice)
 
-	bldr = []
-	bldr.append(choice)
 	bldr.append("^[(!)](")
 	bldr.append(string_utils.buildMessageLink(
 		globals.ACCOUNT_NAME,
-		f"suggestion {stringKey}"
+		f"suggestion {stringKey}",
+		choice
 		))
 	bldr.append(")")
 	return ''.join(bldr)

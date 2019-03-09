@@ -10,3 +10,39 @@ turnoverKickoff,It's dropped! Recovered by {team} on the {location}
 touchback,"The kick goes into the end zone, touchback"
 touchdownKickoff,It's dropped! The kicking team recovers and runs it into the end zone! Touchdown {team}!
 turnoverTouchdownKickoff,It's run all the way back! Touchdown {team}!
+turnoverPunt,The receiver drops the ball! {team} recovers on the {location}
+runTouchdown,{team} with a {yards} yard run into the end zone for a touchdown!
+passTouchdown,{team} with a {yards} yard pass into the end zone for a touchdown!
+runSafety,The runner is taken down in the end zone for a safety
+passSafety,Sack! The quarterback is taken down in the endzone for a safety
+runFirstDown,"Run play for {yards} yard(s), first down"
+passFirstDown,"Pass play for {yards} yard(s), first down"
+turnoverDownsIncomplete,The pass is incomplete. Turnover on downs
+turnoverDownsRun,"Run play for {yards} yard(s), but that's not enough for the first down. Turnover on downs"
+turnoverDownsPass,"Pass play for {yards} yard(s), but that's not enough for the first down. Turnover on downs"
+incompletePass,The pass is incomplete. {down} and {yardsLeft}
+gainRun,"Run play for {yards} yard(s), {down} and {yardsLeft}"
+gainPass,"Pass play for {yards} yard(s), {down} and {yardsLeft}"
+overtimeDriveEnd,End of the drive. {team} has possession now
+overtimeForcedGameEnd,It is the end of the 6th quarter in an overtime forced by the game clock and the score is still tied.  I'm flipping a coin to determine the victor. {team} has won!
+overtimeTiedQuarterEnd,It's still tied! Going to the {quarter} quarter
+overtimeGameEnd,That's the end of the game. {team} has won!
+runTouchdown,It's a run into the endzone! Touchdown {pass}!
+passTouchdown,It's a pass into the endzone! Touchdown {team}!
+successfulFieldGoal,The {yards} yard field goal is good!
+puntOutOfEndZone,"The punt goes out the back of the end zone, touchback"
+puntInEndZone,"The punt goes into the end zone, touchback"
+puntYards,It's a {yards} yard punt
+turnoverFumble,"Fumble! The ball is dropped, {team} recovers!"
+turnoverInterception,"Picked off! The pass is intercepted, {team} ball!"
+blockedFieldGoal,It's blocked!
+missedFieldGoal,The kick is wide
+blockedPunt,It's blocked!
+turnoverTouchdownRun,Fumble! The ball is dropped and it's run all the way back. Touchdown {team}!
+turnoverTouchdownPass,Picked off! The pass is intercepted and it's run all the way back. Touchdown {team}!
+turnoverTouchdownFieldGoal,It's blocked! The ball is picked up and run all the way back. Touchdown {team}!
+turnoverTouchdownPunt,The punt is returned all the way! Touchdown {team}!
+turnoverDownsKneel,Turnover on downs
+kneel,The quarterback takes a knee
+turnoverDownsSpike,Turnover on downs
+spike,The quarterback spikes the ball
