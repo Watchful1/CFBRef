@@ -193,7 +193,7 @@ def initRange(play, range):
 
 
 def parsePlayPart(playPart):
-	parts = playPart.split(',')
+	parts = playPart.split('|')
 	if len(parts) < 2:
 		log.warning("Could not parse play part: {}".format(playPart))
 		return None, None
@@ -222,11 +222,12 @@ def parsePlayPart(playPart):
 def loadPlays():
 	global plays
 	plays = {}
-	with open("src/plays.txt", 'r') as playsFile:
+	with open("data/plays.csv", 'r') as playsFile:
 		playsPage = playsFile.readlines()
 
 	for playLine in playsPage:
-		items = playLine.strip().split('|')
+		items = playLine.strip().split(',')
+		items = list(filter(None, items))
 
 		playType = parsePlay(items[0])
 		if playType is None:
@@ -275,11 +276,12 @@ def loadPlays():
 def loadTimes():
 	global times
 	times = {}
-	with open("src/times.txt", 'r') as timesFile:
+	with open("data/times.csv", 'r') as timesFile:
 		timesPage = timesFile.readlines()
 
 	for timeLine in timesPage:
-		items = timeLine.strip().split('|')
+		items = timeLine.strip().split(',')
+		items = list(filter(None, items))
 
 		playType = parsePlay(items[0])
 		if playType is None:
@@ -290,7 +292,7 @@ def loadTimes():
 			times[playType] = {}
 
 		for item in items[1:]:
-			timePart = item.split(",")
+			timePart = item.split("|")
 
 			result = parseResult(timePart[0])
 			if result is None:
