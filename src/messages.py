@@ -457,6 +457,13 @@ def processMessageGameList(body):
 	return ''.join(bldr)
 
 
+def processMessageSuggestion(body, subject):
+
+
+
+	return "Thanks! I'll manually review all suggestions and add the good ones."
+
+
 def processMessage(message, force=False):
 	if isinstance(message, praw.models.Message):
 		isMessage = True
@@ -546,23 +553,27 @@ def processMessage(message, force=False):
 			log.debug("Couldn't get a game for /u/{}".format(author))
 	else:
 		log.debug("Parsing non-datatable message")
-		if isMessage and str(message.author).lower() in wiki.admins:
-			if body.startswith("newgame"):
-				response = processMessageNewGame(message.body, str(message.author))
-			elif body.startswith("kick"):
-				response = processMessageKickGame(message.body)
-			elif body.startswith("pause"):
-				response = processMessagePauseGame(message.body)
-			elif body.startswith("abandon"):
-				response = processMessageAbandonGame(message.body)
-			elif body.startswith("status"):
-				response = processMessageGameStatus(message.body)
-			elif body.startswith("reindex"):
-				response = processMessageReindex(message.body)
-			elif body.startswith("chew"):
-				response = processMessageDefaultChew(message.body)
-			elif body.startswith("gamelist"):
-				response = processMessageGameList(message.body)
+		if isMessage:
+			if message.subject.startswith("suggestion"):
+				response = processMessageSuggestion(message.body, message.subject)
+
+			elif str(message.author).lower() in wiki.admins:
+				if body.startswith("newgame"):
+					response = processMessageNewGame(message.body, str(message.author))
+				elif body.startswith("kick"):
+					response = processMessageKickGame(message.body)
+				elif body.startswith("pause"):
+					response = processMessagePauseGame(message.body)
+				elif body.startswith("abandon"):
+					response = processMessageAbandonGame(message.body)
+				elif body.startswith("status"):
+					response = processMessageGameStatus(message.body)
+				elif body.startswith("reindex"):
+					response = processMessageReindex(message.body)
+				elif body.startswith("chew"):
+					response = processMessageDefaultChew(message.body)
+				elif body.startswith("gamelist"):
+					response = processMessageGameList(message.body)
 
 	message.mark_read()
 	if response is not None:
