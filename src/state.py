@@ -271,7 +271,7 @@ def checkQuarterStatus(game, timeOffClock):
 					else:
 						victor = HomeAway(T.away)
 					output = utils.endGame(game, game.team(victor).name)
-					timeMessage = "that's the end of the game! {} has won!\n\n{}".format(string_utils.flair(game.team(victor)), output)
+					timeMessage = "end of the game! {} has won!\n\n{}".format(string_utils.flair(game.team(victor)), output)
 				game.status.clock = 0
 			else:
 				if game.status.quarter == 2:
@@ -369,7 +369,9 @@ def updateTime(game, play, result, actualResult, yards, offenseHomeAway, timeOpt
 	game.status.clock -= timeOffClock
 
 	runStatus, timeOffClock, timeMessage = checkQuarterStatus(game, timeOffClock)
-	if timeMessage is None:
+	if timeMessage is not None:
+		timeMessage = "that's the " + timeMessage
+	else:
 		timeMessage = "{} left".format(string_utils.renderTime(game.status.clock))
 
 	utils.addStat(game, 'posTime', timeOffClock, offenseHomeAway)
