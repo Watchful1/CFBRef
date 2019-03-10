@@ -39,3 +39,12 @@ def archiveGameFile(threadID):
 		log.warning(traceback.format_exc())
 		return False
 	return True
+
+
+def saveStringSuggestion(stringKey, suggestion):
+	with open(globals.STRING_SUGGESTION_FILE, 'a') as fileHandle:
+		fileHandle.write(stringKey)
+		fileHandle.write(": ")
+		fileHandle.write(suggestion)
+		fileHandle.write("\n")
+		fileHandle.write("----------------------------------------")

@@ -458,8 +458,12 @@ def processMessageGameList(body):
 
 
 def processMessageSuggestion(body, subject):
+	stringKey = re.findall(r'(?:suggestion )(\w+)', subject)
+	if len(stringKey) < 1:
+		log.debug("Couldn't find a suggestion key in subject")
+		return "I couldn't figure out what key you were suggesting for. Please make sure the subject line is correct"
 
-
+	file_utils.saveStringSuggestion(stringKey[0], body)
 
 	return "Thanks! I'll manually review all suggestions and add the good ones."
 
