@@ -614,5 +614,5 @@ def processMessage(message, force=False):
 		log.debug("Game is dirty, updating thread")
 		utils.updateGameThread(game)
 
-	if game.status.waitingAction == Action.END:
+	if game is not None and game.status.waitingAction == Action.END:
 		index.endGame(game)

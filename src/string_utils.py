@@ -151,16 +151,17 @@ def renderTeamStats(game, bldr, homeAway):
 
 
 def renderDrives(game, bldr):
-	bldr.append("Drive Summary\n")
-	bldr.append(":-:\n")
-	for drive in game.status.drives:
-		bldr.append("[")
-		bldr.append(str(drive['summary']))
-		bldr.append("]")
-		bldr.append("(")
-		bldr.append(drive['url'])
+	if len(game.status.drives):
+		bldr.append("Drive Summary\n")
+		bldr.append(":-:\n")
+		for drive in game.status.drives:
+			bldr.append("[")
+			bldr.append(str(drive['summary']))
+			bldr.append("]")
+			bldr.append("(")
+			bldr.append(drive['url'])
+			bldr.append(")\n")
 		bldr.append(")\n")
-	bldr.append(")\n")
 
 
 def renderGameStatus(game, bldr):
