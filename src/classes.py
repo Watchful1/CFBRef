@@ -104,7 +104,7 @@ class DriveSummary:
 			self.yards,
 			self.time,
 			"home" if self.posHome else "away",
-			self.result
+			self.result.name.lower()
 		)
 
 
