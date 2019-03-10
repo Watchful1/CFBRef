@@ -5,13 +5,33 @@ Release March 2019
 - You can use "chew" for chew the clock plays
 - Spikes are automatically hurry up
 - Switch to gist for play lists and update on every play
+- Implement string suggestions for play results
 
 Rule changes
 - Delay of games always result in a touchdown and successful 2 point conversion
 - Kneel plays result in 2 yard loss
-- Safeties result in the ball on the 20 yard line, no kickoff
+- Safeties result a kickoff on the 20 yard line
 
 TODO
-- Implement strings for play results
-- Implement string suggestions for play results
 - Automatically handle reddit outage exceptions
+
+
+We've got a bunch of new features this week, and some rule changes.
+
+New features:
+
+* We finally have drive summaries. A short summary of each drive will be listed in the game thread with an image showing the plays. This is a tricky feature with a lot of edge cases, so let Watchful1 know if you see anything funny looking. Big thanks to nwithan8 for helping out with this.
+* Switched from pastebin to gist for the list of plays. Not only is this more stable, but it lets you edit the link, so game threads now have the list that is updated on each play, rather than just being in the post game thread.
+* You can now make suggestions for what the bot should post. Click on the ^\(!\) links to make a suggestion for the phrase just before the link. Leave the subject line alone and replace the body of the message with your suggestion. Words surrounded by `{}` will be replaced with the value for that specific play. If you want to make a suggestion for a phrase that doesn't have a ^\(!\) link, ping Watchful1 and he'll take a look. This feature currently does not work on the official reddit apps.
+
+Minor changes:
+
+* There's a link to the game thread in the post game thread
+* You can use "chew" to run a chew the clock play
+* Spikes are automatically hurry up
+
+Rule changes:
+
+* Delay of games always result in a touchdown and successful 2 point conversion
+* Kneel plays result in 2 yard loss
+* Safeties result a kickoff on the 20 yard line. You cannot kick an onside kick after a safety

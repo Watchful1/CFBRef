@@ -239,6 +239,9 @@ def processMessageOffensePlay(game, message, author):
 	elif playSelected == "squib":
 		play = Play.KICKOFF_SQUIB
 	elif playSelected == "onside":
+		if game.status.noOnside:
+			log.debug("Trying to run an onside kick after a safety")
+			return False, "You cannot run an onside kick after a safety"
 		play = Play.KICKOFF_ONSIDE
 	elif playSelected == "mult":
 		log.debug("Found multiple plays")
@@ -385,6 +388,7 @@ def processMessageAbandonGame(body):
 	utils.endGame(game, "Abandoned", False)
 	utils.updateGameThread(game)
 	file_utils.saveGameObject(game)
+	index.endGame(game)
 
 	return "Game {} abandoned".format(threadIds[0])
 

@@ -225,6 +225,7 @@ class GameStatus:
 		self.timeRunoff = False
 		self.plays = [[]]
 		self.drives = []
+		self.noOnside = False
 
 	def state(self, isHome):
 		if isHome:

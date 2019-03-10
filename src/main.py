@@ -74,7 +74,7 @@ if len(sys.argv) >= 2:
 		elif arg == 'debug':
 			debug = True
 		elif arg == 'shortQuarter':
-			globals.quarterLength = 30
+			globals.quarterLength = 60
 else:
 	log.error("No user specified, aborting")
 	sys.exit(0)
