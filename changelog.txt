@@ -1,16 +1,5 @@
-Release March 2019
-- Implemented game summaries with drive summary images (credit nwithan8)
+Added
 - Fix rerunning delay of game penalties, including when changing coaches
-- Link to game thread in post game thread
-- You can use "chew" for chew the clock plays
-- Spikes are automatically hurry up
-- Switch to gist for play lists and update on every play
-- Implement string suggestions for play results
-
-Rule changes
-- Delay of games always result in a touchdown and successful 2 point conversion
-- Kneel plays result in 2 yard loss
-- Safeties result a kickoff on the 20 yard line
 
 TODO
 - Automatically handle reddit outage exceptions
@@ -29,6 +18,7 @@ Minor changes:
 * There's a link to the game thread in the post game thread
 * You can use "chew" to run a chew the clock play
 * Spikes are automatically hurry up
+* A number of other small display features and bug fixes
 
 Rule changes:
 

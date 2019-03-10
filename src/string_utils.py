@@ -8,6 +8,8 @@ import globals
 import utils
 from classes import Action
 from classes import QuarterType
+from classes import OffenseType
+from classes import DefenseType
 
 log = logging.getLogger("bot")
 
@@ -129,8 +131,50 @@ def renderGameInfo(game, bldr):
 		bldr.append("\n\n")
 
 
+def renderOffenseType(offense):
+	if offense == OffenseType.SPREAD:
+		return "Spread"
+	elif offense == OffenseType.PRO:
+		return "Pro"
+	elif offense == OffenseType.OPTION:
+		return "Option"
+	else:
+		log.warning(f"Unknown offense type: {offense}")
+		return offense.name
+
+
+def renderDefenseType(defense):
+	if defense == DefenseType.THREE_FOUR:
+		return "3-4"
+	elif defense == DefenseType.FOUR_THREE:
+		return "4-3"
+	elif defense == DefenseType.FIVE_TWO:
+		return "5-2"
+	else:
+		log.warning(f"Unknown defense type: {defense}")
+		return defense.name
+
+
+def renderTeamInfo(game, bldr):
+	bldr.append("Team|Coach(es)|Offense|Defense")
+	bldr.append(":-:|:-:|:-:|:-:")
+	for homeAway in [False, True]:
+		bldr.append(flair(game.team(homeAway)))
+		bldr.append(" ")
+		bldr.append(game.team(homeAway).name)
+		bldr.append("|")
+		bldr.append(getCoachString(game, homeAway))
+		bldr.append("|")
+		bldr.append(renderOffenseType(game.team(homeAway).offense))
+		bldr.append("|")
+		bldr.append(renderDefenseType(game.team(homeAway).defense))
+		bldr.append("\n")
+
+
 def renderTeamStats(game, bldr, homeAway):
 	bldr.append(flair(game.team(homeAway)))
+	bldr.append(" ")
+	bldr.append(game.team(homeAway).name)
 	bldr.append("\n\n")
 	bldr.append(
 		"Total Passing Yards|Total Rushing Yards|Total Yards|Interceptions Lost|Fumbles Lost|Field Goals|Time of Possession|Timeouts\n")
@@ -211,6 +255,9 @@ def renderGame(game):
 
 	renderGameInfo(game, bldr)
 	bldr.append("\n\n")
+
+	renderTeamInfo(game, bldr)
+	bldr.append("___\n\n")
 
 	for homeAway in [False, True]:
 		renderTeamStats(game, bldr, homeAway)
