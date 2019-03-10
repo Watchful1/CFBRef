@@ -27,8 +27,6 @@ overtimeDriveEnd,End of the drive. {team} has possession now
 overtimeForcedGameEnd,It is the end of the 6th quarter in an overtime forced by the game clock and the score is still tied.  I'm flipping a coin to determine the victor. {team} has won!
 overtimeTiedQuarterEnd,It's still tied! Going to the {quarter} quarter
 overtimeGameEnd,That's the end of the game. {team} has won!
-runTouchdown,It's a run into the endzone! Touchdown {pass}!
-passTouchdown,It's a pass into the endzone! Touchdown {team}!
 successfulFieldGoal,The {yards} yard field goal is good!
 puntOutOfEndZone,"The punt goes out the back of the end zone, touchback"
 puntInEndZone,"The punt goes into the end zone, touchback"

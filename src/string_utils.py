@@ -152,16 +152,16 @@ def renderTeamStats(game, bldr, homeAway):
 
 def renderDrives(game, bldr):
 	if len(game.status.drives):
-		bldr.append("Drive Summary\n")
-		bldr.append(":-:\n")
+		bldr.append("|Drive Summary|\n")
+		bldr.append("|:-:|\n")
 		for drive in game.status.drives:
-			bldr.append("[")
+			bldr.append("|[")
 			bldr.append(str(drive['summary']))
 			bldr.append("]")
 			bldr.append("(")
 			bldr.append(drive['url'])
-			bldr.append(")\n")
-		bldr.append(")\n")
+			bldr.append(")|\n")
+		bldr.append("\n")
 
 
 def renderGameStatus(game, bldr):
@@ -406,13 +406,24 @@ def listSuggestedPlays(game):
 			return "**run** or **pass**"
 
 
+def htmlEncode(message):
+	encodings = [
+		[' ', '%20'],
+		['(', '%28'],
+		[')', '%29'],
+	]
+	for encoding in encodings:
+		message = message.replace(encoding[0], encoding[1])
+	return message
+
+
 def buildMessageLink(recipient, subject, content=None):
 	base = "https://np.reddit.com/message/compose/?"
 	bldr = []
 	bldr.append(f"to={recipient}")
-	bldr.append(f"subject={subject.replace(' ', '%20')}")
+	bldr.append(f"subject={htmlEncode(subject)}")
 	if content is not None:
-		bldr.append(f"message={content.replace(' ', '%20')}")
+		bldr.append(f"message={htmlEncode(content)}")
 
 	return base + '&'.join(bldr)
 

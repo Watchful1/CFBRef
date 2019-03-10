@@ -16,6 +16,7 @@ import state
 import index
 import file_utils
 import string_utils
+import drive_graphic
 from classes import Action
 
 ### Logging setup ###
@@ -86,6 +87,8 @@ if not reddit.init(user):
 wiki.loadPages()
 
 index.init()
+
+drive_graphic.init()
 
 while True:
 	try:

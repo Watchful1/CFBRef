@@ -2,6 +2,7 @@ import logging.handlers
 import re
 import time
 import random
+import csv
 from datetime import datetime
 from datetime import timedelta
 
@@ -363,17 +364,14 @@ def loadStrings():
 	global strings
 	strings = {}
 	with open("data/strings.csv", 'r') as stringsFile:
-		stringsPage = stringsFile.readlines()
+		csv_reader = csv.reader(stringsFile, delimiter=",")
+		next(csv_reader)  # skip the headers
+		for row in csv_reader:
+			stringKey = row[0]
+			strings[stringKey] = []
 
-	for stringsLine in stringsPage[1:]:
-		items = stringsLine.strip().split(',')
-		items = list(filter(None, items))
-
-		stringKey = items[0]
-		strings[stringKey] = []
-
-		for stringItem in items[1:]:
-			strings[stringKey].append(stringItem)
+			for stringItem in row[1:]:
+				strings[stringKey].append(stringItem)
 
 
 def getStringFromKey(stringKey, replacements=None):
@@ -384,7 +382,13 @@ def getStringFromKey(stringKey, replacements=None):
 	bldr = []
 	choice = random.choice(strings[stringKey])
 	if replacements is not None:
-		bldr.append(choice.format(**replacements))
+		try:
+			bldr.append(choice.format(**replacements))
+		except Exception as err:
+			log.warning(f"Could not format string: {stringKey} : {str(replacements)}")
+			log.warning(f"Choice: {choice}")
+			return f"Key not found {stringKey}"
+
 	else:
 		bldr.append(choice)
 

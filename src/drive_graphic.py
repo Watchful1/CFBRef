@@ -1,4 +1,6 @@
 import cloudinary
+import traceback
+import logging.handlers
 from cloudinary.uploader import upload
 from io import BytesIO
 from PIL import Image, ImageDraw
@@ -6,6 +8,9 @@ from PIL import Image, ImageDraw
 import classes
 import globals
 from classes import Play
+
+log = logging.getLogger("bot")
+
 
 adj = int(globals.field_width / 120)
 
@@ -29,7 +34,9 @@ def uploadField(field, gameId, driveNum):
 		upload_result = upload(image, public_id=f"{gameId}/{driveNum}")
 		return upload_result['secure_url']
 	except Exception as err:
-		return None
+		log.warning("Couldn't upload drive image")
+		log.warning(traceback.format_exc())
+		return ""
 
 
 def makeField(plays):

@@ -103,7 +103,7 @@ def verifyTeams(teamTags):
 	return None
 
 
-def paste(title, content, gist_username=globals.GIST_USERNAME, gist_token=globals.GIST_TOKEN):
+def paste(title, content, gist_username, gist_token):
 	result = requests.post(
 		'https://api.github.com/gists',
 		json.dumps(
@@ -124,7 +124,7 @@ def paste(title, content, gist_username=globals.GIST_USERNAME, gist_token=global
 		return None
 
 
-def edit_paste(title, content, id, gist_username=globals.GIST_USERNAME, gist_token=globals.GIST_TOKEN):
+def edit_paste(title, content, id, gist_username, gist_token):
 	result = requests.patch(
 		'https://api.github.com/gists/'+id,
 		json.dumps(
@@ -419,17 +419,14 @@ def appendPlay(game, playSummary):
 			(previousPlay is not None and previousPlay.actualResult == Result.TOUCHDOWN and playSummary.actualResult in classes.postTouchdownEnders):
 		game.status.plays[-1].append(playSummary)
 		game.status.plays.append([])
+		return game.status.plays[-2]
 	elif previousPlay is not None and previousPlay.actualResult == Result.TOUCHDOWN and playSummary.actualResult in classes.lookbackTouchdownEnders:
 		game.status.plays.append([])
 		game.status.plays[-1].append(playSummary)
+		return game.status.plays[-2]
 	else:
 		game.status.plays[-1].append(playSummary)
-
-	game.status.plays[-1].append(playSummary)
-	if playSummary.actualResult in classes.driveEnders:
-		game.status.plays.append([])
-		return game.status.plays[-2]
-	return None
+		return None
 
 
 def summarizeDrive(drive):

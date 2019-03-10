@@ -668,17 +668,18 @@ def executePlay(game, play, number, timeOption):
 			elif result['result'] == Result.TOUCHDOWN:
 				log.debug("Result is a touchdown")
 
+				previousLocation = game.status.location
+				utils.addStatRunPass(game, play, 100 - previousLocation)
+				yards = 100 - previousLocation
+
 				if play == Play.RUN:
-					resultMessage = wiki.getStringFromKey("runTouchdown", {'team': game.team(game.status.possession).name})
+					resultMessage = wiki.getStringFromKey("runTouchdown", {'team': game.team(game.status.possession).name, 'yards': yards})
 				elif play == Play.PASS:
-					resultMessage = wiki.getStringFromKey("passTouchdown", {'team': game.team(game.status.possession).name})
+					resultMessage = wiki.getStringFromKey("passTouchdown", {'team': game.team(game.status.possession).name, 'yards': yards})
 				else:
 					resultMessage = "It's a touchdown!"
 
-				previousLocation = game.status.location
-				utils.addStatRunPass(game, play, 100 - previousLocation)
 				scoreTouchdown(game, game.status.possession)
-				yards = 100 - previousLocation
 
 			elif result['result'] == Result.FIELD_GOAL:
 				log.debug("Result is a field goal")
@@ -838,9 +839,9 @@ def executePlay(game, play, number, timeOption):
 
 	playString = string_utils.renderPlays(game)
 	if game.playGist is None:
-		game.playGist = utils.paste("Play summary", ''.join(playString))
+		game.playGist = utils.paste("Play summary", playString, globals.GIST_USERNAME, globals.GIST_TOKEN)
 	else:
-		utils.edit_paste("Play summary", ''.join(playString), game.playGist)
+		utils.edit_paste("Play summary", playString, game.playGist, globals.GIST_USERNAME, globals.GIST_TOKEN)
 
 	return success, '\n\n'.join(messages)
 
