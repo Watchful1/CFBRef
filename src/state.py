@@ -763,7 +763,7 @@ def executePlay(game, play, number, timeOption):
 				game.status.down += 1
 
 				newLocation = max(game.status.location - 2, 1)
-				utils.addStatRunPass(game, Play.RUN, game.status.location - newLocation)
+				utils.addStatRunPass(game, Play.RUN, newLocation - game.status.location)
 				log.debug("Kneel moved ball from {} to {}".format(game.status.location, newLocation))
 				yards = newLocation - game.status.location
 				game.status.location = newLocation
