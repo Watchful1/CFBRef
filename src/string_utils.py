@@ -156,8 +156,8 @@ def renderDefenseType(defense):
 
 
 def renderTeamInfo(game, bldr):
-	bldr.append("Team|Coach(es)|Offense|Defense")
-	bldr.append(":-:|:-:|:-:|:-:")
+	bldr.append("Team|Coach(es)|Offense|Defense\n")
+	bldr.append(":-:|:-:|:-:|:-:\n")
 	for homeAway in [False, True]:
 		bldr.append(flair(game.team(homeAway)))
 		bldr.append(" ")
