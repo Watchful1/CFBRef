@@ -47,4 +47,4 @@ def saveStringSuggestion(stringKey, suggestion):
 		fileHandle.write(": ")
 		fileHandle.write(suggestion)
 		fileHandle.write("\n")
-		fileHandle.write("----------------------------------------")
+		fileHandle.write("----------------------------------------\n")

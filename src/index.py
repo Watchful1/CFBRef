@@ -39,10 +39,13 @@ def init():
 
 			if changed:
 				try:
-					log.debug("Reverting status and reprocessing {}".format(game.previousStatus[0].messageId))
-					utils.revertStatus(game, 0)
-					file_utils.saveGameObject(game)
-					messages.reprocessPlay(game, game.status.messageId)
+					if len(game.previousStatus):
+						log.debug("Reverting status and reprocessing {}".format(game.previousStatus[0].messageId))
+						utils.revertStatus(game, 0)
+						file_utils.saveGameObject(game)
+						messages.reprocessPlay(game, game.status.messageId)
+					else:
+						log.info("Coaches changed, but game has no plays, not reprocessing")
 
 					game = reloadAndReturn(game.thread)
 				except Exception as err:
