@@ -435,7 +435,7 @@ def summarizeDrive(drive):
 		if play.play in classes.movementPlays:
 			if summary.posHome is None and play.result == Result.GAIN:
 				summary.posHome = play.posHome
-			if play.actualResult not in [Result.TURNOVER]:
+			if play.actualResult not in [Result.TURNOVER, Result.TOUCHBACK, Result.MISS, None]:
 				summary.yards += play.yards
 				summary.time += play.time
 	if drive[-1].actualResult in classes.postTouchdownEnders:
