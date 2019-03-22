@@ -28,6 +28,8 @@ def scoreForTeam(game, points, homeAway):
 	log.debug("Score for {} changed from {} to {}".format(homeAway.name(), oldScore, game.status.state(homeAway).points))
 	if len(game.status.state(homeAway).quarters) < game.status.quarter:
 		game.status.state(homeAway).quarters.append(0)
+	if len(game.status.state(homeAway.negate()).quarters) < game.status.quarter:
+		game.status.state(homeAway.negate()).quarters.append(0)
 	game.status.state(homeAway).quarters[game.status.quarter - 1] += points
 
 
@@ -123,6 +125,9 @@ def overtimeTurnover(game):
 				log.debug("End of second overtime possession, still tied, starting new quarter")
 				game.status.overtimePossession = 1
 				game.status.quarter += 1
+				for homeAway in [HomeAway(True), HomeAway(False)]:
+					if len(game.status.state().quarters) < game.status.quarter:
+						game.status.state(homeAway).quarters.append(0)
 				setStateOvertimeDrive(game, game.status.receivingNext)
 				game.status.receivingNext.reverse()
 				return wiki.getStringFromKey("overtimeTiedQuarterEnd", {'quarter': string_utils.getNthWord(game.status.quarter)})
