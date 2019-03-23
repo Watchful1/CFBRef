@@ -126,7 +126,7 @@ def overtimeTurnover(game):
 				game.status.overtimePossession = 1
 				game.status.quarter += 1
 				for homeAway in [HomeAway(True), HomeAway(False)]:
-					if len(game.status.state().quarters) < game.status.quarter:
+					if len(game.status.state(homeAway).quarters) < game.status.quarter:
 						game.status.state(homeAway).quarters.append(0)
 				setStateOvertimeDrive(game, game.status.receivingNext)
 				game.status.receivingNext.reverse()
