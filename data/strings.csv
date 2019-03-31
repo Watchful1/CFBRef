@@ -1,46 +1,50 @@
-Key,Value
-scoredTwoPointConversion,The two point conversion is successful
-scoredPAT,The PAT was successful
-failedTwoPointConversion,The two point conversion attempt was unsuccessful
-failedPAT,The PAT attempt was unsuccessful
-failedConversion,Conversion unsuccessful
-turnoverPAT,The attempt was fumbled and run all the way back! Two points {team}!
-successfulKickoff,{yards} yard kick
-turnoverKickoff,It's dropped! Recovered by {team} on the {location}
-touchback,"The kick goes into the end zone, touchback"
-touchdownKickoff,It's dropped! The kicking team recovers and runs it into the end zone! Touchdown {team}!
-turnoverTouchdownKickoff,It's run all the way back! Touchdown {team}!
-turnoverPunt,The receiver drops the ball! {team} recovers on the {location}
-runTouchdown,{team} with a {yards} yard run into the end zone for a touchdown!
-passTouchdown,{team} with a {yards} yard pass into the end zone for a touchdown!
-runSafety,The runner is taken down in the end zone for a safety
-passSafety,Sack! The quarterback is taken down in the endzone for a safety
-runFirstDown,"Run play for {yards} yard(s), first down"
-passFirstDown,"Pass play for {yards} yard(s), first down"
-turnoverDownsIncomplete,The pass is incomplete. Turnover on downs
-turnoverDownsRun,"Run play for {yards} yard(s), but that's not enough for the first down. Turnover on downs"
-turnoverDownsPass,"Pass play for {yards} yard(s), but that's not enough for the first down. Turnover on downs"
-incompletePass,The pass is incomplete. {down} and {yardsLeft}
-gainRun,"Run play for {yards} yard(s), {down} and {yardsLeft}"
-gainPass,"Pass play for {yards} yard(s), {down} and {yardsLeft}"
-overtimeDriveEnd,End of the drive. {team} has possession now
-overtimeForcedGameEnd,It is the end of the 6th quarter in an overtime forced by the game clock and the score is still tied.  I'm flipping a coin to determine the victor. {team} has won!
-overtimeTiedQuarterEnd,It's still tied! Going to the {quarter} quarter
-overtimeGameEnd,That's the end of the game. {team} has won!
-successfulFieldGoal,The {yards} yard field goal is good!
-puntOutOfEndZone,"The punt goes out the back of the end zone, touchback"
-puntInEndZone,"The punt goes into the end zone, touchback"
-puntYards,It's a {yards} yard punt
-turnoverFumble,"Fumble! The ball is dropped, {team} recovers!"
-turnoverInterception,"Picked off! The pass is intercepted, {team} ball!"
-blockedFieldGoal,It's blocked!
-missedFieldGoal,The kick is wide
-blockedPunt,It's blocked!
-turnoverTouchdownRun,Fumble! The ball is dropped and it's run all the way back. Touchdown {team}!
-turnoverTouchdownPass,Picked off! The pass is intercepted and it's run all the way back. Touchdown {team}!
-turnoverTouchdownFieldGoal,It's blocked! The ball is picked up and run all the way back. Touchdown {team}!
-turnoverTouchdownPunt,The punt is returned all the way! Touchdown {team}!
-turnoverDownsKneel,Turnover on downs
-kneel,The quarterback takes a knee
-turnoverDownsSpike,Turnover on downs
-spike,The quarterback spikes the ball
+Key,Value,,,
+blockedFieldGoal,It's blocked!,,,
+blockedPunt,It's blocked!,,,
+failedConversion,Conversion unsuccessful,,,
+failedPAT,The PAT attempt was unsuccessful,,,
+failedTwoPointConversion,The two point conversion attempt was unsuccessful,,,
+gainPassPositive,"Pass play for {yards} yard(s), {down} and {yardsLeft}","Quarterback drops back and fires to a slant route that goes for {yards} yard(s), {down} and {yardsLeft}","It's a screen pass, and it'll go for {yards}!",
+gainPassNegative,The quarterback is sacked! It's a loss of {negativeYards}.,,,
+gainPassZero,"It's a screen pass, but it's shut down! It'll be for {yards} yards!",,,
+gainRunPositive,"Run play for {yards} yard(s), {down} and {yardsLeft}","{team} runs a sweep to the side, gaining {yards} yard(s), {down} and {yardsLeft}","The quarterback hands it off, it's run up the middle, and stopped, at the {yardLine}. A run of {yards} yard(s). It's {down} and {yardsLeft}.",
+gainRunNegative,"Run play for {yards} yard(s), {down} and {yardsLeft}",,,
+gainRunZero,"Run play for {yards} yard(s), {down} and {yardsLeft}",,,
+incompletePass,The pass is incomplete. {down} and {yardsLeft},,,
+kneel,The quarterback takes a knee,,,
+missedFieldGoal,The kick is wide,,,
+overtimeDriveEnd,End of the drive. {team} has possession now,,,
+overtimeForcedGameEnd,It is the end of the 6th quarter in an overtime forced by the game clock and the score is still tied.  I'm flipping a coin to determine the victor. {team} has won!,,,
+overtimeGameEnd,That's the end of the game. {team} has won!,,,
+overtimeTiedQuarterEnd,It's still tied! Going to the {quarter} quarter,,,
+passFirstDown,"Pass play for {yards} yard(s), first down","Here's the snap, looks to his right, finds his man, throws... and CAUGHT! At the {line of gain} for {yards} yard(s)! Move those chains, it's a first down!",,
+passSafety,Sack! The quarterback is taken down in the endzone for a safety,,,
+passTouchdown,{team} with a {yards} yard pass into the end zone for a touchdown!,,,
+puntInEndZone,"The punt goes into the end zone, touchback",,,
+puntOutOfEndZone,"The punt goes out the back of the end zone, touchback",,,
+puntYards,It's a {yards} yard punt,The punt returner calls a fair catch at the {yardLine}.,"The punt is caught, and he'll return it to the {yardLine}.",
+runFirstDown,"Run play for {yards} yard(s), first down",It's a run up the middle for {yards} yard(s)! First down {team}!,It's a run to the right for {yards} yard(s)! First down {team}!,It's a run to the left for {yards} yard(s)! First down {team}!
+runSafety,The runner is taken down in the end zone for a safety,,,
+runTouchdown,{team} with a {yards} yard run into the end zone for a touchdown!,,,
+scoredPAT,The PAT was successful,,,
+scoredTwoPointConversion,The two point conversion is successful,,,
+spike,The quarterback spikes the ball,,,
+successfulFieldGoal,The {yards} yard field goal is good!,,,
+successfulKickoff,"The kickoff is caught, and it's returned for {yards} yards!",The kickoff is returned to the {yardLine}.,,
+touchback,"The kick goes into the end zone, touchback",,,
+touchdownKickoff,It's dropped! The kicking team recovers and runs it into the end zone! Touchdown {team}!,,,
+turnoverDownsIncomplete,The pass is incomplete. Turnover on downs,It'll be a pass...incomplete! Turnover on downs {team}!,,
+turnoverDownsKneel,Turnover on downs,,,
+turnoverDownsPass,"Pass play for {yards} yard(s), but that's not enough for the first down. Turnover on downs","The pass is short of the first down line! Only {yards} yards, and that won't be enough!",,
+turnoverDownsRun,"Run play for {yards} yard(s), but that's not enough for the first down. Turnover on downs",,,
+turnoverDownsSpike,Turnover on downs,,,
+turnoverFumble,"Fumble! The ball is dropped, {team} recovers!",It's a fumble! {team} recovers it!,,
+turnoverInterception,"Picked off! The pass is intercepted, {team} ball!",,,
+turnoverKickoff,It's dropped! Recovered by {team} on the {location},,,
+turnoverPAT,The attempt was fumbled and run all the way back! Two points {team}!,,,
+turnoverPunt,The receiver drops the ball! {team} recovers on the {location},,,
+turnoverTouchdownFieldGoal,It's blocked! The ball is picked up and run all the way back. Touchdown {team}!,,,
+turnoverTouchdownKickoff,It's run all the way back! Touchdown {team}!,,,
+turnoverTouchdownPass,Picked off! The pass is intercepted and it's run all the way back. Touchdown {team}!,,,
+turnoverTouchdownPunt,The punt is returned all the way! Touchdown {team}!,,,
+turnoverTouchdownRun,Fumble! The ball is dropped and it's run all the way back. Touchdown {team}!,,,
