@@ -559,6 +559,8 @@ def processMessage(message, force=False):
 					success, response = processMessageOffensePlay(game, body, author)
 		else:
 			log.debug("Couldn't get a game for /u/{}".format(author))
+			success = False
+			response = "Could not load this game. It's possible the game has ended."
 	else:
 		log.debug("Parsing non-datatable message")
 		if isMessage:
