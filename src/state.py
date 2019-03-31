@@ -432,9 +432,9 @@ def executeGain(game, play, yards, incomplete=False):
 			game.status.down = 1
 
 			if play == Play.RUN:
-				resultMessage = wiki.getStringFromKey("runFirstDown", {'yards': yards})
+				resultMessage = wiki.getStringFromKey("runFirstDown", {'yards': yards, 'team': game.team(game.status.possession).name})
 			elif play == Play.PASS:
-				resultMessage = wiki.getStringFromKey("passFirstDown", {'yards': yards})
+				resultMessage = wiki.getStringFromKey("passFirstDown", {'yards': yards, 'team': game.team(game.status.possession).name})
 			else:
 				resultMessage = "It's a first down"
 
@@ -445,7 +445,7 @@ def executeGain(game, play, yards, incomplete=False):
 			if game.status.down > 4:
 				log.debug("Turnover on downs")
 				if incomplete:
-					resultMessage = wiki.getStringFromKey("turnoverDownsIncomplete")
+					resultMessage = wiki.getStringFromKey("turnoverDownsIncomplete", {'team': game.team(game.status.possession).name})
 				else:
 					if play == Play.RUN:
 						resultMessage = wiki.getStringFromKey("turnoverDownsRun", {'yards': yards})
@@ -466,22 +466,28 @@ def executeGain(game, play, yards, incomplete=False):
 				if incomplete:
 					resultMessage = wiki.getStringFromKey("incompletePass", {'down': string_utils.getDownString(game.status.down), 'yardsLeft': yardsRemaining})
 				else:
+					statsTable = {
+						'yards': yards,
+						'negativeYards': yards * -1,
+						'down': string_utils.getDownString(game.status.down),
+						'yardsLeft': "goal" if game.status.location + yardsRemaining >= 100 else yardsRemaining,
+						'team': game.team(game.status.possession).name,
+						'yardLine': string_utils.getLocationString(game)
+					}
 					if play == Play.RUN:
-						resultMessage = wiki.getStringFromKey(
-							"gainRun",
-							{
-								'yards': yards,
-								'down': string_utils.getDownString(game.status.down),
-								'yardsLeft': "goal" if game.status.location + yardsRemaining >= 100 else yardsRemaining
-							})
+						if yards < 0:
+							resultMessage = wiki.getStringFromKey("gainRunNegative", statsTable)
+						elif yards > 0:
+							resultMessage = wiki.getStringFromKey("gainRunPositive", statsTable)
+						else:
+							resultMessage = wiki.getStringFromKey("gainRunZero", statsTable)
 					elif play == Play.PASS:
-						resultMessage = wiki.getStringFromKey(
-							"gainPass",
-							{
-								'yards': yards,
-								'down': string_utils.getDownString(game.status.down),
-								'yardsLeft': "goal" if game.status.location + yardsRemaining >= 100 else yardsRemaining
-							})
+						if yards < 0:
+							resultMessage = wiki.getStringFromKey("gainPassNegative", statsTable)
+						elif yards > 0:
+							resultMessage = wiki.getStringFromKey("gainPassPositive", statsTable)
+						else:
+							resultMessage = wiki.getStringFromKey("gainPassZero", statsTable)
 					else:
 						resultMessage = "Yards gained"
 
@@ -504,7 +510,7 @@ def executePunt(game, yards):
 			return overtimeTurnover(game)
 		else:
 			turnover(game)
-			return wiki.getStringFromKey("puntYards", {'yards': yards})
+			return wiki.getStringFromKey("puntYards", {'yards': yards, 'yardLine': string_utils.getLocationString(game)})
 
 
 def executePlay(game, play, number, timeOption):
@@ -601,7 +607,7 @@ def executePlay(game, play, number, timeOption):
 						timeMessage = overtimeTurnover(game)
 					else:
 						turnover(game)
-					resultMessage = wiki.getStringFromKey("successfulKickoff", {'yards': yards})
+					resultMessage = wiki.getStringFromKey("successfulKickoff", {'yards': yards, 'yardLine': string_utils.getLocationString(game)})
 
 			elif result['result'] == Result.GAIN:
 				if 'yards' not in result:
