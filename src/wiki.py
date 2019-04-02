@@ -371,7 +371,8 @@ def loadStrings():
 			strings[stringKey] = []
 
 			for stringItem in row[1:]:
-				strings[stringKey].append(stringItem)
+				if stringItem != "":
+					strings[stringKey].append(stringItem)
 
 
 def getStringFromKey(stringKey, replacements=None):

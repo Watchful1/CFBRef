@@ -95,7 +95,7 @@ def pastebinPlaylist(game_id, config_section):
 		config_section['gist_username'],
 		config_section['gist_token']
 	)
-	print(globals.GIST_BASE_URL + config_section['gist_username'] + "/" + gistId)
+	log.info(globals.GIST_BASE_URL + config_section['gist_username'] + "/" + gistId)
 
 
 def archiveEndedGames():
@@ -107,6 +107,14 @@ def archiveEndedGames():
 		except Exception as err:
 			log.warning("Can't archive game: {}".format(gameFile))
 			log.warning(traceback.format_exc())
+
+
+def loadPrintStrings():
+	wiki.loadStrings()
+	for key in wiki.strings:
+		log.info(key)
+		for item in wiki.strings[key]:
+			log.info(f"    {item}")
 
 
 if len(sys.argv) < 2:
@@ -133,3 +141,5 @@ elif functionName == "pastebinPlaylist":
 	pastebinPlaylist("test", config['Watchful1BotTest'])
 elif functionName == "archiveEndedGames":
 	archiveEndedGames()
+elif functionName == "testStrings":
+	loadPrintStrings()
