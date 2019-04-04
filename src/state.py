@@ -432,9 +432,9 @@ def executeGain(game, play, yards, incomplete=False):
 			game.status.down = 1
 
 			if play == Play.RUN:
-				resultMessage = wiki.getStringFromKey("runFirstDown", {'yards': yards, 'team': game.team(game.status.possession).name})
+				resultMessage = wiki.getStringFromKey("runFirstDown", {'yards': yards, 'team': game.team(game.status.possession).name, 'yardLine': string_utils.getLocationString(game)})
 			elif play == Play.PASS:
-				resultMessage = wiki.getStringFromKey("passFirstDown", {'yards': yards, 'team': game.team(game.status.possession).name})
+				resultMessage = wiki.getStringFromKey("passFirstDown", {'yards': yards, 'team': game.team(game.status.possession).name, 'yardLine': string_utils.getLocationString(game)})
 			else:
 				resultMessage = "It's a first down"
 

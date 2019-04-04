@@ -388,7 +388,7 @@ def getStringFromKey(stringKey, replacements=None):
 		except Exception as err:
 			log.warning(f"Could not format string: {stringKey} : {str(replacements)}")
 			log.warning(f"Choice: {choice}")
-			return f"Key not found {stringKey}"
+			return choice
 
 	else:
 		bldr.append(choice)
