@@ -165,19 +165,23 @@ def processMessageDefenseNumber(game, message, author):
 	game.status.defensiveNumber = number
 
 	timeoutMessage = None
+	timeoutRequested = False
 	if "timeout" in message:
 		if game.status.state(game.status.possession.negate()).timeouts > 0:
 			game.status.state(game.status.possession.negate()).requestedTimeout = TimeoutOption.REQUESTED
 			timeoutMessage = "Timeout requested successfully"
+			log.info("Defense requested a timeout")
+			timeoutRequested = True
 		else:
 			timeoutMessage = "You requested a timeout, but you don't have any left"
+			log.info("Defense requested a timeout, but didn't have any")
 
 	game.status.waitingOn.reverse()
 	game.dirty = True
 	utils.setGamePlayed(game)
 
 	log.debug("Sending offense play comment")
-	resultMessage = "{} has submitted their number. {} you're up. You have until {}.\n\n{}\n\n{} reply with {} and your number. [Play list]({}){}".format(
+	resultMessage = "{} has submitted their number. {} you're up. You have until {}.\n\n{}\n\n{} reply with {} and your number. [Play list]({}){}{}".format(
 		game.team(game.status.waitingOn.negate()).name,
 		game.team(game.status.waitingOn).name,
 		string_utils.renderDatetime(game.playclock),
@@ -185,7 +189,8 @@ def processMessageDefenseNumber(game, message, author):
 		string_utils.getCoachString(game, game.status.waitingOn),
 		string_utils.listSuggestedPlays(game),
 		"https://www.reddit.com/r/FakeCollegeFootball/wiki/refbot",
-		"\n\nThe clock has stopped" if not game.status.timeRunoff else ""
+		"\n\nThe clock has stopped" if not game.status.timeRunoff else "",
+		"\n\nThe defense requested a timeout" if timeoutRequested else ""
 	)
 	utils.sendGameComment(game, resultMessage, utils.getActionTable(game, game.status.waitingAction))
 
