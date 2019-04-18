@@ -74,7 +74,11 @@ def startGame(homeTeam, awayTeam, startTime=None, location=None, station=None, h
 	updateGameThread(game)
 
 	log.debug("Returning game started message")
-	return "Game started. Find it [here]({}).".format(string_utils.getLinkToThread(threadID))
+	return "Game started between {} and {}. Find it [here]({}).".format(
+		homeTeam.name,
+		awayTeam.name,
+		string_utils.getLinkToThread(threadID)
+	)
 
 
 def getActionTable(game, action):

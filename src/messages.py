@@ -21,44 +21,48 @@ log = logging.getLogger("bot")
 
 def processMessageNewGame(body, author):
 	log.debug("Processing new game message")
-	teams = re.findall('(\w+)', body)
-	if len(teams) < 3:
-		log.debug("Could not find two teams in create game message")
-		return "Please resend the message and specify two teams"
+	results = []
+	for line in body.split("\n"):
+		teams = re.findall('(\w+)', line)
+		if len(teams) < 3:
+			log.debug("Could not find two teams in create game message")
+			return "Please resend the message and specify two teams"
 
-	homeTeam = teams[1]
-	awayTeam = teams[2]
-	log.debug("Found teams in message {} vs {}".format(homeTeam, awayTeam))
+		homeTeam = teams[1]
+		awayTeam = teams[2]
+		log.debug("Found teams in message {} vs {}".format(homeTeam, awayTeam))
 
-	result = utils.verifyTeams([homeTeam, awayTeam])
+		result = utils.verifyTeams([homeTeam, awayTeam])
 
-	if result is not None:
-		return result
+		if result is not None:
+			return result
 
-	startTime = None
-	location = None
-	station = None
-	homeRecord = None
-	awayRecord = None
+		startTime = None
+		location = None
+		station = None
+		homeRecord = None
+		awayRecord = None
 
-	for match in re.finditer('(?: )(\w+)(?:=")([^"]*)', body):
-		if match.group(1) == "start":
-			startTime = string_utils.escapeMarkdown(match.group(2))
-			log.debug("Found start time: {}".format(startTime))
-		elif match.group(1) == "location":
-			location = string_utils.escapeMarkdown(match.group(2))
-			log.debug("Found location: {}".format(location))
-		elif match.group(1) == "station":
-			station = string_utils.escapeMarkdown(match.group(2))
-			log.debug("Found station: {}".format(station))
-		elif match.group(1) == "homeRecord":
-			homeRecord = string_utils.escapeMarkdown(match.group(2))
-			log.debug("Found home record: {}".format(homeRecord))
-		elif match.group(1) == "awayRecord":
-			awayRecord = string_utils.escapeMarkdown(match.group(2))
-			log.debug("Found away record: {}".format(awayRecord))
+		for match in re.finditer('(?: )(\w+)(?:=")([^"]*)', line):
+			if match.group(1) == "start":
+				startTime = string_utils.escapeMarkdown(match.group(2))
+				log.debug("Found start time: {}".format(startTime))
+			elif match.group(1) == "location":
+				location = string_utils.escapeMarkdown(match.group(2))
+				log.debug("Found location: {}".format(location))
+			elif match.group(1) == "station":
+				station = string_utils.escapeMarkdown(match.group(2))
+				log.debug("Found station: {}".format(station))
+			elif match.group(1) == "homeRecord":
+				homeRecord = string_utils.escapeMarkdown(match.group(2))
+				log.debug("Found home record: {}".format(homeRecord))
+			elif match.group(1) == "awayRecord":
+				awayRecord = string_utils.escapeMarkdown(match.group(2))
+				log.debug("Found away record: {}".format(awayRecord))
 
-	return utils.startGame(homeTeam, awayTeam, startTime, location, station, homeRecord, awayRecord)
+		results.append(utils.startGame(homeTeam, awayTeam, startTime, location, station, homeRecord, awayRecord))
+
+	return '\n'.join(results)
 
 
 def processMessageCoin(game, isHeads, author):
