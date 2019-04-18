@@ -265,6 +265,7 @@ def checkQuarterStatus(game, timeOffClock):
 					log.debug("Score tied at end of 4th, going to overtime")
 					timeMessage = "end of regulation. The score is tied, we're going to overtime!"
 					if game.deadline > datetime.utcnow():
+						log.debug(f"Game past deadline, {game.deadline}, {datetime.utcnow()}")
 						game.status.quarterType = QuarterType.OVERTIME_TIME
 					else:
 						game.status.quarterType = QuarterType.OVERTIME_NORMAL
