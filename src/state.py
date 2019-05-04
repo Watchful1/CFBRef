@@ -879,7 +879,6 @@ def executeDelayOfGame(game):
 			string_utils.flair(game.team(game.status.waitingOn.negate())), result)
 
 	else:
-		log.debug("Waiting on defense, touchdown")
 		if utils.isGameOvertime(game):
 			forceEightPointTouchdown(game, game.status.possession)
 			resultMessage = overtimeTurnover(game)
@@ -887,7 +886,7 @@ def executeDelayOfGame(game):
 				utils.sendDefensiveNumberMessage(game)
 		else:
 			forceEightPointTouchdown(game, game.status.waitingOn.negate())
-			setStateKickoff(game, game.status.possession.negate())
+			setStateKickoff(game, game.status.waitingOn.negate())
 			game.status.waitingOn.reverse()
 			utils.sendDefensiveNumberMessage(game)
 			resultMessage = "Automatic touchdown and two point conversion, {} has the ball.".format(
