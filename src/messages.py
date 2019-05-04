@@ -302,6 +302,9 @@ def processMessageOffensePlay(game, message, author):
 		result.append("The clock is stopped.")
 
 	game.status.waitingOn.reverse()
+
+	result.append(string_utils.getCoachString(game, game.status.waitingOn.negate()))
+
 	game.dirty = True
 	utils.setGamePlayed(game)
 	if game.status.waitingAction in classes.playActions:

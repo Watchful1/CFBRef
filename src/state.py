@@ -851,8 +851,6 @@ def executePlay(game, play, number, timeOption):
 			game.status.drives.append({'summary': driveSummary, 'url': driveImageUrl})
 			messages.append(f"Drive: [{str(driveSummary)}]({driveImageUrl})")
 
-	messages.append(string_utils.getCoachString(game, game.status.waitingOn.negate()))
-
 	playString = string_utils.renderPlays(game)
 	if game.playGist is None:
 		game.playGist = utils.paste("Play summary", playString, globals.GIST_USERNAME, globals.GIST_TOKEN)
