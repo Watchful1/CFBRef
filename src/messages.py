@@ -303,7 +303,7 @@ def processMessageOffensePlay(game, message, author):
 
 	game.status.waitingOn.reverse()
 
-	result.append(string_utils.getCoachString(game, game.status.waitingOn.negate()))
+	result.append(string_utils.getCoachString(game, game.status.waitingOn))
 
 	game.dirty = True
 	utils.setGamePlayed(game)
