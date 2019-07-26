@@ -4,7 +4,7 @@ import traceback
 from datetime import datetime
 from datetime import timedelta
 
-import globals
+import static
 import utils
 import wiki
 import reddit
@@ -20,7 +20,7 @@ games = {}
 def init():
 	global games
 	games = {}
-	for gameFile in os.listdir(globals.SAVE_FOLDER_NAME):
+	for gameFile in os.listdir(static.SAVE_FOLDER_NAME):
 		game = reloadAndReturn(gameFile)
 		if game is not None:
 			changed = False

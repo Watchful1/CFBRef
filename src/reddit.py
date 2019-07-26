@@ -3,7 +3,7 @@ import praw
 import configparser
 import traceback
 
-import globals
+import static
 
 log = logging.getLogger("bot")
 reddit = None
@@ -15,14 +15,14 @@ def init(user):
 	try:
 		reddit = praw.Reddit(
 			user,
-			user_agent=globals.USER_AGENT)
+			user_agent=static.USER_AGENT)
 	except configparser.NoSectionError:
 		log.error("User "+user+" not in praw.ini, aborting")
 		return False
 
-	globals.ACCOUNT_NAME = str(reddit.user.me()).lower()
+	static.ACCOUNT_NAME = str(reddit.user.me()).lower()
 
-	log.info("Logged into reddit as /u/" + globals.ACCOUNT_NAME)
+	log.info("Logged into reddit as /u/" + static.ACCOUNT_NAME)
 
 	config_keys = [
 		{'var': "GIST_USERNAME", 'name': "gist_username"},
@@ -32,7 +32,7 @@ def init(user):
 	]
 	for key in config_keys:
 		if reddit.config.CONFIG.has_option(user, key['name']):
-			setattr(globals, key['var'], reddit.config.CONFIG[user][key['name']])
+			setattr(static, key['var'], reddit.config.CONFIG[user][key['name']])
 		else:
 			log.error(f"{key['name']} key not in config, aborting")
 			return False

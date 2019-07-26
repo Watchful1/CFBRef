@@ -3,20 +3,20 @@ import pickle
 import os
 import traceback
 
-import globals
+import static
 
 log = logging.getLogger("bot")
 
 
 def saveGameObject(game):
-	file = open("{}/{}".format(globals.SAVE_FOLDER_NAME, game.thread), 'wb')
+	file = open("{}/{}".format(static.SAVE_FOLDER_NAME, game.thread), 'wb')
 	pickle.dump(game, file)
 	file.close()
 
 
 def loadGameObject(threadID):
 	try:
-		file = open("{}/{}".format(globals.SAVE_FOLDER_NAME, threadID), 'rb')
+		file = open("{}/{}".format(static.SAVE_FOLDER_NAME, threadID), 'rb')
 	except FileNotFoundError as err:
 		log.warning("Game file doesn't exist: {}".format(threadID))
 		return None
@@ -27,8 +27,8 @@ def loadGameObject(threadID):
 
 def archiveGameFile(threadID):
 	log.debug("Archiving game: {}".format(threadID))
-	sourcePath = "{}/{}".format(globals.SAVE_FOLDER_NAME, threadID)
-	destinationPath = "{}/{}".format(globals.ARCHIVE_FOLDER_NAME, threadID)
+	sourcePath = "{}/{}".format(static.SAVE_FOLDER_NAME, threadID)
+	destinationPath = "{}/{}".format(static.ARCHIVE_FOLDER_NAME, threadID)
 	if os.path.exists(destinationPath):
 		log.info("Game already exists in archive, deleting")
 		os.remove(destinationPath)
@@ -42,9 +42,13 @@ def archiveGameFile(threadID):
 
 
 def saveStringSuggestion(stringKey, suggestion):
-	with open(globals.STRING_SUGGESTION_FILE, 'a') as fileHandle:
+	with open(static.STRING_SUGGESTION_FILE, 'a') as fileHandle:
 		fileHandle.write(stringKey)
 		fileHandle.write(": ")
 		fileHandle.write(suggestion)
 		fileHandle.write("\n")
 		fileHandle.write("----------------------------------------\n")
+
+
+def loadTeams():
+

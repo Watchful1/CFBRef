@@ -2,7 +2,7 @@ from datetime import datetime
 from datetime import timedelta
 from enum import Enum
 
-import globals
+import static
 
 
 class RunStatus(Enum):
@@ -203,7 +203,7 @@ class TeamStats:
 
 class GameStatus:
 	def __init__(self):
-		self.clock = globals.quarterLength
+		self.clock = static.quarterLength
 		self.quarter = 1
 		self.location = -1
 		self.possession = HomeAway(T.home)

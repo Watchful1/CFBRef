@@ -4,7 +4,7 @@ import traceback
 import math
 import pytz
 
-import globals
+import static
 import utils
 from classes import Action
 from classes import QuarterType
@@ -15,7 +15,7 @@ log = logging.getLogger("bot")
 
 
 def getLinkToThread(threadID):
-	return globals.SUBREDDIT_LINK + threadID
+	return static.SUBREDDIT_LINK + threadID
 
 
 PUBLIC_ENUMS = {
@@ -43,14 +43,14 @@ def embedTableInMessage(message, table):
 	if table is None:
 		return message
 	else:
-		return "{}{}{})".format(message, globals.datatag, json.dumps(table, cls=EnumEncoder).replace(" ", "%20"))
+		return "{}{}{})".format(message, static.datatag, json.dumps(table, cls=EnumEncoder).replace(" ", "%20"))
 
 
 def extractTableFromMessage(message):
-	datatagLocation = message.find(globals.datatag)
+	datatagLocation = message.find(static.datatag)
 	if datatagLocation == -1:
 		return None
-	data = message[datatagLocation + len(globals.datatag):-1].replace("%20", " ")
+	data = message[datatagLocation + len(static.datatag):-1].replace("%20", " ")
 	try:
 		table = json.loads(data, object_hook=as_enum)
 		return table
@@ -272,8 +272,8 @@ def renderGame(game):
 
 	if game.playGist is not None:
 		bldr.append("[Plays](")
-		bldr.append(globals.GIST_BASE_URL)
-		bldr.append(globals.GIST_USERNAME)
+		bldr.append(static.GIST_BASE_URL)
+		bldr.append(static.GIST_USERNAME)
 		bldr.append("/")
 		bldr.append(game.playGist)
 		bldr.append(")\n")
@@ -319,14 +319,14 @@ def renderPostGame(game):
 
 	bldr.append("\n\n")
 	bldr.append("[Game thread](")
-	bldr.append(globals.SUBREDDIT_LINK)
+	bldr.append(static.SUBREDDIT_LINK)
 	bldr.append(game.thread)
 	bldr.append(")\n\n")
 
 	if game.playGist is not None:
 		bldr.append("[Plays](")
-		bldr.append(globals.GIST_BASE_URL)
-		bldr.append(globals.GIST_USERNAME)
+		bldr.append(static.GIST_BASE_URL)
+		bldr.append(static.GIST_USERNAME)
 		bldr.append("/")
 		bldr.append(game.playGist)
 		bldr.append(")\n")
@@ -345,7 +345,7 @@ def getLinkFromGameThing(threadId, thingId):
 		link = "{}/_/{}".format(getLinkToThread(threadId), thingId[3:])
 	elif thingId.startswith("t4"):
 		waitingMessageType = "message"
-		link = "{}{}".format(globals.MESSAGE_LINK, thingId[3:])
+		link = "{}{}".format(static.MESSAGE_LINK, thingId[3:])
 	else:
 		return "Something went wrong. Not valid thingid: {}".format(thingId)
 
@@ -476,7 +476,7 @@ def buildMessageLink(recipient, subject, content=None):
 
 
 def renderDatetime(dtTm, includeLink=True):
-	localized = pytz.utc.localize(dtTm).astimezone(globals.EASTERN)
+	localized = pytz.utc.localize(dtTm).astimezone(static.EASTERN)
 	timeString = localized.strftime("%m/%d %I:%M %p EST")
 	if not includeLink:
 		return timeString
@@ -487,7 +487,7 @@ def renderDatetime(dtTm, includeLink=True):
 def renderGameStatusMessage(game):
 	bldr = []
 	bldr.append("[Game](")
-	bldr.append(globals.SUBREDDIT_LINK)
+	bldr.append(static.SUBREDDIT_LINK)
 	bldr.append(game.thread)
 	bldr.append(") status.\n\n")
 
@@ -531,7 +531,7 @@ def renderGameStatusMessage(game):
 		bldr.append("|")
 		bldr.append("[Message](")
 		bldr.append(buildMessageLink(
-			globals.ACCOUNT_NAME,
+			static.ACCOUNT_NAME,
 			"Kick game",
 			"kick {} revert:{} message:{}".format(game.thread, i, status.messageId)
 		))

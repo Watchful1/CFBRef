@@ -7,7 +7,7 @@ import json
 from datetime import datetime
 from datetime import timedelta
 
-import globals
+import static
 import wiki
 import reddit
 import classes
@@ -54,7 +54,7 @@ def startGame(homeTeam, awayTeam, startTime=None, location=None, station=None, h
 		"{} ".format(string_utils.unescapeMarkdown(homeRecord)) if homeRecord is not None else "",
 		game.home.name)
 
-	threadID = str(reddit.submitSelfPost(globals.SUBREDDIT, gameTitle, gameThread))
+	threadID = str(reddit.submitSelfPost(static.SUBREDDIT, gameTitle, gameThread))
 	game.thread = threadID
 	log.debug("Game thread created: {}".format(threadID))
 
@@ -301,13 +301,13 @@ def extractPlayNumber(message):
 
 
 def setLogGameID(threadId, game):
-	globals.game = game
-	globals.logGameId = " {}:".format(threadId)
+	static.game = game
+	static.logGameId = " {}:".format(threadId)
 
 
 def clearLogGameID():
-	globals.game = None
-	globals.logGameId = ""
+	static.game = None
+	static.logGameId = ""
 
 
 def findKeywordInMessage(keywords, message):
@@ -397,7 +397,7 @@ def endGame(game, winner, postThread=True):
 			game.status.state(winnerHome).points,
 			game.status.state(not winnerHome).points
 		)
-		threadID = str(reddit.submitSelfPost(globals.SUBREDDIT, gameTitle, postGameThread))
+		threadID = str(reddit.submitSelfPost(static.SUBREDDIT, gameTitle, postGameThread))
 
 		return "[Post game thread]({}).".format(string_utils.getLinkToThread(threadID))
 	else:

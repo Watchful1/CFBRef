@@ -7,7 +7,7 @@ from datetime import datetime
 from datetime import timedelta
 
 import reddit
-import globals
+import static
 import string_utils
 from classes import OffenseType
 from classes import DefenseType
@@ -130,11 +130,11 @@ def parseResult(resultString):
 def loadTeams():
 	global teams
 	teams = {}
-	teamsPage = reddit.getWikiPage(globals.CONFIG_SUBREDDIT, "teams")
+	teamsPage = reddit.getWikiPage(static.CONFIG_SUBREDDIT, "teams")
 
 	requirements = {
-		'tag': "[a-z]+",
-		'name': "[\w -]+",
+		'tag': r"[a-z]+",
+		'name': r"[\w -]+",
 	}
 	for teamLine in teamsPage.splitlines():
 		items = teamLine.split('|')
@@ -173,6 +173,11 @@ def loadTeams():
 	team2 = Team(tag="team2", name="Team 2", offense=OffenseType.SPREAD, defense=DefenseType.FOUR_THREE)
 	team2.coaches.append(coach2)
 	teams[team2.tag] = team2
+
+
+def loadTeams2():
+
+	return
 
 
 def initOffenseDefense(play, offense, defense, range):
@@ -304,10 +309,10 @@ def loadTimes():
 				continue
 
 			if result in [Result.GAIN, Result.KICK]:
-				if not validateItem(timePart[1], "-?\d+"):
+				if not validateItem(timePart[1], r"-?\d+"):
 					log.warning("Could not validate time yards: {}".format(timePart[1]))
 					continue
-				if not validateItem(timePart[2], "\d+"):
+				if not validateItem(timePart[2], r"\d+"):
 					log.warning("Could not validate time: {}".format(timePart[2]))
 					continue
 
@@ -347,17 +352,17 @@ def getTimeByPlay(play):
 
 
 def loadAdmins():
-	adminsPage = reddit.getWikiPage(globals.CONFIG_SUBREDDIT, "admins")
+	adminsPage = reddit.getWikiPage(static.CONFIG_SUBREDDIT, "admins")
 
 	for line in adminsPage.splitlines():
 		admins.add(line.lower())
 
-	admins.add(globals.OWNER)
+	admins.add(static.OWNER)
 
 
 def loadIntro():
 	global intro
-	intro = reddit.getWikiPage(globals.CONFIG_SUBREDDIT, "intro")
+	intro = reddit.getWikiPage(static.CONFIG_SUBREDDIT, "intro")
 
 
 def loadStrings():
@@ -395,7 +400,7 @@ def getStringFromKey(stringKey, replacements=None):
 
 	bldr.append("^[(!)](")
 	bldr.append(string_utils.buildMessageLink(
-		globals.ACCOUNT_NAME,
+		static.ACCOUNT_NAME,
 		f"suggestion {stringKey}",
 		choice
 		))

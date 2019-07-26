@@ -6,13 +6,13 @@ from io import BytesIO
 from PIL import Image, ImageDraw
 
 import classes
-import globals
+import static
 from classes import Play
 
 log = logging.getLogger("bot")
 
 
-adj = int(globals.field_width / 120)
+adj = int(static.field_width / 120)
 
 run_color = "red"
 pass_color = "blue"
@@ -20,9 +20,9 @@ pass_color = "blue"
 
 def init():
 	cloudinary.config(
-		cloud_name=globals.CLOUDINARY_BUCKET,
-		api_key=globals.CLOUDINARY_KEY,
-		api_secret=globals.CLOUDINARY_SECRET
+		cloud_name=static.CLOUDINARY_BUCKET,
+		api_key=static.CLOUDINARY_KEY,
+		api_secret=static.CLOUDINARY_SECRET
 	)
 
 
@@ -40,7 +40,7 @@ def uploadField(field, gameId, driveNum):
 
 
 def makeField(plays):
-	field = Image.new(mode='RGB', size=(globals.field_width, globals.field_height), color="green")
+	field = Image.new(mode='RGB', size=(static.field_width, static.field_height), color="green")
 	draw = ImageDraw.Draw(field)
 	x_start = 10 * adj
 	x_end = 110 * adj

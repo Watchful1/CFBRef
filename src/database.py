@@ -1,16 +1,16 @@
 import sqlite3
 from datetime import datetime
 
-import globals
+import static
 
 dbConn = None
 
 
 def init():
 	global dbConn
-	dbConn = sqlite3.connect(globals.DATABASE_NAME)
+	dbConn = sqlite3.connect(static.DATABASE_NAME)
 
-	dbConn = sqlite3.connect(globals.DATABASE_NAME)
+	dbConn = sqlite3.connect(static.DATABASE_NAME)
 	c = dbConn.cursor()
 	c.execute('''
 		CREATE TABLE IF NOT EXISTS games (

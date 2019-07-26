@@ -7,7 +7,7 @@ import sys
 import signal
 import traceback
 
-import globals
+import static
 import reddit
 import messages
 import wiki
@@ -21,16 +21,16 @@ from classes import Action
 
 ### Logging setup ###
 LOG_LEVEL = logging.DEBUG
-if not os.path.exists(globals.LOG_FOLDER_NAME):
-	os.makedirs(globals.LOG_FOLDER_NAME)
-LOG_FILENAME = globals.LOG_FOLDER_NAME+"/"+"bot.log"
+if not os.path.exists(static.LOG_FOLDER_NAME):
+	os.makedirs(static.LOG_FOLDER_NAME)
+LOG_FILENAME = static.LOG_FOLDER_NAME + "/" + "bot.log"
 LOG_FILE_BACKUPCOUNT = 5
 LOG_FILE_MAXSIZE = 1024 * 256 * 64
 
 
 class ContextFilter(logging.Filter):
 	def filter(self, record):
-		record.gameid = globals.logGameId
+		record.gameid = static.logGameId
 		return True
 
 
@@ -47,10 +47,10 @@ if LOG_FILENAME is not None:
 	log.addHandler(log_fileHandler)
 
 
-if not os.path.exists(globals.SAVE_FOLDER_NAME):
-	os.makedirs(globals.SAVE_FOLDER_NAME)
-if not os.path.exists(globals.ARCHIVE_FOLDER_NAME):
-	os.makedirs(globals.ARCHIVE_FOLDER_NAME)
+if not os.path.exists(static.SAVE_FOLDER_NAME):
+	os.makedirs(static.SAVE_FOLDER_NAME)
+if not os.path.exists(static.ARCHIVE_FOLDER_NAME):
+	os.makedirs(static.ARCHIVE_FOLDER_NAME)
 
 
 def signal_handler(signal, frame):
@@ -74,7 +74,7 @@ if len(sys.argv) >= 2:
 		elif arg == 'debug':
 			debug = True
 		elif arg == 'shortQuarter':
-			globals.quarterLength = 60
+			static.quarterLength = 60
 else:
 	log.error("No user specified, aborting")
 	sys.exit(0)
@@ -102,18 +102,18 @@ while True:
 			except Exception as err:
 				log.warning("Error in main loop")
 				log.warning(traceback.format_exc())
-				if globals.game is not None:
-					log.debug("Setting game {} as errored".format(globals.game.thread))
-					index.setGameErrored(globals.game)
-					file_utils.saveGameObject(globals.game)
-					ownerMessage = string_utils.renderGameStatusMessage(globals.game)
+				if static.game is not None:
+					log.debug("Setting game {} as errored".format(static.game.thread))
+					index.setGameErrored(static.game)
+					file_utils.saveGameObject(static.game)
+					ownerMessage = string_utils.renderGameStatusMessage(static.game)
 
 					message.reply("This game has errored. Please wait for the bot owner to help.")
 				else:
 					ownerMessage = "Unable to process message from /u/{}, skipping".format(str(message.author))
 
 				try:
-					reddit.sendMessage(globals.OWNER, "NCFAA game errored", ownerMessage)
+					reddit.sendMessage(static.OWNER, "NCFAA game errored", ownerMessage)
 					message.mark_read()
 				except Exception as err2:
 					log.warning("Error sending error message")

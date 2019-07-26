@@ -4,7 +4,7 @@ from datetime import datetime
 import wiki
 import utils
 import classes
-import globals
+import static
 import string_utils
 import drive_graphic
 from classes import T
@@ -294,7 +294,7 @@ def checkQuarterStatus(game, timeOffClock):
 
 		if game.status.quarterType != QuarterType.END:
 			game.status.quarter += 1
-			game.status.clock = globals.quarterLength
+			game.status.clock = static.quarterLength
 
 	else:
 		timeMessage = None
@@ -853,9 +853,9 @@ def executePlay(game, play, number, timeOption):
 
 	playString = string_utils.renderPlays(game)
 	if game.playGist is None:
-		game.playGist = utils.paste("Play summary", playString, globals.GIST_USERNAME, globals.GIST_TOKEN)
+		game.playGist = utils.paste("Play summary", playString, static.GIST_USERNAME, static.GIST_TOKEN)
 	else:
-		utils.edit_paste("Play summary", playString, game.playGist, globals.GIST_USERNAME, globals.GIST_TOKEN)
+		utils.edit_paste("Play summary", playString, game.playGist, static.GIST_USERNAME, static.GIST_TOKEN)
 
 	return success, '\n\n'.join(messages)
 

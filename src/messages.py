@@ -5,7 +5,7 @@ import praw
 import reddit
 import utils
 import wiki
-import globals
+import static
 import state
 import classes
 import index
@@ -503,7 +503,7 @@ def processMessage(message, force=False):
 		else:
 			parent = reddit.getComment(message.parent_id[3:])
 
-		if parent is not None and str(parent.author).lower() == globals.ACCOUNT_NAME:
+		if parent is not None and str(parent.author).lower() == static.ACCOUNT_NAME:
 			dataTable = string_utils.extractTableFromMessage(parent.body)
 			if dataTable is not None:
 				if 'action' not in dataTable or 'thread' not in dataTable:
@@ -531,7 +531,7 @@ def processMessage(message, force=False):
 			elif game.errored:
 				log.debug("Game is errored, skipping")
 				response = "This game is currently in an error state, /u/{} has been contacted to take a look".format(
-					globals.OWNER)
+					static.OWNER)
 				success = False
 				updateWaiting = False
 

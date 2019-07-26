@@ -3,7 +3,7 @@ import sys
 import logging
 import file_utils
 import utils
-import globals
+import static
 import classes
 import configparser
 import traceback
@@ -14,15 +14,15 @@ from classes import Action
 
 ### Logging setup ###
 LOG_LEVEL = logging.DEBUG
-if not os.path.exists(globals.LOG_FOLDER_NAME):
-	os.makedirs(globals.LOG_FOLDER_NAME)
-LOG_FILENAME = globals.LOG_FOLDER_NAME+"/"+"bot.log"
+if not os.path.exists(static.LOG_FOLDER_NAME):
+	os.makedirs(static.LOG_FOLDER_NAME)
+LOG_FILENAME = static.LOG_FOLDER_NAME + "/" + "bot.log"
 LOG_FILE_BACKUPCOUNT = 5
 LOG_FILE_MAXSIZE = 1024 * 256 * 64
 
 class ContextFilter(logging.Filter):
 	def filter(self, record):
-		record.gameid = globals.logGameId
+		record.gameid = static.logGameId
 		return True
 
 log = logging.getLogger("bot")
@@ -39,7 +39,7 @@ if LOG_FILENAME is not None:
 
 
 def addWinnerFieldToGames():
-	folder = globals.SAVE_FOLDER_NAME
+	folder = static.SAVE_FOLDER_NAME
 	for fileName in os.listdir(folder):
 		if not os.path.isfile(os.path.join(folder, fileName)):
 			continue
@@ -51,7 +51,7 @@ def addWinnerFieldToGames():
 
 
 def archiveOutstandingFinishedGames():
-	folder = globals.SAVE_FOLDER_NAME
+	folder = static.SAVE_FOLDER_NAME
 	for fileName in os.listdir(folder):
 		if not os.path.isfile(os.path.join(folder, fileName)):
 			continue
@@ -95,11 +95,11 @@ def pastebinPlaylist(game_id, config_section):
 		config_section['gist_username'],
 		config_section['gist_token']
 	)
-	log.info(globals.GIST_BASE_URL + config_section['gist_username'] + "/" + gistId)
+	log.info(static.GIST_BASE_URL + config_section['gist_username'] + "/" + gistId)
 
 
 def archiveEndedGames():
-	for gameFile in os.listdir(globals.SAVE_FOLDER_NAME):
+	for gameFile in os.listdir(static.SAVE_FOLDER_NAME):
 		try:
 			game = file_utils.loadGameObject(gameFile)
 			if game.status.waitingAction == Action.END:
