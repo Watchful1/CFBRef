@@ -218,7 +218,7 @@ def processMessageOffensePlay(game, message, author):
 			timeoutMessageOffense = "The offense requested a timeout, but they don't have any left"
 
 	normalOptions = ["run", "pass", "punt", "field goal", "kneel", "spike"]
-	conversionOptions = ["two point", "pat"]
+	conversionOptions = ["two point", "pat", "kneel"]
 	kickoffOptions = ["normal", "squib", "onside"]
 	if game.status.waitingAction == Action.PLAY:
 		playSelected = utils.findKeywordInMessage(normalOptions, message)

@@ -1,8 +1,8 @@
 TODO
 - Automatically handle reddit outage exceptions
-- Add "hurry" for hurry up plays
-- Onside kick returned TD on 750 difference
-- Kneeling on PATs
+* Add "hurry" for hurry up plays
+* Onside kick returned TD on 750 difference
+* Kneeling on PATs
 - Admin actions on games - restart, edit teams, rerun play
 * New teams page
 
