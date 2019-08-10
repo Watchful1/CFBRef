@@ -102,6 +102,7 @@ def endGame(game):
 	if game.thread in games:
 		del games[game.thread]
 	file_utils.archiveGameFile(game.thread)
+	wiki.updateTeamsWiki()
 
 
 def setGameErrored(game):

@@ -50,5 +50,18 @@ def saveStringSuggestion(stringKey, suggestion):
 		fileHandle.write("----------------------------------------\n")
 
 
-def loadTeams():
+def saveTeams(teams):
+	file = open(static.TEAMS_FILE, 'wb')
+	pickle.dump(teams, file)
+	file.close()
 
+
+def loadTeams():
+	try:
+		file = open(static.TEAMS_FILE, 'rb')
+	except FileNotFoundError as err:
+		log.info("Teams file doesn't exist, returning empty")
+		return {}
+	teams = pickle.load(file)
+	file.close()
+	return teams

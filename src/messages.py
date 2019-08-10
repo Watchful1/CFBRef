@@ -1,6 +1,7 @@
 import logging.handlers
 import re
 import praw
+import traceback
 
 import reddit
 import utils
@@ -62,6 +63,7 @@ def processMessageNewGame(body, author):
 
 		results.append(utils.startGame(homeTeam, awayTeam, startTime, location, station, homeRecord, awayRecord))
 
+	wiki.updateTeamsWiki()
 	return '\n'.join(results)
 
 
@@ -484,7 +486,49 @@ def processMessageSuggestion(body, subject):
 	return "Thanks! I'll manually review all suggestions and add the good ones."
 
 
-def processMessage(message, force=False):
+def processMessageTeams(body, subject):
+	bldr = []
+	for teamLine in body.splitlines():
+		team, result = wiki.parseTeamLine(teamLine)
+		if team is None:
+			bldr.append(result)
+			bldr.append("  \n")
+			continue
+
+		if team.tag in wiki.teams:
+			log.debug(f"Updated team: {team.tag}")
+			bldr.append(f"Updated team: {team.tag}")
+			wiki.teams[team.tag] = team
+
+			game = index.getGameFromTeamTag(team.tag)
+			if game is not None:
+				try:
+					if len(game.previousStatus):
+						log.debug("Reverting status and reprocessing {}".format(game.previousStatus[0].messageId))
+						utils.revertStatus(game, 0)
+						file_utils.saveGameObject(game)
+						reprocessPlay(game, game.status.messageId)
+						bldr.append(" and reprocessed last play")
+					else:
+						log.info("Coaches changed, but game has no plays, not reprocessing")
+
+				except Exception as err:
+					log.warning(traceback.format_exc())
+					log.warning("Unable to revert game when changing coaches")
+					bldr.append(" something went wrong reprocessing the last play")
+			bldr.append("  \n")
+
+		else:
+			log.debug(f"Added team: {team.tag}")
+			bldr.append(f"Added team: {team.tag}")
+			wiki.teams[team.tag] = team
+
+	wiki.updateTeamsWiki()
+
+	return ''.join(bldr)
+
+
+def processMessage(message, reprocess=False):
 	if isinstance(message, praw.models.Message):
 		isMessage = True
 		log.debug("Processing a message from /u/{} : {}".format(str(message.author), message.id))
@@ -519,10 +563,10 @@ def processMessage(message, force=False):
 	if dataTable is not None:
 		game = index.reloadAndReturn(dataTable['thread'])
 		if game is not None:
-			utils.cycleStatus(game, message.fullname)
+			utils.cycleStatus(game, message.fullname, not reprocess)
 			utils.setLogGameID(game.thread, game)
 
-			waitingOn = utils.isGameWaitingOn(game, author, dataTable['action'], dataTable['source'], force)
+			waitingOn = utils.isGameWaitingOn(game, author, dataTable['action'], dataTable['source'], reprocess)
 			if waitingOn is not None:
 				response = waitingOn
 				success = False
@@ -555,9 +599,9 @@ def processMessage(message, force=False):
 						keywords = ["defer", "receive"]
 					keyword = utils.findKeywordInMessage(keywords, body)
 					if keyword == "defer" or keyword == "defend":
-						success, response = processMessageDefer(game, True, author, force)
+						success, response = processMessageDefer(game, True, author, reprocess)
 					elif keyword == "receive" or keyword == "attack":
-						success, response = processMessageDefer(game, False, author, force)
+						success, response = processMessageDefer(game, False, author, reprocess)
 					elif keyword == "mult":
 						success = False
 						response = "I found both {} in your message. Please reply with just one of them.".format(
@@ -580,7 +624,9 @@ def processMessage(message, force=False):
 				response = processMessageSuggestion(message.body, message.subject)
 
 			elif str(message.author).lower() in wiki.admins:
-				if body.startswith("newgame"):
+				if message.subject.startswith("teams"):
+					response = processMessageTeams(message.body, message.subject)
+				elif body.startswith("newgame"):
 					response = processMessageNewGame(message.body, str(message.author))
 				elif body.startswith("kick"):
 					response = processMessageKickGame(message.body)

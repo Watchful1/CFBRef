@@ -190,8 +190,8 @@ def getPlayResult(game, play, number):
 
 	log.debug("Getting play result for: {}".format(play))
 	if play in classes.movementPlays:
-		offense = game.team(game.status.possession).offense
-		defense = game.team(game.status.possession.negate()).defense
+		offense = game.status.playbook(game.status.possession).offense
+		defense = game.status.playbook(game.status.possession.negate()).defense
 		log.debug("Movement play offense, defense: {} : {}".format(offense, defense))
 		playMajorRange = playDict[offense][defense]
 	else:
@@ -202,7 +202,7 @@ def getPlayResult(game, play, number):
 
 
 def getTimeAfterForOffense(game, homeAway):
-	offenseType = game.team(homeAway).offense
+	offenseType = game.status.playbook(homeAway).offense
 	if offenseType == OffenseType.SPREAD:
 		return 10
 	elif offenseType == OffenseType.PRO:

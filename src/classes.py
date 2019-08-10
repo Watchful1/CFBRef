@@ -201,6 +201,12 @@ class TeamStats:
 		self.posTime = 0
 
 
+class Playbook:
+	def __init__(self, offense=None, defence=None):
+		self.offense = offense
+		self.defense = defence
+
+
 class GameStatus:
 	def __init__(self):
 		self.clock = static.quarterLength
@@ -227,6 +233,9 @@ class GameStatus:
 		self.drives = []
 		self.noOnside = False
 
+		self.homePlaybook = Playbook()
+		self.awayPlaybook = Playbook()
+
 	def state(self, isHome):
 		if isHome:
 			return self.homeState
@@ -239,16 +248,22 @@ class GameStatus:
 		else:
 			return self.awayStats
 
+	def playbook(self, isHome):
+		if isHome:
+			return self.homePlaybook
+		else:
+			return self.awayPlaybook
+
 
 class Team:
-	def __init__(self, tag, name, offense, defense):
+	def __init__(self, tag, name, offense, defense, conference=""):
 		self.tag = tag
 		self.name = name
-		self.offense = offense
-		self.defense = defense
+		self.playbook = Playbook(offense, defense)
 		self.coaches = []
 		self.pastCoaches = []
 		self.record = None
+		self.conference = conference
 
 
 class Game:

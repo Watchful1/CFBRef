@@ -355,12 +355,16 @@ def isGameOvertime(game):
 	return game.status.quarterType in [QuarterType.OVERTIME_NORMAL, QuarterType.OVERTIME_TIME]
 
 
-def cycleStatus(game, messageId):
+def cycleStatus(game, messageId, cyclePlaybooks=True):
 	oldStatus = copy.deepcopy(game.status)
 	oldStatus.messageId = messageId
 	game.previousStatus.insert(0, oldStatus)
 	if len(game.previousStatus) > 5:
 		game.previousStatus.pop()
+
+	if cyclePlaybooks:
+		game.status.homePlaybook = game.home.playbook
+		game.status.awayPlaybook = game.away.playbook
 
 
 def revertStatus(game, index):
@@ -405,8 +409,8 @@ def endGame(game, winner, postThread=True):
 
 
 def pauseGame(game, hours):
-	game.playclock = datetime.utcnow() + timedelta(hours=hours)
-	game.deadline = game.deadline + timedelta(hours=hours)
+	game.playclock = datetime.utcnow() + timedelta(hours=hours + 24)
+	game.deadline = game.deadline + timedelta(hours=hours + 24)
 
 
 def setGamePlayed(game):

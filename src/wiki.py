@@ -9,6 +9,7 @@ from datetime import timedelta
 import reddit
 import static
 import string_utils
+import file_utils
 from classes import OffenseType
 from classes import DefenseType
 from classes import Result
@@ -175,9 +176,47 @@ def loadTeams():
 	teams[team2.tag] = team2
 
 
-def loadTeams2():
+def parseTeamLine(teamLine):
+	requirements = {
+		'tag': r"[a-z]+",
+		'name': r"[\w -]+",
+	}
+	items = teamLine.split('|')
+	if len(items) < 5:
+		log.warning("Could not parse team line: {}".format(teamLine))
+		return None, "Not enough items"
 
-	return
+	offense = parseOffense(items[2].lower())
+	if offense is None:
+		log.warning("Invalid offense type for team {}: {}".format(items[0], items[2]))
+		return None, "Invalid offense type for team {}: {}".format(items[0], items[2])
+
+	defense = parseDefense(items[3].lower())
+	if defense is None:
+		log.warning("Invalid defense type for team {}: {}".format(items[0], items[2]))
+		return None, "Invalid defense type for team {}: {}".format(items[0], items[2])
+
+	team = Team(tag=items[0], name=items[1], offense=offense, defense=defense)
+
+	for requirement in requirements:
+		if not validateItem(getattr(team, requirement), requirements[requirement]):
+			log.debug("Could not validate team on {}: {}".format(requirement, team))
+			return None, f"Field {requirement} does not match regex {requirements[requirement]}"
+
+	for coach in items[4].lower().split(','):
+		coach = coach.strip()
+		team.coaches.append(coach)
+	return team, None
+
+
+def loadTeams2():
+	global teams
+	teams = file_utils.loadTeams()
+
+
+def updateTeamsWiki():
+	teamsWikiString = string_utils.renderTeamsWiki(teams)
+	reddit.setWikiPage(static.CONFIG_SUBREDDIT, "teams", teamsWikiString)
 
 
 def initOffenseDefense(play, offense, defense, range):

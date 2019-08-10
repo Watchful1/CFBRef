@@ -3,9 +3,11 @@ import json
 import traceback
 import math
 import pytz
+from collections import defaultdict
 
 import static
 import utils
+import index
 from classes import Action
 from classes import QuarterType
 from classes import OffenseType
@@ -359,6 +361,13 @@ def getCoachString(game, isHome):
 	return " and ".join(bldr)
 
 
+def renderCoaches(coaches):
+	bldr = []
+	for coach in coaches:
+		bldr.append("/u/{}".format(coach))
+	return ", ".join(bldr)
+
+
 def getNthWord(number):
 	if number == 1:
 		return "1st"
@@ -536,5 +545,52 @@ def renderGameStatusMessage(game):
 			"kick {} revert:{} message:{}".format(game.thread, i, status.messageId)
 		))
 		bldr.append(")\n")
+
+	return ''.join(bldr)
+
+
+def renderTeamsWiki(teams):
+	conferences = defaultdict(list)
+	for team in teams:
+		conferences[team.conference].append(team)
+
+	conferenceNames = []
+	for conference in conferences:
+		conferenceNames.append(conference)
+		conferences[conference].sort(key=lambda team: team.tag)
+
+	conferenceNames.sort()
+
+	bldr = []
+	for conference in conferenceNames:
+		if conference != "":
+			bldr.append("***\n\n**")
+			bldr.append(conference)
+			bldr.append("**\n\n")
+
+		bldr.append("Tag|Name|Offense|Defense|Coaches|Current Game|Edit\n")
+		bldr.append(":-:|:-:|:-:|:-:|:-:|:-:|:-:\n")
+
+		for team in conferences[conference]:
+			teamLine = f"{team.tag}|{team.name}|{renderOffenseType(team.playbook.offense)}|{renderDefenseType(team.playbook.defense)}"
+			bldr.append(teamLine)
+			bldr.append("|")
+			bldr.append(renderCoaches(team.coaches))
+			bldr.append("|")
+			game = index.getGameFromTeamTag(team.tag)
+			if game is not None:
+				bldr.append("[Game](")
+				bldr.append(static.SUBREDDIT_LINK)
+				bldr.append(game.thread)
+				bldr.append(")")
+			bldr.append("|")
+			bldr.append("[Edit](")
+			bldr.append(buildMessageLink(
+				static.ACCOUNT_NAME,
+				"Update team",
+				f"{teamLine}{('|'+team.conference) if team.conference != '' else ''}")
+			)
+			bldr.append(")")
+			bldr.append("\n")
 
 	return ''.join(bldr)

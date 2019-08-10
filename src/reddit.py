@@ -89,6 +89,11 @@ def getWikiPage(subreddit, pageName):
 	return wikiPage.content_md
 
 
+def setWikiPage(subreddit, pageName, content):
+	wikiPage = reddit.subreddit(subreddit).wiki[pageName]
+	wikiPage.edit(content)
+
+
 def submitSelfPost(subreddit, title, text):
 	return reddit.subreddit(subreddit).submit(title=title, selftext=text)
 
