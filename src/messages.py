@@ -270,7 +270,7 @@ def processMessageOffensePlay(game, message, author):
 			timeOption = TimeOption.NORMAL
 	if any(x in message for x in ['chew', 'chew the clock', 'milk the clock', 'chew clock']):
 		timeOption = TimeOption.CHEW
-	elif any(x in message for x in ['hurry up', 'no huddle', 'no-huddle']):
+	elif any(x in message for x in ['hurry up', 'no huddle', 'no-huddle', 'hurry']):
 		timeOption = TimeOption.HURRY
 	elif any(x in message for x in ['normal']):
 		timeOption = TimeOption.NORMAL

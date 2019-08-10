@@ -128,7 +128,7 @@ def parseResult(resultString):
 		return None
 
 
-def loadTeams():
+def loadTeamsOld():
 	global teams
 	teams = {}
 	teamsPage = reddit.getWikiPage(static.CONFIG_SUBREDDIT, "teams")
@@ -209,14 +209,14 @@ def parseTeamLine(teamLine):
 	return team, None
 
 
-def loadTeams2():
+def loadTeams():
 	global teams
 	teams = file_utils.loadTeams()
 
 
 def updateTeamsWiki():
 	teamsWikiString = string_utils.renderTeamsWiki(teams)
-	reddit.setWikiPage(static.CONFIG_SUBREDDIT, "teams", teamsWikiString)
+	reddit.setWikiPage(static.SUBREDDIT, "teams", teamsWikiString)
 
 
 def initOffenseDefense(play, offense, defense, range):
