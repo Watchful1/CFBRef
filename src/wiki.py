@@ -206,6 +206,10 @@ def parseTeamLine(teamLine):
 	for coach in items[4].lower().split(','):
 		coach = coach.strip()
 		team.coaches.append(coach)
+
+	if len(items) >= 6:
+		team.conference = items[5]
+
 	return team, None
 
 

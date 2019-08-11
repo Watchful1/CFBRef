@@ -323,7 +323,7 @@ def processMessageOffensePlay(game, message, author):
 	return success, string_utils.embedTableInMessage('\n\n'.join(result), utils.getActionTable(game, game.status.waitingAction))
 
 
-def reprocessPlay(game, messageId):
+def reprocessPlay(game, messageId, isRerun=False):
 	log.debug("Reprocessing message/comment: {}".format(messageId))
 	if messageId == "DelayOfGame":
 		state.executeDelayOfGame(game)
@@ -331,7 +331,7 @@ def reprocessPlay(game, messageId):
 		message = reddit.getThingFromFullname(messageId)
 		if message is None:
 			return "Something went wrong. Not valid fullname: {}".format(messageId)
-		processMessage(message, True)
+		processMessage(message, True, isRerun)
 	return "Reprocessed message: {}".format(messageId)
 
 
@@ -516,14 +516,15 @@ def processMessageTeams(body, subject):
 					log.warning(traceback.format_exc())
 					log.warning("Unable to revert game when changing coaches")
 					bldr.append(" something went wrong reprocessing the last play")
-			bldr.append("  \n")
 
 		else:
 			log.debug(f"Added team: {team.tag}")
 			bldr.append(f"Added team: {team.tag}")
 			wiki.teams[team.tag] = team
+		bldr.append("  \n")
 
 	wiki.updateTeamsWiki()
+	file_utils.saveTeams(wiki.teams)
 
 	return ''.join(bldr)
 
@@ -590,9 +591,8 @@ def processMessageRerunLastPlay(body):
 		if len(game.previousStatus):
 			log.debug("Reverting status and reprocessing {}".format(game.previousStatus[0].messageId))
 			utils.revertStatus(game, 0)
-			game.playRerun = True
 			file_utils.saveGameObject(game)
-			reprocessPlay(game, game.status.messageId)
+			reprocessPlay(game, game.status.messageId, True)
 		else:
 			log.info("Game has no plays")
 			return "Game has no plays"
@@ -605,7 +605,7 @@ def processMessageRerunLastPlay(body):
 	return f"Reran last play for game {threadId}"
 
 
-def processMessage(message, reprocess=False):
+def processMessage(message, reprocess=False, isRerun=False):
 	if isinstance(message, praw.models.Message):
 		isMessage = True
 		log.debug("Processing a message from /u/{} : {}".format(str(message.author), message.id))
@@ -657,7 +657,7 @@ def processMessage(message, reprocess=False):
 				updateWaiting = False
 
 			else:
-				game.playRerun = False
+				game.playRerun = isRerun
 				if dataTable['action'] == Action.COIN and not isMessage:
 					keywords = ["heads", "tails"]
 					keyword = utils.findKeywordInMessage(keywords, body)

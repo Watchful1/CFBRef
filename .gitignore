@@ -7,3 +7,5 @@ __pycache__/*
 *.ini
 src/__pycache__/
 suggestions.txt
+restarts.txt
+*.pickle

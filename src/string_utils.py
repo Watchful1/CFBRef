@@ -3,6 +3,7 @@ import json
 import traceback
 import math
 import pytz
+import urllib.parse
 from collections import defaultdict
 
 import static
@@ -167,9 +168,9 @@ def renderTeamInfo(game, bldr):
 		bldr.append("|")
 		bldr.append(getCoachString(game, homeAway))
 		bldr.append("|")
-		bldr.append(renderOffenseType(game.team(homeAway).offense))
+		bldr.append(renderOffenseType(game.team(homeAway).playbook.offense))
 		bldr.append("|")
-		bldr.append(renderDefenseType(game.team(homeAway).defense))
+		bldr.append(renderDefenseType(game.team(homeAway).playbook.defense))
 		bldr.append("\n")
 
 
@@ -311,13 +312,13 @@ def renderGame(game):
 		bldr.append("](")
 		bldr.append(buildMessageLink(
 			static.ACCOUNT_NAME,
-			"Update team",
+			"teams",
 			f"{team.tag}|{team.name}|{renderOffenseType(team.playbook.offense)}|"
 			f"{renderDefenseType(team.playbook.defense)}"
 			f"{('|'+team.conference) if team.conference != '' else ''}")
 		)
 		bldr.append(")")
-	bldr.append("[^Rerun ^play](")
+	bldr.append(" ^| [^Rerun ^play](")
 	bldr.append(buildMessageLink(
 		static.ACCOUNT_NAME,
 		"Rerun",
@@ -494,14 +495,7 @@ def listSuggestedPlays(game):
 
 
 def htmlEncode(message):
-	encodings = [
-		[' ', '%20'],
-		['(', '%28'],
-		[')', '%29'],
-	]
-	for encoding in encodings:
-		message = message.replace(encoding[0], encoding[1])
-	return message
+	return urllib.parse.quote(message, safe='')
 
 
 def buildMessageLink(recipient, subject, content=None):
@@ -583,7 +577,7 @@ def renderGameStatusMessage(game):
 def renderTeamsWiki(teams):
 	conferences = defaultdict(list)
 	for team in teams:
-		conferences[team.conference].append(team)
+		conferences[teams[team].conference].append(teams[team])
 
 	conferenceNames = []
 	for conference in conferences:
