@@ -185,10 +185,10 @@ def findNumberInRangeDict(number, dict):
 def getPlayResult(game, play, number):
 	playDict = wiki.getPlay(play)
 	if playDict is None:
-		log.warning("{} is not a valid play".format(play))
+		log.warning(f"{play} is not a valid play")
 		return None
 
-	log.debug("Getting play result for: {}".format(play))
+	log.debug(f"Getting play result for: {play} : {100 - game.status.location}")
 	if play in classes.movementPlays:
 		offense = game.status.playbook(game.status.possession).offense
 		defense = game.status.playbook(game.status.possession.negate()).defense
@@ -198,7 +198,9 @@ def getPlayResult(game, play, number):
 		playMajorRange = playDict
 
 	playMinorRange = findNumberInRangeDict(100 - game.status.location, playMajorRange)
-	return findNumberInRangeDict(number, playMinorRange)
+	result = findNumberInRangeDict(number, playMinorRange)
+	log.debug(f"Result: {result['result']} : {result['yards'] if 'yards' in result else 'no yards'}")
+	return result
 
 
 def getTimeAfterForOffense(game, homeAway):
@@ -649,8 +651,7 @@ def executePlay(game, play, number, timeOption):
 
 			actualResult = result['result']
 			if play == Play.PUNT and result['result'] == Result.GAIN and game.status.location + result['yards'] >= 100:
-				result['result'] = Result.PUNT
-				actualResult = Result.PUNT
+				result['yards'] = (100 - 1) - game.status.location
 
 			if result['result'] == Result.GAIN:
 				if play == Play.PUNT:

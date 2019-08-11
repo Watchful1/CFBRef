@@ -6,6 +6,9 @@ TODO
 * Admin actions on games - restart, edit teams, rerun play
 * New teams page
 
+Move teams to new page
+Update start message with new changelog
+
 Added:
 
 * You can use "hurry" to run a hurry up play
