@@ -528,6 +528,83 @@ def processMessageTeams(body, subject):
 	return ''.join(bldr)
 
 
+def processMessageRestartGame(body):
+	log.debug("Processing restart game message")
+	threadIdGroup = re.search(r'(?: )([\da-z]{6})', body)
+	if not threadIdGroup:
+		log.debug("Couldn't find a thread id in message")
+		return "Couldn't find a thread id in message"
+	threadId = threadIdGroup.group(1)
+	log.debug("Found thread id: {}".format(threadId))
+
+	game = file_utils.loadGameObject(threadId)
+	if game is None:
+		log.info(f"Couldn't load game {threadId}")
+		return "Game not found: {}".format(threadId)
+
+	reasonGroup = re.search(r'(?: [\da-z]{6} )(.*)', body)
+	if not reasonGroup or reasonGroup.group(1) == "Replace this with the reason you need to restart the game":
+		log.debug("Couldn't find a restart reason")
+		return "Couldn't find a restart reason in the message. Please include one after the thread id."
+	file_utils.saveRestartReason(threadId, reasonGroup.group(1))
+
+	bldr = []
+	bldr.append(f"Game {threadId} abandoned.\n\n")
+	log.debug("Abandoning game")
+	utils.endGame(game, "Abandoned", False)
+	utils.updateGameThread(game)
+	file_utils.saveGameObject(game)
+	index.endGame(game)
+
+	bldr.append(utils.startGame(
+		game.home.tag,
+		game.away.tag,
+		game.startTime,
+		game.location,
+		game.station,
+		game.home.record,
+		game.home.record))
+
+	return ''.join(bldr)
+
+
+def processMessageRerunLastPlay(body):
+	log.debug("Processing rerun play message")
+	threadIdGroup = re.search(r'(?: )([\da-z]{6})', body)
+	if not threadIdGroup:
+		log.debug("Couldn't find a thread id in message")
+		return "Couldn't find a thread id in message"
+	threadId = threadIdGroup.group(1)
+	log.debug("Found thread id: {}".format(threadId))
+
+	game = file_utils.loadGameObject(threadId)
+	if game is None:
+		log.info(f"Couldn't load game {threadId}")
+		return f"Game not found: {threadId}"
+
+	if game.playRerun:
+		log.info("Game has already been rerun")
+		return f"The last play has already been rerun. If the game is still broken, please ping {static.OWNER} in discord"
+
+	try:
+		if len(game.previousStatus):
+			log.debug("Reverting status and reprocessing {}".format(game.previousStatus[0].messageId))
+			utils.revertStatus(game, 0)
+			game.playRerun = True
+			file_utils.saveGameObject(game)
+			reprocessPlay(game, game.status.messageId)
+		else:
+			log.info("Game has no plays")
+			return "Game has no plays"
+
+	except Exception as err:
+		log.warning(traceback.format_exc())
+		log.warning("Unable to revert game")
+		return "Something went wrong reprocessing the last play"
+
+	return f"Reran last play for game {threadId}"
+
+
 def processMessage(message, reprocess=False):
 	if isinstance(message, praw.models.Message):
 		isMessage = True
@@ -580,6 +657,7 @@ def processMessage(message, reprocess=False):
 				updateWaiting = False
 
 			else:
+				game.playRerun = False
 				if dataTable['action'] == Action.COIN and not isMessage:
 					keywords = ["heads", "tails"]
 					keyword = utils.findKeywordInMessage(keywords, body)
@@ -642,6 +720,10 @@ def processMessage(message, reprocess=False):
 					response = processMessageDefaultChew(message.body)
 				elif body.startswith("gamelist"):
 					response = processMessageGameList(message.body)
+				elif body.startswith("restart"):
+					response = processMessageRestartGame(message.body)
+				elif body.startswith("rerun"):
+					response = processMessageRerunLastPlay(message.body)
 
 	message.mark_read()
 	if response is not None:

@@ -284,6 +284,7 @@ class Game:
 		self.forceChew = False
 		self.playclockWarning = False
 		self.playGist = None
+		self.playRerun = False
 
 	def team(self, isHome):
 		if isHome:

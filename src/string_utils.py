@@ -294,6 +294,37 @@ def renderGame(game):
 	if game.status.quarterType == QuarterType.END:
 		bldr.append("\n#Game complete, {} wins!\n".format(game.status.winner))
 
+	bldr.append("\n___\n\n")
+	bldr.append("^Admin: ")
+	bldr.append("[^Restart](")
+	bldr.append(buildMessageLink(
+		static.ACCOUNT_NAME,
+		"Restart",
+		f"restart {game.thread} Replace this with the reason you need to restart the game")
+	)
+	bldr.append(")")
+	for homeAway in [False, True]:
+		team = game.team(homeAway)
+
+		bldr.append(" ^| [^Edit ^")
+		bldr.append(team.name.replace(" ", " ^"))
+		bldr.append("](")
+		bldr.append(buildMessageLink(
+			static.ACCOUNT_NAME,
+			"Update team",
+			f"{team.tag}|{team.name}|{renderOffenseType(team.playbook.offense)}|"
+			f"{renderDefenseType(team.playbook.defense)}"
+			f"{('|'+team.conference) if team.conference != '' else ''}")
+		)
+		bldr.append(")")
+	bldr.append("[^Rerun ^play](")
+	bldr.append(buildMessageLink(
+		static.ACCOUNT_NAME,
+		"Rerun",
+		f"rerun {game.thread}")
+	)
+	bldr.append(")")
+
 	return ''.join(bldr)
 
 

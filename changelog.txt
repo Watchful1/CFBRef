@@ -3,7 +3,7 @@ TODO
 * Add "hurry" for hurry up plays
 * Onside kick returned TD on 750 difference
 * Kneeling on PATs
-- Admin actions on games - restart, edit teams, rerun play
+* Admin actions on games - restart, edit teams, rerun play
 * New teams page
 
 Added:
@@ -15,4 +15,4 @@ Added:
 
 Admin features:
 
-* Added some new buttons at the bottom of the game that let admins better run stuff
+* Added some new buttons at the bottom of the game that let admins better run stuff. I'm sorry to say they won't work for the rest of you.
