@@ -313,8 +313,9 @@ def renderGame(game):
 		bldr.append(buildMessageLink(
 			static.ACCOUNT_NAME,
 			"teams",
-			f"{team.tag}|{team.name}|{renderOffenseType(team.playbook.offense)}|"
-			f"{renderDefenseType(team.playbook.defense)}"
+			f"{team.tag}|{team.name}|{renderOffenseType(team.playbook.offense)}"
+			f"|{renderDefenseType(team.playbook.defense)}"
+			f"|{','.join(team.coaches)}"
 			f"{('|'+team.conference) if team.conference != '' else ''}")
 		)
 		bldr.append(")")
@@ -613,7 +614,9 @@ def renderTeamsWiki(teams):
 			bldr.append(buildMessageLink(
 				static.ACCOUNT_NAME,
 				"Update team",
-				f"{teamLine}{('|'+team.conference) if team.conference != '' else ''}")
+				f"{teamLine}"
+				f"|{','.join(team.coaches)}"
+				f"{('|'+team.conference) if team.conference != '' else ''}")
 			)
 			bldr.append(")")
 			bldr.append("\n")
