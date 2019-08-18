@@ -651,7 +651,7 @@ def executePlay(game, play, number, timeOption):
 
 			actualResult = result['result']
 			if play == Play.PUNT and result['result'] == Result.GAIN and game.status.location + result['yards'] >= 100:
-				result['yards'] = (100 - 1) - game.status.location
+				result['yards'] = (100 - 4) - game.status.location
 
 			if result['result'] == Result.GAIN:
 				if play == Play.PUNT:
