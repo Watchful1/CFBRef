@@ -357,14 +357,14 @@ def updateTime(game, play, result, actualResult, yards, offenseHomeAway, timeOpt
 		timeResult = actualResult
 
 	game.status.timeRunoff = False
-	if actualResult == Result.SPIKE:
+	if play == Play.SPIKE:
 		timeOffClock += 3
 	elif play == Play.PAT:
 		timeOffClock += 0
 	elif play == Play.TWO_POINT:
 		timeOffClock += 0
 	else:
-		if actualResult == Result.KNEEL:
+		if play == Play.KNEEL:
 			timeOffClock += 1
 		else:
 			timeOffClock += getTimeByPlay(play, timeResult, yards)
