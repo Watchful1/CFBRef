@@ -157,7 +157,7 @@ def loadTeamsOld():
 
 		for requirement in requirements:
 			if not validateItem(getattr(team, requirement), requirements[requirement]):
-				log.debug("Could not validate team on {}: {}".format(requirement, team))
+				log.debug("Could not validate team on {}: {}".format(requirement, getattr(team, requirement)))
 				continue
 
 		for coach in items[4].lower().split(','):

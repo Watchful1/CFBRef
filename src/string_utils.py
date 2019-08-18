@@ -613,7 +613,7 @@ def renderTeamsWiki(teams):
 			bldr.append("[Edit](")
 			bldr.append(buildMessageLink(
 				static.ACCOUNT_NAME,
-				"Update team",
+				"teams",
 				f"{teamLine}"
 				f"|{','.join(team.coaches)}"
 				f"{('|'+team.conference) if team.conference != '' else ''}")
