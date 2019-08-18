@@ -773,6 +773,7 @@ def executePlay(game, play, number, timeOption):
 			if play == Play.KNEEL:
 				log.debug("Running kneel play")
 				actualResult = Result.KNEEL
+				result = {'result': actualResult}
 				game.status.down += 1
 
 				newLocation = max(game.status.location - 2, 1)
@@ -788,6 +789,7 @@ def executePlay(game, play, number, timeOption):
 						timeMessage = overtimeTurnover(game)
 					else:
 						turnover(game)
+					actualResult = Result.TURNOVER
 					resultMessage = wiki.getStringFromKey("turnoverDownsKneel")
 				else:
 					resultMessage = wiki.getStringFromKey("kneel")
@@ -795,6 +797,7 @@ def executePlay(game, play, number, timeOption):
 			elif play == Play.SPIKE:
 				log.debug("Running spike play")
 				actualResult = Result.SPIKE
+				result = {'result': actualResult}
 				game.status.down += 1
 				if game.status.down > 4:
 					log.debug("Turnover on downs")
@@ -802,10 +805,10 @@ def executePlay(game, play, number, timeOption):
 						timeMessage = overtimeTurnover(game)
 					else:
 						turnover(game)
+					actualResult = Result.TURNOVER
 					resultMessage = wiki.getStringFromKey("turnoverDownsSpike")
 				else:
 					resultMessage = wiki.getStringFromKey("spike")
-			result = {'result': actualResult}
 
 		else:
 			log.debug("Something went wrong, invalid play: {}".format(play))
