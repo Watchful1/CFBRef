@@ -280,7 +280,12 @@ def processMessageOffensePlay(game, message, author):
 		log.debug("Trying to execute a {} play, but didn't have a number".format(play))
 		return False, numberMessage
 
-	success, resultMessage = state.executePlay(game, play, number, timeOption)
+	success, resultMessage = state.executePlay(
+		game,
+		play,
+		number,
+		timeOption,
+		game.status.waitingAction == Action.CONVERSION)
 
 	if game.status.state(game.status.possession).requestedTimeout == TimeoutOption.USED:
 		timeoutMessageOffense = "The offense is charged a timeout"

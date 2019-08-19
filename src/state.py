@@ -343,8 +343,8 @@ def betweenPlayRunoff(game, play, offenseHomeAway, timeOption):
 	return runStatus, timeMessage, timeOffClock
 
 
-def updateTime(game, play, result, actualResult, yards, offenseHomeAway, timeOption, timeBetweenPlay):
-	log.debug("Updating time with: {} : {} : {} : {} : {} : {}".format(play, result, actualResult, yards, offenseHomeAway, timeOption))
+def updateTime(game, play, result, actualResult, yards, offenseHomeAway, timeOption, timeBetweenPlay, isConversion):
+	log.debug("Updating time with: {} : {} : {} : {} : {} : {} : {}".format(play, result, actualResult, yards, offenseHomeAway, timeOption, isConversion))
 	timeOffClock = 0
 
 	if actualResult in [Result.TOUCHDOWN, Result.TOUCHBACK, Result.SAFETY] and play not in classes.kickoffPlays:
@@ -365,7 +365,8 @@ def updateTime(game, play, result, actualResult, yards, offenseHomeAway, timeOpt
 		timeOffClock += 0
 	else:
 		if play == Play.KNEEL:
-			timeOffClock += 1
+			if not isConversion:
+				timeOffClock += 1
 		else:
 			timeOffClock += getTimeByPlay(play, timeResult, yards)
 
@@ -516,7 +517,7 @@ def executePunt(game, yards):
 			return wiki.getStringFromKey("puntYards", {'yards': yards, 'yardLine': string_utils.getLocationString(game)})
 
 
-def executePlay(game, play, number, timeOption):
+def executePlay(game, play, number, timeOption, isConversion):
 	startingPossessionHomeAway = game.status.possession.copy()
 	actualResult = None
 	result = None
@@ -538,53 +539,81 @@ def executePlay(game, play, number, timeOption):
 	if runoffResult == RunStatus.STOP_QUARTER:
 		log.debug("Hit stop_quarter, not running play")
 	else:
-		if play in classes.conversionPlays:
-			numberResult, diffMessage, defenseNumber = getNumberDiffForGame(game, number)
-			playSummary.defNum = defenseNumber
-
+		if isConversion:
 			log.debug("Executing conversion play: {}".format(play))
-			result = getPlayResult(game, play, numberResult)
-			actualResult = result['result']
+			if play in classes.timePlays:
+				if play == Play.KNEEL:
+					log.debug("Running kneel play in conversion")
+					actualResult = Result.KNEEL
+					result = {'result': actualResult}
 
-			if result['result'] == Result.TWO_POINT:
-				log.debug("Successful two point conversion")
-				resultMessage = wiki.getStringFromKey("scoredTwoPointConversion")
-				scoreTwoPoint(game, game.status.possession)
-				if utils.isGameOvertime(game):
-					timeMessage = overtimeTurnover(game)
-				else:
-					setStateKickoff(game, game.status.possession)
+					resultMessage = wiki.getStringFromKey("kneel")
+					if utils.isGameOvertime(game):
+						timeMessage = overtimeTurnover(game)
+					else:
+						setStateKickoff(game, game.status.possession)
 
-			elif result['result'] == Result.PAT:
-				log.debug("Successful PAT")
-				resultMessage = wiki.getStringFromKey("scoredPAT")
-				scorePAT(game, game.status.possession)
-				if utils.isGameOvertime(game):
-					timeMessage = overtimeTurnover(game)
-				else:
-					setStateKickoff(game, game.status.possession)
+				elif play == Play.SPIKE:
+					log.debug("Running spike play in conversion")
+					actualResult = Result.SPIKE
+					result = {'result': actualResult}
 
-			elif result['result'] == Result.KICKOFF:
-				log.debug("Attempt unsuccessful")
-				if play == Play.TWO_POINT:
-					resultMessage = wiki.getStringFromKey("failedTwoPointConversion")
-				elif play == Play.PAT:
-					resultMessage = wiki.getStringFromKey("failedPAT")
-				else:
-					resultMessage = wiki.getStringFromKey("failedConversion")
-				if utils.isGameOvertime(game):
-					timeMessage = overtimeTurnover(game)
-				else:
-					setStateKickoff(game, game.status.possession)
+					resultMessage = wiki.getStringFromKey("spike")
+					if utils.isGameOvertime(game):
+						timeMessage = overtimeTurnover(game)
+					else:
+						setStateKickoff(game, game.status.possession)
 
-			elif result['result'] == Result.TURNOVER_PAT:
-				log.debug("Turnover PAT")
-				resultMessage = wiki.getStringFromKey("turnoverPAT", {'team': game.team(game.status.possession.negate()).name})
-				scoreTwoPoint(game, game.status.possession.negate())
-				if utils.isGameOvertime(game):
-					timeMessage = overtimeTurnover(game)
-				else:
-					setStateKickoff(game, game.status.possession)
+			elif play in classes.conversionPlays:
+				numberResult, diffMessage, defenseNumber = getNumberDiffForGame(game, number)
+				playSummary.defNum = defenseNumber
+				result = getPlayResult(game, play, numberResult)
+				actualResult = result['result']
+
+				if result['result'] == Result.TWO_POINT:
+					log.debug("Successful two point conversion")
+					resultMessage = wiki.getStringFromKey("scoredTwoPointConversion")
+					scoreTwoPoint(game, game.status.possession)
+					if utils.isGameOvertime(game):
+						timeMessage = overtimeTurnover(game)
+					else:
+						setStateKickoff(game, game.status.possession)
+
+				elif result['result'] == Result.PAT:
+					log.debug("Successful PAT")
+					resultMessage = wiki.getStringFromKey("scoredPAT")
+					scorePAT(game, game.status.possession)
+					if utils.isGameOvertime(game):
+						timeMessage = overtimeTurnover(game)
+					else:
+						setStateKickoff(game, game.status.possession)
+
+				elif result['result'] == Result.KICKOFF:
+					log.debug("Attempt unsuccessful")
+					if play == Play.TWO_POINT:
+						resultMessage = wiki.getStringFromKey("failedTwoPointConversion")
+					elif play == Play.PAT:
+						resultMessage = wiki.getStringFromKey("failedPAT")
+					else:
+						resultMessage = wiki.getStringFromKey("failedConversion")
+					if utils.isGameOvertime(game):
+						timeMessage = overtimeTurnover(game)
+					else:
+						setStateKickoff(game, game.status.possession)
+
+				elif result['result'] == Result.TURNOVER_PAT:
+					log.debug("Turnover PAT")
+					resultMessage = wiki.getStringFromKey("turnoverPAT", {'team': game.team(game.status.possession.negate()).name})
+					scoreTwoPoint(game, game.status.possession.negate())
+					if utils.isGameOvertime(game):
+						timeMessage = overtimeTurnover(game)
+					else:
+						setStateKickoff(game, game.status.possession)
+
+			else:
+				log.warning(f"Bad conversion play: {play}")
+				resultMessage = "Something went wrong, invalid play: {}".format(play)
+				success = False
 
 			game.status.defensiveNumber = None
 
@@ -822,7 +851,16 @@ def executePlay(game, play, number, timeOption):
 	timeOffClock = None
 	if actualResult is not None and game.status.quarterType == QuarterType.NORMAL:
 		if timeMessage is None:
-			timeMessage, timeOffClock = updateTime(game, play, result['result'], actualResult, yards, startingPossessionHomeAway, timeOption, timeBetweenPlay)
+			timeMessage, timeOffClock = updateTime(
+				game,
+				play,
+				result['result'],
+				actualResult,
+				yards,
+				startingPossessionHomeAway,
+				timeOption,
+				timeBetweenPlay,
+				isConversion)
 
 	if timeMessageBetweenPlay is not None:
 		messages.append(timeMessageBetweenPlay)
