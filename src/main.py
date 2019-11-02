@@ -66,6 +66,7 @@ log.debug("Connecting to reddit")
 once = False
 debug = False
 user = None
+update_wiki = False
 if len(sys.argv) >= 2:
 	user = sys.argv[1]
 	for arg in sys.argv:
@@ -75,6 +76,8 @@ if len(sys.argv) >= 2:
 			debug = True
 		elif arg == 'shortQuarter':
 			static.quarterLength = 60
+		elif arg == 'updateWiki':
+			update_wiki = True
 else:
 	log.error("No user specified, aborting")
 	sys.exit(0)
@@ -89,6 +92,9 @@ wiki.loadPages()
 index.init()
 
 drive_graphic.init()
+
+if update_wiki:
+	wiki.updateTeamsWiki()
 
 while True:
 	try:
