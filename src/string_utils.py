@@ -604,7 +604,7 @@ def renderTeamsWiki(teams):
 			bldr.append("**\n\n")
 
 		bldr.append("Tag|Name|Offense|Defense|Coaches|CSS Tag|Current Game|Edit\n")
-		bldr.append(":-:|:-:|:-:|:-:|:-:|:-:|:-:\n")
+		bldr.append(":-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:\n")
 
 		for team in conferences[conference]:
 			teamLine = f"{team.tag}|{team.name}|{renderOffenseType(team.playbook.offense)}|{renderDefenseType(team.playbook.defense)}"
