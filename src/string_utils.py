@@ -594,7 +594,7 @@ def renderTeamsWiki(teams):
 		conferenceNames.append(conference)
 		conferences[conference].sort(key=lambda team: team.tag)
 
-	conferenceNames.sort()
+	conferenceNames.sort(key=lambda name: name if name is not None else "")
 
 	bldr = []
 	for conference in conferenceNames:
