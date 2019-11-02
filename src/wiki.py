@@ -182,7 +182,7 @@ def parseTeamLine(teamLine):
 		'name': r"[\w -]+",
 	}
 	items = teamLine.split('|')
-	if len(items) < 5:
+	if len(items) < 7:
 		log.warning("Could not parse team line: {}".format(teamLine))
 		return None, "Not enough items"
 
@@ -207,8 +207,11 @@ def parseTeamLine(teamLine):
 		coach = coach.strip()
 		team.coaches.append(coach)
 
-	if len(items) >= 6:
+	if items[5] != "":
 		team.conference = items[5]
+
+	if items[6] != "":
+		team.css_tag = items[6]
 
 	return team, None
 

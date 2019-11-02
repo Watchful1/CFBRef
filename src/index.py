@@ -69,6 +69,11 @@ def addNewGame(game):
 
 def reloadAndReturn(thread, alwaysReturn=False):
 	game = file_utils.loadGameObject(thread)
+	for team in [game.home, game.away]:
+		if team.conference == "":
+			team.conference = None
+		if not hasattr(team, "css_tag"):
+			team.css_tag = None
 	if game is None:
 		return None
 	if game.status.waitingAction != Action.END:

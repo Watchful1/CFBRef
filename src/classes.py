@@ -256,7 +256,7 @@ class GameStatus:
 
 
 class Team:
-	def __init__(self, tag, name, offense, defense, conference=""):
+	def __init__(self, tag, name, offense, defense, conference=None, css_tag=None):
 		self.tag = tag
 		self.name = name
 		self.playbook = Playbook(offense, defense)
@@ -264,6 +264,7 @@ class Team:
 		self.pastCoaches = []
 		self.record = None
 		self.conference = conference
+		self.css_tag = css_tag
 
 
 class Game:

@@ -83,7 +83,16 @@ def unescapeMarkdown(value):
 
 
 def flair(team):
-	return "[{}](#f/{})".format(team.name, team.tag)
+	bldr = []
+	bldr.append("[")
+	bldr.append(team.name)
+	bldr.append("](#f/")
+	bldr.append(team.tag)
+	if team.css_tag is not None:
+		bldr.append("-")
+		bldr.append(team.css_tag)
+	bldr.append(")")
+	return ''.join(bldr)
 
 
 def renderTime(time):
@@ -316,7 +325,7 @@ def renderGame(game):
 			f"{team.tag}|{team.name}|{renderOffenseType(team.playbook.offense)}"
 			f"|{renderDefenseType(team.playbook.defense)}"
 			f"|{','.join(team.coaches)}"
-			f"{('|'+team.conference) if team.conference != '' else ''}")
+			f"{('|'+team.conference) if team.conference is not None else ''}")
 		)
 		bldr.append(")")
 	bldr.append(" ^| [^Rerun ^play](")
@@ -589,12 +598,12 @@ def renderTeamsWiki(teams):
 
 	bldr = []
 	for conference in conferenceNames:
-		if conference != "":
+		if conference is not None:
 			bldr.append("***\n\n**")
 			bldr.append(conference)
 			bldr.append("**\n\n")
 
-		bldr.append("Tag|Name|Offense|Defense|Coaches|Current Game|Edit\n")
+		bldr.append("Tag|Name|Offense|Defense|Coaches|CSS Tag|Current Game|Edit\n")
 		bldr.append(":-:|:-:|:-:|:-:|:-:|:-:|:-:\n")
 
 		for team in conferences[conference]:
@@ -602,6 +611,9 @@ def renderTeamsWiki(teams):
 			bldr.append(teamLine)
 			bldr.append("|")
 			bldr.append(renderCoaches(team.coaches))
+			bldr.append("|")
+			if team.css_tag is not None:
+				bldr.append(team.css_tag)
 			bldr.append("|")
 			game = index.getGameFromTeamTag(team.tag)
 			if game is not None:
@@ -616,7 +628,8 @@ def renderTeamsWiki(teams):
 				"teams",
 				f"{teamLine}"
 				f"|{','.join(team.coaches)}"
-				f"{('|'+team.conference) if team.conference != '' else ''}")
+				f"|{team.conference if team.conference is not None else ''}"
+				f"|{team.css_tag if team.css_tag is not None else ''}")
 			)
 			bldr.append(")")
 			bldr.append("\n")
