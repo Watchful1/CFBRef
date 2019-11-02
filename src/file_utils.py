@@ -72,4 +72,9 @@ def loadTeams():
 		return {}
 	teams = pickle.load(file)
 	file.close()
+	for team in teams:
+		if teams[team].conference == "":
+			teams[team].conference = None
+		if not hasattr(teams[team], "css_tag"):
+			teams[team].css_tag = None
 	return teams
