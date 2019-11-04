@@ -400,7 +400,7 @@ def processMessageAbandonGame(body):
 		return "Couldn't find a thread id in message"
 	log.debug("Found thread id: {}".format(threadIds[0]))
 
-	game = file_utils.loadGameObject(threadIds[0])
+	game = index.reloadAndReturn(threadIds[0], True)
 	if game is None:
 		return "Game not found: {}".format(threadIds[0])
 
