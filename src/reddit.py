@@ -29,6 +29,9 @@ def init(user):
 		{'var': "GIST_TOKEN", 'name': "gist_token"},
 		{'var': "CLOUDINARY_KEY", 'name': "cloudinary_key"},
 		{'var': "CLOUDINARY_SECRET", 'name': "cloudinary_secret"},
+		{'var': "WEBHOOK_MAIN", 'name': "webhook_main"},
+		{'var': "WEBHOOK_FCS", 'name': "webhook_fcs"},
+		{'var': "WEBHOOK_D2", 'name': "webhook_d2"},
 	]
 	for key in config_keys:
 		if reddit.config.CONFIG.has_option(user, key['name']):

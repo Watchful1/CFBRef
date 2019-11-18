@@ -24,6 +24,20 @@ CLOUDINARY_BUCKET = "fakecfb"
 CLOUDINARY_KEY = None
 CLOUDINARY_SECRET = None
 
+WEBHOOK_MAIN = None
+WEBHOOK_FCS = None
+WEBHOOK_D2 = None
+
+
+def get_webhook_for_conference(division):
+	if division == "Division 2":
+		return WEBHOOK_D2
+	elif division == "FBS":
+		return WEBHOOK_FCS
+	elif division is None:
+		return WEBHOOK_MAIN
+	else:
+		return None
 
 ### Images ###
 field_height = 212
