@@ -32,7 +32,7 @@ WEBHOOK_D2 = None
 def get_webhook_for_conference(division):
 	if division == "Division 2":
 		return WEBHOOK_D2
-	elif division == "FBS":
+	elif division == "FCS":
 		return WEBHOOK_FCS
 	elif division is None:
 		return WEBHOOK_MAIN
