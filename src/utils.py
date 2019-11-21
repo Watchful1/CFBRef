@@ -405,13 +405,14 @@ def endGame(game, winner, postThread=True):
 		)
 		threadID = str(reddit.submitSelfPost(static.SUBREDDIT, gameTitle, postGameThread))
 
-		webhook = static.get_webhook_for_conference(game.home.conference)
-		if webhook is not None:
+		webhooks = static.get_webhook_for_conference(game.home.conference)
+		if webhooks:
 			discord_string = \
 				f"{game.team(winnerHome).name} defeats {game.team(not winnerHome).name} " \
 				f"{game.status.state(winnerHome).points}-{game.status.state(not winnerHome).points}"
 			try:
-				requests.post(webhook, data={"content": discord_string})
+				for webhook in webhooks:
+					requests.post(webhook, data={"content": discord_string})
 			except Exception:
 				log.info(f"Unable to post to webhook")
 
