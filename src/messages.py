@@ -274,6 +274,8 @@ def processMessageOffensePlay(game, message, author):
 		timeOption = TimeOption.HURRY
 	elif any(x in message for x in ['normal']):
 		timeOption = TimeOption.NORMAL
+	elif any(x in message for x in ['burn clock', 'final play']):
+		timeOption = TimeOption.RUN
 
 	number, numberMessage = utils.extractPlayNumber(message)
 	if play not in classes.timePlays and number == -1:

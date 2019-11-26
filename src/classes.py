@@ -40,6 +40,7 @@ class TimeOption(Enum):
 	NORMAL = 1
 	CHEW = 2
 	HURRY = 3
+	RUN = 4
 
 
 class Action(Enum):
