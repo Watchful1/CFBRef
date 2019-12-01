@@ -130,7 +130,7 @@ def overtimeTurnover(game):
 						game.status.state(homeAway).quarters.append(0)
 				setStateOvertimeDrive(game, game.status.receivingNext)
 				game.status.receivingNext.reverse()
-				return wiki.getStringFromKey("overtimeTiedQuarterEnd", {'quarter': string_utils.getNthWord(game.status.quarter)})
+				return wiki.getStringFromKey("overtimeTiedQuarterEnd", {'quarter': string_utils.getNthQuarter(game.status.quarter)})
 
 		else:
 			log.debug("End of game")

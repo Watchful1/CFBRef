@@ -79,7 +79,7 @@ def processMessageCoin(game, isHeads, author):
 		game.dirty = True
 
 		if utils.isGameOvertime(game):
-			questionString = "do you want to **defend** or **attack**?"
+			questionString = "do you want **defence** or **offense**?"
 		else:
 			questionString = "do you want to **receive** or **defer**?"
 		message = "{}, {} won the toss, {}".format(string_utils.getCoachString(game, False), game.away.name, questionString)
@@ -682,13 +682,13 @@ def processMessage(message, reprocess=False, isRerun=False):
 
 				elif dataTable['action'] == Action.DEFER and not isMessage:
 					if utils.isGameOvertime(game):
-						keywords = ["defend", "attack"]
+						keywords = ["defense", "offense"]
 					else:
 						keywords = ["defer", "receive"]
 					keyword = utils.findKeywordInMessage(keywords, body)
-					if keyword == "defer" or keyword == "defend":
+					if keyword == "defer" or keyword == "defense":
 						success, response = processMessageDefer(game, True, author, reprocess)
-					elif keyword == "receive" or keyword == "attack":
+					elif keyword == "receive" or keyword == "offense":
 						success, response = processMessageDefer(game, False, author, reprocess)
 					elif keyword == "mult":
 						success = False

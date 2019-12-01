@@ -410,6 +410,25 @@ def renderCoaches(coaches):
 	return ", ".join(bldr)
 
 
+def getNthQuarter(number):
+	if number == 1:
+		return "1st"
+	elif number == 2:
+		return "2nd"
+	elif number == 3:
+		return "3rd"
+	elif number == 4:
+		return "4th"
+	elif number == 5:
+		return "overtime"
+	elif number == 6:
+		return "2nd overtime"
+	elif number == 7:
+		return "3rd overtime"
+	else:
+		return "{}th overtime".format(number - 4)
+
+
 def getNthWord(number):
 	if number == 1:
 		return "1st"
@@ -463,9 +482,12 @@ def getCurrentPlayString(game):
 		))
 
 	if utils.isGameOvertime(game):
-		bldr.append("In the {}.".format(getNthWord(game.status.quarter)))
+		if game.status.quarter == 5:
+			bldr.append("In overtime.")
+		else:
+			bldr.append("In the {}.".format(getNthQuarter(game.status.quarter)))
 	else:
-		bldr.append("{} left in the {}.".format(renderTime(game.status.clock), getNthWord(game.status.quarter)))
+		bldr.append("{} left in the {}.".format(renderTime(game.status.clock), getNthQuarter(game.status.quarter)))
 
 	return ''.join(bldr)
 
@@ -564,8 +586,10 @@ def renderGameStatusMessage(game):
 		bldr.append(str(status.location))
 		bldr.append(" with ")
 		bldr.append(renderTime(status.clock))
-		bldr.append(" in the ")
-		bldr.append(getNthWord(status.quarter))
+		bldr.append(" in ")
+		if game.status.quarter != 5:
+			bldr.append(" the ")
+		bldr.append(getNthQuarter(status.quarter))
 		bldr.append("|")
 		primaryWaitingId = utils.getPrimaryWaitingId(status.waitingId)
 		bldr.append(getLinkFromGameThing(game.thread, primaryWaitingId))
