@@ -244,6 +244,9 @@ def processMessageOffensePlay(game, message, author):
 	elif playSelected == "two point":
 		play = Play.TWO_POINT
 	elif playSelected == "pat":
+		if game.status.quarter >= 7:
+			log.debug("Trying to pat after the 6th quarter")
+			return False, "You cannot run a PAT after the second overtime"
 		play = Play.PAT
 	elif playSelected == "normal":
 		play = Play.KICKOFF_NORMAL

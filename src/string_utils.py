@@ -489,7 +489,10 @@ def getWaitingOnString(game):
 
 def listSuggestedPlays(game):
 	if game.status.waitingAction == Action.CONVERSION:
-		return "**PAT** or **two point**"
+		if game.status.quarter >= 7:
+			return "**two point**"
+		else:
+			return "**PAT** or **two point**"
 	elif game.status.waitingAction == Action.KICKOFF:
 		return "**normal**, **squib** or **onside**"
 	else:
