@@ -92,7 +92,7 @@ def processMessageCoin(game, isHeads, author):
 		game.dirty = True
 
 		if utils.isGameOvertime(game):
-			questionString = "do you want to **defend** or **attack**?"
+			questionString = "do you want to **defence** or **offense**?"
 		else:
 			questionString = "do you want to **receive** or **defer**?"
 		message = "{}, {} won the toss, {}".format(string_utils.getCoachString(game, True), game.home.name, questionString)
