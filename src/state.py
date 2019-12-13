@@ -323,7 +323,7 @@ def betweenPlayRunoff(game, play, offenseHomeAway, timeOption):
 			elif play == Play.KNEEL:
 				timeOffClock = 39
 			elif play == Play.SPIKE:
-				timeOffClock = 3
+				timeOffClock = 2
 			elif timeOption == TimeOption.CHEW:
 				timeOffClock = 35
 			elif timeOption == TimeOption.HURRY:
@@ -362,7 +362,7 @@ def updateTime(game, play, result, actualResult, yards, offenseHomeAway, timeOpt
 
 	game.status.timeRunoff = False
 	if play == Play.SPIKE:
-		timeOffClock += 0
+		timeOffClock += 1
 	elif play == Play.PAT:
 		timeOffClock += 0
 	elif play == Play.TWO_POINT:

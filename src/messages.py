@@ -211,7 +211,7 @@ def processMessageOffensePlay(game, message, author):
 
 	timeoutMessageOffense = None
 	timeoutMessageDefense = None
-	if "timeout" in message:
+	if "timeout" in message or "time out" in message:
 		if game.status.state(game.status.possession).timeouts > 0:
 			game.status.state(game.status.possession).requestedTimeout = TimeoutOption.REQUESTED
 		else:
@@ -682,11 +682,11 @@ def processMessage(message, reprocess=False, isRerun=False):
 
 				elif dataTable['action'] == Action.DEFER and not isMessage:
 					if utils.isGameOvertime(game):
-						keywords = ["defense", "offense"]
+						keywords = ["defense", "defence", "offense"]
 					else:
 						keywords = ["defer", "receive"]
 					keyword = utils.findKeywordInMessage(keywords, body)
-					if keyword == "defer" or keyword == "defense":
+					if keyword == "defer" or keyword == "defense" or keyword == "defence":
 						success, response = processMessageDefer(game, True, author, reprocess)
 					elif keyword == "receive" or keyword == "offense":
 						success, response = processMessageDefer(game, False, author, reprocess)
