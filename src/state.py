@@ -33,7 +33,7 @@ def scoreForTeam(game, points, homeAway):
 	game.status.state(homeAway).quarters[game.status.quarter - 1] += points
 
 
-def setStateTouchback(game, homeAway, yards=25):
+def setStateTouchback(game, homeAway, yards=20):
 	log.debug("Setting state to touchback for: {}".format(homeAway))
 	game.status.location = yards
 	game.status.down = 1
