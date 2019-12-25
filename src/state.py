@@ -33,7 +33,7 @@ def scoreForTeam(game, points, homeAway):
 	game.status.state(homeAway).quarters[game.status.quarter - 1] += points
 
 
-def setStateTouchback(game, homeAway, yards=20):
+def setStateTouchback(game, homeAway, yards=25):
 	log.debug("Setting state to touchback for: {}".format(homeAway))
 	game.status.location = yards
 	game.status.down = 1
@@ -507,7 +507,7 @@ def executePunt(game, yards):
 	game.status.location = game.status.location + yards
 	if game.status.location >= 100:
 		log.debug("Punted into the end zone, touchback")
-		setStateTouchback(game, game.status.possession.negate())
+		setStateTouchback(game, game.status.possession.negate(), 20)
 		if game.status.location > 110:
 			return wiki.getStringFromKey("puntOutOfEndZone")
 		else:
