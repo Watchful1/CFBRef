@@ -24,7 +24,7 @@ from classes import DriveSummary
 log = logging.getLogger("bot")
 
 
-def startGame(homeTeam, awayTeam, startTime=None, location=None, station=None, homeRecord=None, awayRecord=None):
+def startGame(homeTeam, awayTeam, startTime=None, location=None, station=None, homeRecord=None, awayRecord=None, prefix=None, suffix=None):
 	log.debug("Creating new game between {} and {}".format(homeTeam, awayTeam))
 
 	result = verifyTeams([homeTeam, awayTeam])
@@ -46,13 +46,19 @@ def startGame(homeTeam, awayTeam, startTime=None, location=None, station=None, h
 		homeTeam.record = homeRecord
 	if awayRecord is not None:
 		awayTeam.record = awayRecord
+	if prefix is not None:
+		game.prefix = prefix
+	if suffix is not None:
+		game.suffix = suffix
 
 	gameThread = string_utils.renderGame(game)
-	gameTitle = "[GAME THREAD] {}{} @ {}{}".format(
+	gameTitle = "[GAME THREAD] {}{}{} @ {}{}{}".format(
+		"{} ".format(string_utils.unescapeMarkdown(prefix)) if prefix is not None else "",
 		"{} ".format(string_utils.unescapeMarkdown(awayRecord)) if awayRecord is not None else "",
 		game.away.name,
 		"{} ".format(string_utils.unescapeMarkdown(homeRecord)) if homeRecord is not None else "",
-		game.home.name)
+		game.home.name,
+		"{} ".format(string_utils.unescapeMarkdown(suffix)) if suffix is not None else "")
 
 	threadID = str(reddit.submitSelfPost(static.SUBREDDIT, gameTitle, gameThread))
 	game.thread = threadID

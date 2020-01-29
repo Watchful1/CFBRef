@@ -43,6 +43,8 @@ def processMessageNewGame(body, author):
 		station = None
 		homeRecord = None
 		awayRecord = None
+		prefix = None
+		suffix = None
 
 		for match in re.finditer('(?: )(\w+)(?:=")([^"]*)', line):
 			if match.group(1) == "start":
@@ -60,8 +62,14 @@ def processMessageNewGame(body, author):
 			elif match.group(1) == "awayRecord":
 				awayRecord = string_utils.escapeMarkdown(match.group(2))
 				log.debug("Found away record: {}".format(awayRecord))
+			elif match.group(1) == "prefix":
+				prefix = string_utils.escapeMarkdown(match.group(2))
+				log.debug("Found prefix: {}".format(prefix))
+			elif match.group(1) == "suffix":
+				suffix = string_utils.escapeMarkdown(match.group(2))
+				log.debug("Found suffix: {}".format(suffix))
 
-		results.append(utils.startGame(homeTeam, awayTeam, startTime, location, station, homeRecord, awayRecord))
+		results.append(utils.startGame(homeTeam, awayTeam, startTime, location, station, homeRecord, awayRecord, prefix, suffix))
 
 	wiki.updateTeamsWiki()
 	return '\n'.join(results)
@@ -574,7 +582,9 @@ def processMessageRestartGame(body):
 		game.location,
 		game.station,
 		game.home.record,
-		game.home.record))
+		game.home.record,
+		game.prefix,
+		game.suffix))
 
 	return ''.join(bldr)
 
