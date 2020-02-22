@@ -325,9 +325,9 @@ def betweenPlayRunoff(game, play, offenseHomeAway, timeOption):
 			elif play == Play.SPIKE:
 				timeOffClock = 2
 			elif timeOption == TimeOption.CHEW:
-				timeOffClock = 35
+				timeOffClock = 30
 			elif timeOption == TimeOption.HURRY:
-				timeOffClock = 5
+				timeOffClock = 7
 			else:
 				timeOffClock = getTimeAfterForOffense(game, offenseHomeAway)
 
