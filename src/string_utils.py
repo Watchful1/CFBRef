@@ -644,7 +644,7 @@ def renderTeamsWiki(teams):
 			bldr.append(conference)
 			bldr.append("**\n\n")
 
-		bldr.append("Tag|Name|Offense|Defense|Coaches|CSS Tag|Current Game|Edit\n")
+		bldr.append("Tag|Name|Offense|Defense|Coaches|CSS Tag|Current Game\\Plays|Edit\n")
 		bldr.append(":-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:\n")
 
 		for team in conferences[conference]:
@@ -662,6 +662,13 @@ def renderTeamsWiki(teams):
 				bldr.append(static.SUBREDDIT_LINK)
 				bldr.append(game.thread)
 				bldr.append(")")
+				if game.playGist is not None:
+					bldr.append("\\[Plays](")
+					bldr.append(static.GIST_BASE_URL)
+					bldr.append(static.GIST_USERNAME)
+					bldr.append("/")
+					bldr.append(game.playGist)
+					bldr.append(")\n")
 			bldr.append("|")
 			bldr.append("[Edit](")
 			bldr.append(buildMessageLink(
