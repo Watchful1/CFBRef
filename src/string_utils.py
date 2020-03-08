@@ -354,7 +354,11 @@ def renderGame(game):
 
 
 def renderPlays(game):
-	playBldr = []
+	playBldr = [
+		"Home score|Away score|Quarter|Clock|Ball Location|Possession|Down|Yards to go|Defensive number|"
+		"Offensive number|Defensive submitter|Offensive submitter|Play|Result|Actual result|Yards|Play time|"
+		"Runoff time"
+	]
 	for drive in game.status.plays:
 		for play in drive:
 			playBldr.append(str(play))

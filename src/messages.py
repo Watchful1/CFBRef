@@ -177,6 +177,7 @@ def processMessageDefenseNumber(game, message, author):
 
 	log.debug("Saving defense number: {}".format(number))
 	game.status.defensiveNumber = number
+	game.status.defensiveSubmitter = author
 
 	timeoutMessage = None
 	timeoutRequested = False
@@ -298,7 +299,9 @@ def processMessageOffensePlay(game, message, author):
 		play,
 		number,
 		timeOption,
-		game.status.waitingAction == Action.CONVERSION)
+		game.status.waitingAction == Action.CONVERSION,
+		author
+	)
 
 	if game.status.state(game.status.possession).requestedTimeout == TimeoutOption.USED:
 		timeoutMessageOffense = "The offense is charged a timeout"

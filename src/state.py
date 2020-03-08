@@ -521,7 +521,7 @@ def executePunt(game, yards):
 			return wiki.getStringFromKey("puntYards", {'yards': yards, 'yardLine': string_utils.getLocationString(game)})
 
 
-def executePlay(game, play, number, timeOption, isConversion):
+def executePlay(game, play, number, timeOption, isConversion, offensive_submitter):
 	startingPossessionHomeAway = game.status.possession.copy()
 	actualResult = None
 	result = None
@@ -532,13 +532,21 @@ def executePlay(game, play, number, timeOption, isConversion):
 	timeMessage = None
 
 	playSummary = PlaySummary()
+	playSummary.homeScore = game.status.homeState.points
+	playSummary.awayScore = game.status.awayState.points
+	playSummary.quarter = game.status.quarter
+	playSummary.clock = game.status.clock
 	playSummary.down = game.status.down
 	playSummary.toGo = game.status.yards
 	playSummary.location = game.status.location
 	playSummary.offNum = number
 	playSummary.posHome = game.status.possession.copy()
+	playSummary.offSubmitter = offensive_submitter
+	playSummary.defSubmitter = game.status.defensiveSubmitter
 
 	runoffResult, timeMessageBetweenPlay, timeBetweenPlay = betweenPlayRunoff(game, play, startingPossessionHomeAway, timeOption)
+
+	playSummary.runoffTime = timeBetweenPlay
 
 	if runoffResult == RunStatus.STOP_QUARTER:
 		log.debug("Hit stop_quarter, not running play")
@@ -619,7 +627,7 @@ def executePlay(game, play, number, timeOption, isConversion):
 				resultMessage = "Something went wrong, invalid play: {}".format(play)
 				success = False
 
-			game.status.defensiveNumber = None
+			game.status.reset_defensive()
 
 		elif play in classes.kickoffPlays:
 			numberResult, diffMessage, defenseNumber = getNumberDiffForGame(game, number)
@@ -800,7 +808,7 @@ def executePlay(game, play, number, timeOption, isConversion):
 					output = utils.endGame(game, game.team(game.status.possession).name)
 					timeMessage = "Game over! {} wins!\n\n{}".format(string_utils.flair(game.team(game.status.possession)), output)
 
-			game.status.defensiveNumber = None
+			game.status.reset_defensive()
 
 		elif play in classes.timePlays:
 			if play == Play.KNEEL:
@@ -842,6 +850,8 @@ def executePlay(game, play, number, timeOption, isConversion):
 					resultMessage = wiki.getStringFromKey("turnoverDownsSpike")
 				else:
 					resultMessage = wiki.getStringFromKey("spike")
+
+			game.status.reset_defensive()
 
 		else:
 			log.debug("Something went wrong, invalid play: {}".format(play))
@@ -886,7 +896,7 @@ def executePlay(game, play, number, timeOption, isConversion):
 		playSummary.yards = None
 	else:
 		playSummary.yards = yards
-	playSummary.time = timeOffClock
+	playSummary.playTime = timeOffClock
 
 	if success:
 		driveList = utils.appendPlay(game, playSummary)

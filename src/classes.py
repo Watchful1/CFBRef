@@ -111,32 +111,46 @@ class DriveSummary:
 
 class PlaySummary:
 	def __init__(self):
+		self.homeScore = None
+		self.awayScore = None
+		self.quarter = None
+		self.clock = None
+		self.location = None
+		self.posHome = None
+		self.down = None
+		self.toGo = None
+		self.offNum = None
+		self.defNum = None
+		self.defSubmitter = None
+		self.offSubmitter = None
 		self.play = None
 		self.result = None
 		self.actualResult = None
 		self.yards = None
-		self.down = None
-		self.toGo = None
-		self.location = None
-		self.time = None
-		self.offNum = None
-		self.defNum = None
-		self.posHome = None
+		self.playTime = None
+		self.runoffTime = None
 
 	def __str__(self):
-		return "{} = {} = {}, {} | {} and {} on {} | {} | {}, {} | {}".format(
-			self.play,
-			self.result,
-			self.actualResult,
-			self.yards,
+		return "|".join([
+			self.homeScore,
+			self.awayScore,
+			self.quarter,
+			self.clock,
+			self.location,
+			"home" if self.posHome else "away",
 			self.down,
 			self.toGo,
-			self.location,
-			self.time,
-			self.offNum,
 			self.defNum,
-			"home" if self.posHome else "away"
-		)
+			self.offNum,
+			self.defSubmitter,
+			self.offSubmitter,
+			self.play.name,
+			self.result.name,
+			self.actualResult.name,
+			self.yards,
+			self.playTime,
+			self.runoffTime
+		])
 
 
 class HomeAway:
@@ -227,6 +241,7 @@ class GameStatus:
 		self.waitingAction = Action.COIN
 		self.waitingOn = HomeAway(T.away)
 		self.defensiveNumber = None
+		self.defensiveSubmitter = None
 		self.messageId = None
 		self.winner = None
 		self.timeRunoff = False
@@ -254,6 +269,10 @@ class GameStatus:
 			return self.homePlaybook
 		else:
 			return self.awayPlaybook
+
+	def reset_defensive(self):
+		self.defensiveNumber = None
+		self.defensiveSubmitter = None
 
 
 class Team:
