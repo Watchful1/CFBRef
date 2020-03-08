@@ -335,6 +335,20 @@ def renderGame(game):
 		f"rerun {game.thread}")
 	)
 	bldr.append(")")
+	bldr.append(" ^| [^Pause](")
+	bldr.append(buildMessageLink(
+		static.ACCOUNT_NAME,
+		"Pause",
+		f"pause {game.thread} 12")
+	)
+	bldr.append(")")
+	bldr.append(" ^| [^Abandon](")
+	bldr.append(buildMessageLink(
+		static.ACCOUNT_NAME,
+		"Abandon ",
+		f"abandon {game.thread}")
+	)
+	bldr.append(")")
 
 	return ''.join(bldr)
 
