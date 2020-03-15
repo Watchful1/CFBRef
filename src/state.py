@@ -319,7 +319,7 @@ def betweenPlayRunoff(game, play, offenseHomeAway, timeOption):
 			game.status.state(offenseHomeAway.negate()).timeouts -= 1
 		else:
 			if timeOption == TimeOption.RUN:
-				timeOffClock = min(max(game.status.clock - 1, 5), 35)
+				timeOffClock = min(max(game.status.clock - 1, 7), 31)
 			elif play == Play.KNEEL:
 				timeOffClock = 39
 			elif play == Play.SPIKE:
