@@ -760,53 +760,100 @@ def executePlay(game, play, number, timeOption, isConversion, offensive_submitte
 						resultMessage = executePunt(game, result['yards'])
 						yards = result['yards']
 
-			elif result['result'] in [Result.TURNOVER, Result.MISS]:
-				log.debug("Play results in a turnover")
-				if play == Play.RUN:
-					utils.addStat(game, 'turnoverFumble', 1)
-					resultMessage = wiki.getStringFromKey("turnoverFumble", {'team': game.team(game.status.possession.negate()).name})
-				elif play == Play.PASS:
-					utils.addStat(game, 'turnoverInterceptions', 1)
-					resultMessage = wiki.getStringFromKey("turnoverInterception", {'team': game.team(game.status.possession.negate()).name})
-				elif play == Play.FIELD_GOAL:
-					if result['result'] == Result.TURNOVER:
+			elif result['result'] in [Result.TURNOVER, Result.MISS, Result.TURNOVER_TOUCHDOWN]:
+				if result['result'] == Result.TURNOVER and 'yards' in result:
+					yards = result['yards']
+					previousLocation = game.status.location
+					log.debug("Ball turnover moved from {} to {}".format(previousLocation, previousLocation + yards))
+					game.status.location = previousLocation + yards
+					if game.status.location >= 100:
+						log.debug("Ball recovered by defense in their own endzone, touchback")
+						actualResult = Result.TOUCHBACK
+
+					elif game.status.location <= 0:
+						log.debug("Ball recovered by defense in their offenses endzone, touchdown")
+						actualResult = Result.TURNOVER_TOUCHDOWN
+				else:
+					yards = 0
+
+				if actualResult in [Result.TURNOVER, Result.MISS]:
+					log.debug("Play results in a turnover")
+					statsTable = {
+						'team': game.team(game.status.possession.negate()).name,
+						'yards': yards,
+						'negativeYards': yards * -1
+					}
+					if play == Play.RUN:
 						utils.addStat(game, 'turnoverFumble', 1)
-						resultMessage = wiki.getStringFromKey("blockedFieldGoal")
+						if yards < 0:
+							resultMessage = wiki.getStringFromKey("turnoverFumbleNegative", statsTable)
+						elif yards > 0:
+							resultMessage = wiki.getStringFromKey("turnoverFumblePositive", statsTable)
+						else:
+							resultMessage = wiki.getStringFromKey("turnoverFumbleZero", statsTable)
+					elif play == Play.PASS:
+						utils.addStat(game, 'turnoverInterceptions', 1)
+						if yards < 0:
+							resultMessage = wiki.getStringFromKey("turnoverInterceptionNegative", statsTable)
+						elif yards > 0:
+							resultMessage = wiki.getStringFromKey("turnoverInterceptionPositive", statsTable)
+						else:
+							resultMessage = wiki.getStringFromKey("turnoverInterceptionZero", statsTable)
+					elif play == Play.FIELD_GOAL:
+						if result['result'] == Result.TURNOVER:
+							utils.addStat(game, 'turnoverFumble', 1)
+							resultMessage = wiki.getStringFromKey("blockedFieldGoal")
+						else:
+							resultMessage = wiki.getStringFromKey("missedFieldGoal")
+
+					elif play == Play.PUNT:
+						utils.addStat(game, 'turnoverFumble', 1)
+						resultMessage = wiki.getStringFromKey("blockedPunt")
 					else:
-						resultMessage = wiki.getStringFromKey("missedFieldGoal")
+						utils.addStat(game, 'turnoverFumble', 1)
+						resultMessage = "It's a turnover!"
+					if utils.isGameOvertime(game):
+						timeMessage = overtimeTurnover(game)
+					else:
+						turnover(game)
 
-				elif play == Play.PUNT:
-					utils.addStat(game, 'turnoverFumble', 1)
-					resultMessage = wiki.getStringFromKey("blockedPunt")
-				else:
-					utils.addStat(game, 'turnoverFumble', 1)
-					resultMessage = "It's a turnover!"
-				if utils.isGameOvertime(game):
-					timeMessage = overtimeTurnover(game)
-				else:
-					turnover(game)
+				elif actualResult == Result.TOUCHBACK:
+					log.debug("Play results in a turnover in defenders endzone")
+					if play == Play.RUN:
+						utils.addStat(game, 'turnoverFumble', 1)
+						resultMessage = wiki.getStringFromKey("turnoverFumbleTouchback", {'team': game.team(game.status.possession.negate()).name})
+					elif play == Play.PASS:
+						utils.addStat(game, 'turnoverInterceptions', 1)
+						resultMessage = wiki.getStringFromKey("turnoverInterceptionTouchback", {'team': game.team(game.status.possession.negate()).name})
+					else:
+						utils.addStat(game, 'turnoverFumble', 1)
+						resultMessage = "It's a turnover!"
+					if utils.isGameOvertime(game):
+						timeMessage = overtimeTurnover(game)
+					else:
+						setStateTouchback(game, game.status.possession.negate(), 20)
 
-			elif result['result'] == Result.TURNOVER_TOUCHDOWN:
-				log.debug("Play results in a turnover and run back")
-				if play == Play.RUN:
-					utils.addStat(game, 'turnoverFumble', 1)
-					resultMessage = wiki.getStringFromKey("turnoverTouchdownRun", {'team': game.team(game.status.possession.negate()).name})
-				elif play == Play.PASS:
-					utils.addStat(game, 'turnoverInterceptions', 1)
-					resultMessage = wiki.getStringFromKey("turnoverTouchdownPass", {'team': game.team(game.status.possession.negate()).name})
-				elif play == Play.FIELD_GOAL:
-					resultMessage = wiki.getStringFromKey("turnoverTouchdownFieldGoal", {'team': game.team(game.status.possession.negate()).name})
-				elif play == Play.PUNT:
-					utils.addStat(game, 'turnoverFumble', 1)
-					resultMessage = wiki.getStringFromKey("turnoverTouchdownPunt", {'team': game.team(game.status.possession.negate()).name})
-				else:
-					utils.addStat(game, 'turnoverFumble', 1)
-					resultMessage = "It's a turnover and run back for a touchdown!"
-				yards = game.status.location
-				scoreTouchdown(game, game.status.possession.negate())
-				if utils.isGameOvertime(game):
-					output = utils.endGame(game, game.team(game.status.possession).name)
-					timeMessage = "Game over! {} wins!\n\n{}".format(string_utils.flair(game.team(game.status.possession)), output)
+				elif actualResult == Result.TURNOVER_TOUCHDOWN:
+					log.debug("Play results in a turnover and run back")
+					if play == Play.RUN:
+						utils.addStat(game, 'turnoverFumble', 1)
+						resultMessage = wiki.getStringFromKey("turnoverTouchdownRun", {'team': game.team(game.status.possession.negate()).name})
+					elif play == Play.PASS:
+						utils.addStat(game, 'turnoverInterceptions', 1)
+						resultMessage = wiki.getStringFromKey("turnoverTouchdownPass", {'team': game.team(game.status.possession.negate()).name})
+					elif play == Play.FIELD_GOAL:
+						resultMessage = wiki.getStringFromKey("turnoverTouchdownFieldGoal", {'team': game.team(game.status.possession.negate()).name})
+					elif play == Play.PUNT:
+						utils.addStat(game, 'turnoverFumble', 1)
+						resultMessage = wiki.getStringFromKey("turnoverTouchdownPunt", {'team': game.team(game.status.possession.negate()).name})
+					else:
+						utils.addStat(game, 'turnoverFumble', 1)
+						resultMessage = "It's a turnover and run back for a touchdown!"
+					yards = game.status.location
+					scoreTouchdown(game, game.status.possession.negate())
+					if utils.isGameOvertime(game):
+						output = utils.endGame(game, game.team(game.status.possession).name)
+						timeMessage = "Game over! {} wins!\n\n{}".format(string_utils.flair(game.team(game.status.possession)), output)
 
 			game.status.reset_defensive()
 
