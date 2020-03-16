@@ -732,6 +732,8 @@ def executePlay(game, play, number, timeOption, isConversion, offensive_submitte
 					resultMessage = wiki.getStringFromKey("runTouchdown", {'team': game.team(game.status.possession).name, 'yards': yards})
 				elif play == Play.PASS:
 					resultMessage = wiki.getStringFromKey("passTouchdown", {'team': game.team(game.status.possession).name, 'yards': yards})
+				elif play == Play.PUNT:
+					resultMessage = wiki.getStringFromKey("turnoverPuntTouchdown", {'team': game.team(game.status.possession).name, 'yards': yards})
 				else:
 					resultMessage = "It's a touchdown!"
 
