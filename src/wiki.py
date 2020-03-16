@@ -56,6 +56,8 @@ def parseOffense(offenseString):
 		return OffenseType.SPREAD
 	elif "pro" in offenseString:
 		return OffenseType.PRO
+	elif "air" in offenseString:
+		return OffenseType.AIR
 	else:
 		return None
 

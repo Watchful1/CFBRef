@@ -24,7 +24,7 @@ from classes import DriveSummary
 log = logging.getLogger("bot")
 
 
-def startGame(homeTeam, awayTeam, startTime=None, location=None, station=None, homeRecord=None, awayRecord=None, prefix=None, suffix=None):
+def startGame(homeTeam, awayTeam, startTime=None, location=None, station=None, homeRecord=None, awayRecord=None, prefix=None, suffix=None, quarterLength=None):
 	log.debug("Creating new game between {} and {}".format(homeTeam, awayTeam))
 
 	result = verifyTeams([homeTeam, awayTeam])
@@ -35,7 +35,7 @@ def startGame(homeTeam, awayTeam, startTime=None, location=None, station=None, h
 	homeTeam = wiki.getTeamByTag(homeTeam.lower())
 	awayTeam = wiki.getTeamByTag(awayTeam.lower())
 
-	game = newGameObject(homeTeam, awayTeam)
+	game = newGameObject(homeTeam, awayTeam, quarterLength)
 	if startTime is not None:
 		game.startTime = startTime
 	if location is not None:
@@ -379,8 +379,8 @@ def revertStatus(game, index):
 	game.status = game.previousStatus[index]
 
 
-def newGameObject(home, away):
-	return classes.Game(home, away)
+def newGameObject(home, away, quarterLength):
+	return classes.Game(home, away, quarterLength)
 
 
 def newDebugGameObject():

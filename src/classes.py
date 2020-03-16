@@ -15,6 +15,7 @@ class OffenseType(Enum):
 	SPREAD = 1
 	PRO = 2
 	OPTION = 3
+	AIR = 4
 
 
 class DefenseType(Enum):
@@ -223,8 +224,8 @@ class Playbook:
 
 
 class GameStatus:
-	def __init__(self):
-		self.clock = static.quarterLength
+	def __init__(self, quarterLength):
+		self.clock = quarterLength
 		self.quarter = 1
 		self.location = -1
 		self.possession = HomeAway(T.home)
@@ -288,14 +289,13 @@ class Team:
 
 
 class Game:
-	def __init__(self, home, away):
+	def __init__(self, home, away, quarterLength=None):
 		self.home = home
 		self.away = away
 
 		self.dirty = False
 		self.errored = False
 		self.thread = "empty"
-		self.status = GameStatus()
 		self.previousStatus = []
 		self.startTime = None
 		self.location = None
@@ -308,6 +308,11 @@ class Game:
 		self.playclockWarning = False
 		self.playGist = None
 		self.playRerun = False
+		if quarterLength is None:
+			self.quarterLength = 7*60
+		else:
+			self.quarterLength = quarterLength
+		self.status = GameStatus(self.quarterLength)
 
 	def team(self, isHome):
 		if isHome:

@@ -150,6 +150,8 @@ def renderOffenseType(offense):
 		return "Pro"
 	elif offense == OffenseType.OPTION:
 		return "Option"
+	elif offense == OffenseType.AIR:
+		return "Air"
 	else:
 		log.warning(f"Unknown offense type: {offense}")
 		return offense.name

@@ -45,8 +45,9 @@ def processMessageNewGame(body, author):
 		awayRecord = None
 		prefix = None
 		suffix = None
+		quarterLength = None
 
-		for match in re.finditer('(?: )(\w+)(?:=")([^"]*)', line):
+		for match in re.finditer(r'(?: )(\w+)(?:=")([^"]*)', line):
 			if match.group(1) == "start":
 				startTime = string_utils.escapeMarkdown(match.group(2))
 				log.debug("Found start time: {}".format(startTime))
@@ -68,8 +69,14 @@ def processMessageNewGame(body, author):
 			elif match.group(1) == "suffix":
 				suffix = string_utils.escapeMarkdown(match.group(2))
 				log.debug("Found suffix: {}".format(suffix))
+			elif match.group(1) == "length":
+				try:
+					quarterLength = int(match.group(2))
+					log.debug("Found quarter length: {}".format(quarterLength))
+				except Exception:
+					log.warning("Could not parse quarter length argument: ".format(match.group(2)))
 
-		results.append(utils.startGame(homeTeam, awayTeam, startTime, location, station, homeRecord, awayRecord, prefix, suffix))
+		results.append(utils.startGame(homeTeam, awayTeam, startTime, location, station, homeRecord, awayRecord, prefix, suffix, quarterLength))
 
 	wiki.updateTeamsWiki()
 	return '\n'.join(results)

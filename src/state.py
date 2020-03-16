@@ -211,6 +211,8 @@ def getTimeAfterForOffense(game, homeAway):
 		return 15
 	elif offenseType == OffenseType.OPTION:
 		return 20
+	elif offenseType == OffenseType.AIR:
+		return 10
 	else:
 		log.warning("Not a valid offense: {}".format(offenseType))
 		return None
@@ -296,7 +298,7 @@ def checkQuarterStatus(game, timeOffClock):
 
 		if game.status.quarterType != QuarterType.END:
 			game.status.quarter += 1
-			game.status.clock = static.quarterLength
+			game.status.clock = game.quarterLength
 
 	else:
 		timeMessage = None

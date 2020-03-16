@@ -48,7 +48,6 @@ field_width = 480
 
 ### Constants ###
 datatag = " [](#datatag"
-quarterLength = 7*60
 
 ### Log ###
 logGameId = ""
