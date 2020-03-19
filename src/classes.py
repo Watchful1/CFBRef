@@ -133,24 +133,24 @@ class PlaySummary:
 
 	def __str__(self):
 		return "|".join([
-			self.homeScore,
-			self.awayScore,
-			self.quarter,
-			self.clock,
-			self.location,
+			str(self.homeScore),
+			str(self.awayScore),
+			str(self.quarter),
+			str(self.clock),
+			str(self.location),
 			"home" if self.posHome else "away",
-			self.down,
-			self.toGo,
-			self.defNum,
-			self.offNum,
+			str(self.down),
+			str(self.toGo),
+			str(self.defNum),
+			str(self.offNum),
 			self.defSubmitter,
 			self.offSubmitter,
 			self.play.name,
 			self.result.name,
 			self.actualResult.name,
-			self.yards,
-			self.playTime,
-			self.runoffTime
+			str(self.yards),
+			str(self.playTime),
+			str(self.runoffTime)
 		])
 
 
