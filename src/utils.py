@@ -464,8 +464,10 @@ def summarizeDrive(drive):
 				summary.posHome = play.posHome
 			if play.yards is not None:
 				summary.yards += play.yards
-			if play.time is not None:
-				summary.time += play.time
+			if play.playTime is not None:
+				summary.time += play.playTime
+			if play.runoffTime is not None:
+				summary.time += play.runoffTime
 	if drive[-1].actualResult in classes.postTouchdownEnders:
 		summary.result = drive[-2].actualResult
 	else:
