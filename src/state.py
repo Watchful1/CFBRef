@@ -520,7 +520,9 @@ def executePunt(game, yards):
 			return overtimeTurnover(game)
 		else:
 			turnover(game)
-			return wiki.getStringFromKey("puntYards", {'yards': yards, 'yardLine': string_utils.getLocationString(game)})
+			return wiki.getStringFromKey(
+				"puntYards",
+				{'yards': yards, 'yardLine': string_utils.getLocationString(game), 'team': game.team(game.status.possession.negate()).name})
 
 
 def executePlay(game, play, number, timeOption, isConversion, offensive_submitter):
