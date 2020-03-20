@@ -146,7 +146,7 @@ class PlaySummary:
 			self.defSubmitter,
 			self.offSubmitter,
 			self.play.name,
-			self.result.name,
+			self.result.name if self.result.name is not None else "",
 			self.actualResult.name,
 			str(self.yards),
 			str(self.playTime),
