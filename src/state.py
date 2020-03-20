@@ -586,7 +586,7 @@ def executePlay(game, play, number, timeOption, isConversion, offensive_submitte
 
 				if result['result'] == Result.TWO_POINT:
 					log.debug("Successful two point conversion")
-					resultMessage = wiki.getStringFromKey("scoredTwoPointConversion")
+					resultMessage = wiki.getStringFromKey("scoredTwoPointConversion", {'team': game.team(game.status.possession.negate()).name})
 					scoreTwoPoint(game, game.status.possession)
 					if utils.isGameOvertime(game):
 						timeMessage = overtimeTurnover(game)
@@ -785,7 +785,8 @@ def executePlay(game, play, number, timeOption, isConversion, offensive_submitte
 					statsTable = {
 						'team': game.team(game.status.possession.negate()).name,
 						'yards': yards,
-						'negativeYards': yards * -1
+						'negativeYards': yards * -1,
+						'location': string_utils.getLocationString(game)
 					}
 					if play == Play.RUN:
 						utils.addStat(game, 'turnoverFumble', 1)
@@ -806,9 +807,9 @@ def executePlay(game, play, number, timeOption, isConversion, offensive_submitte
 					elif play == Play.FIELD_GOAL:
 						if result['result'] == Result.TURNOVER:
 							utils.addStat(game, 'turnoverFumble', 1)
-							resultMessage = wiki.getStringFromKey("blockedFieldGoal")
+							resultMessage = wiki.getStringFromKey("blockedFieldGoal", statsTable)
 						else:
-							resultMessage = wiki.getStringFromKey("missedFieldGoal")
+							resultMessage = wiki.getStringFromKey("missedFieldGoal", statsTable)
 
 					elif play == Play.PUNT:
 						utils.addStat(game, 'turnoverFumble', 1)
