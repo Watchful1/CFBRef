@@ -376,7 +376,10 @@ def updateTime(game, play, result, actualResult, yards, offenseHomeAway, timeOpt
 		else:
 			timeOffClock += getTimeByPlay(play, timeResult, yards)
 
-		if actualResult in [Result.GAIN, Result.KNEEL] and result != Result.INCOMPLETE and play not in classes.kickoffPlays:
+		if actualResult in [Result.GAIN, Result.KNEEL] and \
+				result != Result.INCOMPLETE and \
+				play not in classes.kickoffPlays and \
+				play not in classes.conversionPlays:
 			game.status.timeRunoff = True
 
 	log.debug("Time off clock: {} : {} : {}".format(game.status.clock, timeOffClock, game.status.timeRunoff))
