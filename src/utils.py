@@ -437,13 +437,14 @@ def setGamePlayed(game):
 	game.playclockWarning = False
 
 
-def appendPlay(game, playSummary):
+def appendPlay(game, playSummary, hitStopQuarter):
 	if len(game.status.plays[-1]) > 0:
 		previousPlay = game.status.plays[-1][-1]
 	else:
 		previousPlay = None
 	if playSummary.actualResult in classes.driveEnders or \
-			(previousPlay is not None and previousPlay.actualResult == Result.TOUCHDOWN and playSummary.actualResult in classes.postTouchdownEnders):
+			(previousPlay is not None and previousPlay.actualResult == Result.TOUCHDOWN and playSummary.actualResult in classes.postTouchdownEnders) or \
+			hitStopQuarter:
 		game.status.plays[-1].append(playSummary)
 		game.status.plays.append([])
 		return game.status.plays[-2]

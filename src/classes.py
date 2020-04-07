@@ -102,10 +102,10 @@ class DriveSummary:
 		self.posHome = None
 
 	def __str__(self):
-		return "{} in {} for {} ending in {}".format(
+		return "{} for {} yards in {} seconds ending in {}".format(
+			"home" if self.posHome else "away",
 			self.yards,
 			self.time,
-			"home" if self.posHome else "away",
 			self.result.name.lower()
 		)
 
@@ -331,6 +331,6 @@ conversionPlays = [Play.PAT, Play.TWO_POINT]
 kickoffPlays = [Play.KICKOFF_NORMAL, Play.KICKOFF_SQUIB, Play.KICKOFF_ONSIDE]
 playActions = [Action.PLAY, Action.CONVERSION, Action.KICKOFF]
 
-driveEnders = [Result.TURNOVER, Result.TURNOVER_TOUCHDOWN, Result.FIELD_GOAL, Result.PUNT]
+driveEnders = [Result.TURNOVER, Result.TURNOVER_TOUCHDOWN, Result.FIELD_GOAL, Result.PUNT, Result.MISS]
 postTouchdownEnders = [Result.PAT, Result.TWO_POINT, Result.KICKOFF, Result.TURNOVER_PAT]
 lookbackTouchdownEnders = [Result.TURNOVER_PAT]

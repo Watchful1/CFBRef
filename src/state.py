@@ -394,7 +394,7 @@ def updateTime(game, play, result, actualResult, yards, offenseHomeAway, timeOpt
 
 	utils.addStat(game, 'posTime', timeOffClock, offenseHomeAway)
 
-	return "The play took {} seconds, {}".format(max(timeOffClock + timeBetweenPlay, 0), timeMessage), timeOffClock
+	return "The play took {} seconds, {}".format(max(timeOffClock + timeBetweenPlay, 0), timeMessage), timeOffClock, runStatus
 
 
 def executeGain(game, play, yards, incomplete=False):
@@ -921,9 +921,10 @@ def executePlay(game, play, number, timeOption, isConversion, offensive_submitte
 	else:
 		messages = [resultMessage]
 	timeOffClock = None
+	afterPlayRunoffResult = None
 	if actualResult is not None and game.status.quarterType == QuarterType.NORMAL:
 		if timeMessage is None:
-			timeMessage, timeOffClock = updateTime(
+			timeMessage, timeOffClock, afterPlayRunoffResult = updateTime(
 				game,
 				play,
 				result['result'],
@@ -957,7 +958,9 @@ def executePlay(game, play, number, timeOption, isConversion, offensive_submitte
 	playSummary.playTime = timeOffClock
 
 	if success:
-		driveList = utils.appendPlay(game, playSummary)
+		driveList = utils.appendPlay(
+			game, playSummary,
+			runoffResult == RunStatus.STOP_QUARTER or afterPlayRunoffResult == RunStatus.STOP_QUARTER)
 		if driveList is not None:
 			driveSummary = utils.summarizeDrive(driveList)
 			field = drive_graphic.makeField(driveList)
