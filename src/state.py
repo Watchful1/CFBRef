@@ -538,16 +538,8 @@ def executePlay(game, play, number, timeOption, isConversion, offensive_submitte
 	success = True
 	timeMessage = None
 
-	playSummary = PlaySummary()
-	playSummary.homeScore = game.status.homeState.points
-	playSummary.awayScore = game.status.awayState.points
-	playSummary.quarter = game.status.quarter
-	playSummary.clock = game.status.clock
-	playSummary.down = game.status.down
-	playSummary.toGo = game.status.yards
-	playSummary.location = game.status.location
+	playSummary = PlaySummary(game)
 	playSummary.offNum = number
-	playSummary.posHome = game.status.possession.copy()
 	playSummary.offSubmitter = offensive_submitter
 	playSummary.defSubmitter = game.status.defensiveSubmitter
 
@@ -958,15 +950,12 @@ def executePlay(game, play, number, timeOption, isConversion, offensive_submitte
 	playSummary.playTime = timeOffClock
 
 	if success:
-		driveList = utils.appendPlay(
-			game, playSummary,
-			runoffResult == RunStatus.STOP_QUARTER or afterPlayRunoffResult == RunStatus.STOP_QUARTER)
-		if driveList is not None:
-			driveSummary = utils.summarizeDrive(driveList)
-			field = drive_graphic.makeField(driveList)
-			driveImageUrl = drive_graphic.uploadField(field, game.thread, str(len(game.status.plays) - 2))
-			game.status.drives.append({'summary': driveSummary, 'url': driveImageUrl})
-			messages.append(f"Drive: [{str(driveSummary)}]({driveImageUrl})")
+		forceDriveEndType = None
+		if runoffResult == RunStatus.STOP_QUARTER or afterPlayRunoffResult == RunStatus.STOP_QUARTER:
+			forceDriveEndType = Result.END_HALF
+		driveSummaryMessage = utils.addPlay(game, playSummary, forceDriveEndType)
+		if driveSummaryMessage is not None:
+			messages.append(driveSummaryMessage)
 
 	playString = string_utils.renderPlays(game)
 	if game.playGist is None:
@@ -982,6 +971,10 @@ def executeDelayOfGame(game):
 
 	log.debug("Game past playclock: {}".format(game.thread))
 	utils.cycleStatus(game, "DelayOfGame")
+	delay_of_game_play = PlaySummary(game)
+	delay_of_game_play.result = Result.DELAY_OF_GAME
+	delay_of_game_play.actualResult = Result.DELAY_OF_GAME
+	utils.addPlay(game, delay_of_game_play, Result.DELAY_OF_GAME)
 	game.status.state(game.status.waitingOn).playclockPenalties += 1
 	penaltyMessage = "{} has not sent their number in over 24 hours, playclock penalty. This is their {} penalty.".format(
 		string_utils.getCoachString(game, game.status.waitingOn),

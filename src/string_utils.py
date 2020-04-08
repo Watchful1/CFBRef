@@ -364,6 +364,7 @@ def renderPlays(game):
 	for drive in game.status.plays:
 		for play in drive:
 			playBldr.append(str(play))
+		playBldr.append("-"*80)
 
 	return '\n'.join(playBldr)
 

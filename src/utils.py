@@ -14,6 +14,7 @@ import classes
 import index
 import string_utils
 import file_utils
+import drive_graphic
 from classes import HomeAway
 from classes import Action
 from classes import Play
@@ -24,7 +25,8 @@ from classes import DriveSummary
 log = logging.getLogger("bot")
 
 
-def startGame(homeTeam, awayTeam, startTime=None, location=None, station=None, homeRecord=None, awayRecord=None, prefix=None, suffix=None, quarterLength=None):
+def startGame(homeTeam, awayTeam, startTime=None, location=None, station=None, homeRecord=None, awayRecord=None,
+			  prefix=None, suffix=None, quarterLength=None):
 	log.debug("Creating new game between {} and {}".format(homeTeam, awayTeam))
 
 	result = verifyTeams([homeTeam, awayTeam])
@@ -110,7 +112,8 @@ def verifyTeams(teamTags):
 		existingGame = index.getGameFromTeamTag(tag)
 		if existingGame is not None:
 			log.debug("{} is already in a game".format(tag))
-			return "The team {} is already in a [game]({})".format(tag, string_utils.getLinkToThread(existingGame.thread))
+			return "The team {} is already in a [game]({})".format(tag,
+																   string_utils.getLinkToThread(existingGame.thread))
 
 	return None
 
@@ -138,7 +141,7 @@ def paste(title, content, gist_username, gist_token):
 
 def edit_paste(title, content, id, gist_username, gist_token):
 	result = requests.patch(
-		'https://api.github.com/gists/'+id,
+		'https://api.github.com/gists/' + id,
 		json.dumps(
 			{'files': {title: {"content": content}}}
 		),
@@ -276,15 +279,15 @@ def sendDefensiveNumberMessage(game):
 	defenseHomeAway = game.status.possession.negate()
 	log.debug("Sending get defence number to {}".format(string_utils.getCoachString(game, defenseHomeAway)))
 	results = reddit.sendMessage(recipients=game.team(defenseHomeAway).coaches,
-						subject="{} vs {}".format(game.away.name, game.home.name),
-						message=string_utils.embedTableInMessage(
-							"{}\n\nReply with a number between **1** and **1500**, inclusive.\n\nYou have until {}."
-								.format(
-								string_utils.getCurrentPlayString(game),
-								string_utils.renderDatetime(game.playclock)
-							),
-							getActionTable(game, game.status.waitingAction)
-						))
+								 subject="{} vs {}".format(game.away.name, game.home.name),
+								 message=string_utils.embedTableInMessage(
+									 "{}\n\nReply with a number between **1** and **1500**, inclusive.\n\nYou have until {}."
+										 .format(
+										 string_utils.getCurrentPlayString(game),
+										 string_utils.renderDatetime(game.playclock)
+									 ),
+									 getActionTable(game, game.status.waitingAction)
+								 ))
 	resetWaitingId(game)
 	for message in results:
 		addWaitingId(game, message.fullname)
@@ -437,40 +440,47 @@ def setGamePlayed(game):
 	game.playclockWarning = False
 
 
-def appendPlay(game, playSummary, hitStopQuarter):
+def addPlay(game, playSummary, forceDriveEndType):
 	if len(game.status.plays[-1]) > 0:
 		previousPlay = game.status.plays[-1][-1]
 	else:
 		previousPlay = None
+
+	if forceDriveEndType is not None:
+		if playSummary.result is None:
+			playSummary.result = forceDriveEndType
+		if playSummary.actualResult is None:
+			playSummary.actualResult = forceDriveEndType
+
 	if playSummary.actualResult in classes.driveEnders or \
-			(previousPlay is not None and previousPlay.actualResult == Result.TOUCHDOWN and playSummary.actualResult in classes.postTouchdownEnders) or \
-			hitStopQuarter:
+			(previousPlay is not None and previousPlay.actualResult in classes.scoringResults and playSummary.actualResult in classes.postTouchdownEnders) or \
+			forceDriveEndType is not None:
 		game.status.plays[-1].append(playSummary)
+		drive = game.status.plays[-1]
 		game.status.plays.append([])
-		return game.status.plays[-2]
-	elif previousPlay is not None and previousPlay.actualResult == Result.TOUCHDOWN and playSummary.actualResult in classes.lookbackTouchdownEnders:
-		game.status.plays.append([])
-		game.status.plays[-1].append(playSummary)
-		return game.status.plays[-2]
+
+		summary = DriveSummary()
+		for play in drive:
+			if play.play in classes.movementPlays:
+				if summary.posHome is None and play.result == Result.GAIN:
+					summary.posHome = play.posHome
+				if play.yards is not None:
+					summary.yards += play.yards
+				if play.playTime is not None:
+					summary.time += play.playTime
+				if play.runoffTime is not None:
+					summary.time += play.runoffTime
+		if drive[-1].actualResult in classes.postTouchdownEnders:
+			summary.result = drive[-2].actualResult
+		elif forceDriveEndType is not None:
+			summary.result = forceDriveEndType
+		else:
+			summary.result = drive[-1].actualResult
+
+		field = drive_graphic.makeField(drive)
+		driveImageUrl = drive_graphic.uploadField(field, game.thread, str(len(game.status.plays) - 2))
+		game.status.drives.append({'summary': summary, 'url': driveImageUrl})
+		return f"Drive: [{str(summary)}]({driveImageUrl})"
 	else:
 		game.status.plays[-1].append(playSummary)
 		return None
-
-
-def summarizeDrive(drive):
-	summary = DriveSummary()
-	for play in drive:
-		if play.play in classes.movementPlays:
-			if summary.posHome is None and play.result == Result.GAIN:
-				summary.posHome = play.posHome
-			if play.yards is not None:
-				summary.yards += play.yards
-			if play.playTime is not None:
-				summary.time += play.playTime
-			if play.runoffTime is not None:
-				summary.time += play.runoffTime
-	if drive[-1].actualResult in classes.postTouchdownEnders:
-		summary.result = drive[-2].actualResult
-	else:
-		summary.result = drive[-1].actualResult
-	return summary

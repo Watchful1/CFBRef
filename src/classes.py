@@ -66,6 +66,7 @@ class Play(Enum):
 	KICKOFF_NORMAL = 9
 	KICKOFF_SQUIB = 10
 	KICKOFF_ONSIDE = 11
+	DELAY_OF_GAME = 12
 
 
 class Result(Enum):
@@ -87,6 +88,8 @@ class Result(Enum):
 	SAFETY = 16
 	ERROR = 17
 	TURNOVER_PAT = 18
+	END_HALF = 19
+	DELAY_OF_GAME = 20
 
 
 class T:
@@ -111,15 +114,15 @@ class DriveSummary:
 
 
 class PlaySummary:
-	def __init__(self):
-		self.homeScore = None
-		self.awayScore = None
-		self.quarter = None
-		self.clock = None
-		self.location = None
-		self.posHome = None
-		self.down = None
-		self.toGo = None
+	def __init__(self, game):
+		self.homeScore = game.status.homeState.points
+		self.awayScore = game.status.awayState.points
+		self.quarter = game.status.quarter
+		self.clock = game.status.clock
+		self.location = game.status.location
+		self.posHome = game.status.possession.copy()
+		self.down = game.status.down
+		self.toGo = game.status.yards
 		self.offNum = None
 		self.defNum = None
 		self.defSubmitter = None
@@ -331,6 +334,6 @@ conversionPlays = [Play.PAT, Play.TWO_POINT]
 kickoffPlays = [Play.KICKOFF_NORMAL, Play.KICKOFF_SQUIB, Play.KICKOFF_ONSIDE]
 playActions = [Action.PLAY, Action.CONVERSION, Action.KICKOFF]
 
-driveEnders = [Result.TURNOVER, Result.TURNOVER_TOUCHDOWN, Result.FIELD_GOAL, Result.PUNT, Result.MISS]
+driveEnders = [Result.TURNOVER, Result.FIELD_GOAL, Result.PUNT, Result.MISS, Result.SAFETY]
+scoringResults = [Result.TOUCHDOWN, Result.TURNOVER_TOUCHDOWN]
 postTouchdownEnders = [Result.PAT, Result.TWO_POINT, Result.KICKOFF, Result.TURNOVER_PAT]
-lookbackTouchdownEnders = [Result.TURNOVER_PAT]
