@@ -148,7 +148,7 @@ class PlaySummary:
 			str(self.offNum),
 			self.defSubmitter,
 			self.offSubmitter,
-			self.play.name,
+			self.play.name if self.play is not None else "",
 			self.result.name if self.result is not None else "",
 			self.actualResult.name if self.actualResult is not None else "",
 			str(self.yards),
