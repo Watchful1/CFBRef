@@ -31,9 +31,7 @@ def init(user):
 		{'var': "CLOUDINARY_SECRET", 'name': "cloudinary_secret"},
 		{'var': "WEBHOOK_MAIN", 'name': "webhook_main"},
 		{'var': "WEBHOOK_FCS", 'name': "webhook_fcs"},
-		{'var': "WEBHOOK_FCS_2", 'name': "webhook_fcs_2"},
 		{'var': "WEBHOOK_D2", 'name': "webhook_d2"},
-		{'var': "WEBHOOK_D2_2", 'name': "webhook_d2_2"},
 	]
 	for key in config_keys:
 		if reddit.config.CONFIG.has_option(user, key['name']):

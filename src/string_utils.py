@@ -670,7 +670,7 @@ def renderTeamsWiki(teams):
 				bldr.append(game.thread)
 				bldr.append(")")
 				if game.playGist is not None:
-					bldr.append("\\[Plays](")
+					bldr.append(" [Plays](")
 					bldr.append(static.GIST_BASE_URL)
 					bldr.append(static.GIST_USERNAME)
 					bldr.append("/")

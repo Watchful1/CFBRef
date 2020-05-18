@@ -317,7 +317,7 @@ def processMessageOffensePlay(game, message, author):
 	game.status.state(game.status.possession).requestedTimeout = TimeoutOption.NONE
 
 	if game.status.state(game.status.possession.negate()).requestedTimeout == TimeoutOption.USED:
-		timeoutMessageDefense = "The defense is charged a timeout"
+		timeoutMessageDefense = "The defense was charged a timeout"
 	elif game.status.state(game.status.possession.negate()).requestedTimeout == TimeoutOption.REQUESTED:
 		timeoutMessageDefense = "The defense requested a timeout, but it was not used"
 	game.status.state(game.status.possession.negate()).requestedTimeout = TimeoutOption.NONE

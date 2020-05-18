@@ -110,27 +110,15 @@ def overtimeTurnover(game):
 		return wiki.getStringFromKey("overtimeDriveEnd", {'team': string_utils.flair(game.team(game.status.possession))})
 	elif game.status.overtimePossession == 2:
 		if game.status.state(T.home).points == game.status.state(T.away).points:
-			if game.status.quarterType == QuarterType.OVERTIME_TIME and game.status.quarter >= 6:
-				log.debug("End of 6th quarter in a time forced overtime, flipping coin for victor")
-				if utils.coinToss():
-					log.debug("Home has won")
-					victor = HomeAway(T.home)
-				else:
-					log.debug("Away has won")
-					victor = HomeAway(T.away)
-
-				output = utils.endGame(game, game.team(victor).name)
-				return wiki.getStringFromKey("overtimeForcedGameEnd", {'team': string_utils.flair(game.team(victor))}) + "\n\n" + output
-			else:
-				log.debug("End of second overtime possession, still tied, starting new quarter")
-				game.status.overtimePossession = 1
-				game.status.quarter += 1
-				for homeAway in [HomeAway(True), HomeAway(False)]:
-					if len(game.status.state(homeAway).quarters) < game.status.quarter:
-						game.status.state(homeAway).quarters.append(0)
-				setStateOvertimeDrive(game, game.status.receivingNext)
-				game.status.receivingNext.reverse()
-				return wiki.getStringFromKey("overtimeTiedQuarterEnd", {'quarter': string_utils.getNthQuarter(game.status.quarter)})
+			log.debug("End of second overtime possession, still tied, starting new quarter")
+			game.status.overtimePossession = 1
+			game.status.quarter += 1
+			for homeAway in [HomeAway(True), HomeAway(False)]:
+				if len(game.status.state(homeAway).quarters) < game.status.quarter:
+					game.status.state(homeAway).quarters.append(0)
+			setStateOvertimeDrive(game, game.status.receivingNext)
+			game.status.receivingNext.reverse()
+			return wiki.getStringFromKey("overtimeTiedQuarterEnd", {'quarter': string_utils.getNthQuarter(game.status.quarter)})
 
 		else:
 			log.debug("End of game")
@@ -268,11 +256,7 @@ def checkQuarterStatus(game, timeOffClock):
 				if game.status.state(T.home).points == game.status.state(T.away).points:
 					log.debug("Score tied at end of 4th, going to overtime")
 					timeMessage = "end of regulation. The score is tied, we're going to overtime!"
-					if game.deadline < datetime.utcnow():
-						log.debug(f"Game past deadline, {game.deadline}, {datetime.utcnow()}")
-						game.status.quarterType = QuarterType.OVERTIME_TIME
-					else:
-						game.status.quarterType = QuarterType.OVERTIME_NORMAL
+					game.status.quarterType = QuarterType.OVERTIME_NORMAL
 					game.status.waitingAction = Action.OVERTIME
 				else:
 					log.debug("End of game")
@@ -379,7 +363,8 @@ def updateTime(game, play, result, actualResult, yards, offenseHomeAway, timeOpt
 		if actualResult in [Result.GAIN, Result.KNEEL] and \
 				result != Result.INCOMPLETE and \
 				play not in classes.kickoffPlays and \
-				play not in classes.conversionPlays:
+				play not in classes.conversionPlays and \
+				not (actualResult == Result.KNEEL and isConversion):
 			game.status.timeRunoff = True
 
 	log.debug("Time off clock: {} : {} : {}".format(game.status.clock, timeOffClock, game.status.timeRunoff))

@@ -54,8 +54,8 @@ def startGame(homeTeam, awayTeam, startTime=None, location=None, station=None, h
 		game.suffix = suffix
 
 	gameThread = string_utils.renderGame(game)
-	gameTitle = "[GAME THREAD] {}{}{} @ {}{}{}".format(
-		"{} ".format(string_utils.unescapeMarkdown(prefix)) if prefix is not None else "",
+	gameTitle = "{} {}{} @ {}{}{}".format(
+		"{}".format(string_utils.unescapeMarkdown(prefix)) if prefix is not None else "[GAME THREAD]",
 		"{} ".format(string_utils.unescapeMarkdown(awayRecord)) if awayRecord is not None else "",
 		game.away.name,
 		"{} ".format(string_utils.unescapeMarkdown(homeRecord)) if homeRecord is not None else "",

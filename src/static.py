@@ -26,17 +26,15 @@ CLOUDINARY_SECRET = None
 
 WEBHOOK_MAIN = None
 WEBHOOK_FCS = None
-WEBHOOK_FCS_2 = None
 WEBHOOK_D2 = None
-WEBHOOK_D2_2 = None
 
 
 def get_webhook_for_conference(division):
 	if division == "Division 2":
-		return [WEBHOOK_D2, WEBHOOK_D2_2]
+		return [WEBHOOK_D2]
 	elif division == "FCS":
-		return [WEBHOOK_FCS, WEBHOOK_FCS_2]
-	elif division is None:
+		return [WEBHOOK_FCS]
+	elif division == "FBS":
 		return [WEBHOOK_MAIN]
 	else:
 		return []
