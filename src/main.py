@@ -6,6 +6,7 @@ import time
 import sys
 import signal
 import traceback
+from datetime import datetime
 
 import static
 import reddit
@@ -100,7 +101,10 @@ while True:
 	try:
 		for message in reddit.getMessageStream():
 			startTime = time.perf_counter()
-			log.debug("Processing message")
+
+			log.debug(
+				f"Processing message: "
+				f"{(datetime.utcfromtimestamp(message.created_utc) - datetime.utcnow()).total_seconds()}")
 			wiki.loadPages()
 
 			try:
