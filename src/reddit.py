@@ -127,7 +127,7 @@ def replyMessage(message, body):
 
 
 def getRecentSentMessage():
-	return reddit.inbox.sent(limit=1).next()
+	return next(reddit.inbox.sent(limit=1))
 
 
 def getThingFromFullname(fullname):

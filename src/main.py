@@ -47,6 +47,13 @@ if LOG_FILENAME is not None:
 	log.addHandler(log_fileHandler)
 
 
+handler = logging.StreamHandler()
+handler.setLevel(logging.DEBUG)
+for logger_name in ("praw", "prawcore"):
+	logger = logging.getLogger(logger_name)
+	logger.setLevel(logging.DEBUG)
+
+
 if not os.path.exists(static.SAVE_FOLDER_NAME):
 	os.makedirs(static.SAVE_FOLDER_NAME)
 if not os.path.exists(static.ARCHIVE_FOLDER_NAME):
