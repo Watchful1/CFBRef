@@ -104,7 +104,7 @@ while True:
 
 			log.debug(
 				f"Processing message: "
-				f"{(datetime.utcfromtimestamp(message.created_utc) - datetime.utcnow()).total_seconds()}")
+				f"{(datetime.utcnow() - datetime.utcfromtimestamp(message.created_utc)).total_seconds()}")
 			wiki.loadPages()
 
 			try:
