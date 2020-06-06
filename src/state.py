@@ -363,6 +363,7 @@ def updateTime(game, play, result, actualResult, yards, offenseHomeAway, timeOpt
 		if actualResult in [Result.GAIN, Result.KNEEL] and \
 				result != Result.INCOMPLETE and \
 				play not in classes.kickoffPlays and \
+				play != Play.PUNT and \
 				play not in classes.conversionPlays and \
 				not (actualResult == Result.KNEEL and isConversion):
 			game.status.timeRunoff = True
