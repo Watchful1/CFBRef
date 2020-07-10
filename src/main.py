@@ -6,6 +6,7 @@ import time
 import sys
 import signal
 import traceback
+import discord_logging
 from datetime import datetime
 
 import static
@@ -18,15 +19,8 @@ import index
 import file_utils
 import string_utils
 import drive_graphic
+import counters
 from classes import Action
-
-### Logging setup ###
-LOG_LEVEL = logging.DEBUG
-if not os.path.exists(static.LOG_FOLDER_NAME):
-	os.makedirs(static.LOG_FOLDER_NAME)
-LOG_FILENAME = static.LOG_FOLDER_NAME + "/" + "bot.log"
-LOG_FILE_BACKUPCOUNT = 5
-LOG_FILE_MAXSIZE = 1024 * 256 * 64
 
 
 class ContextFilter(logging.Filter):
@@ -35,17 +29,12 @@ class ContextFilter(logging.Filter):
 		return True
 
 
-log = logging.getLogger("bot")
-log.setLevel(LOG_LEVEL)
-log_formatter = logging.Formatter('%(asctime)s - %(levelname)s:%(gameid)s %(message)s')
-log_stdHandler = logging.StreamHandler()
-log_stdHandler.setFormatter(log_formatter)
-log.addHandler(log_stdHandler)
+log = discord_logging.init_logging(
+	backup_count=20,
+	debug=True,
+	format_string='%(asctime)s - %(levelname)s:%(gameid)s %(message)s'
+)
 log.addFilter(ContextFilter())
-if LOG_FILENAME is not None:
-	log_fileHandler = logging.handlers.RotatingFileHandler(LOG_FILENAME, maxBytes=LOG_FILE_MAXSIZE, backupCount=LOG_FILE_BACKUPCOUNT)
-	log_fileHandler.setFormatter(log_formatter)
-	log.addHandler(log_fileHandler)
 
 
 if not os.path.exists(static.SAVE_FOLDER_NAME):
@@ -83,10 +72,12 @@ else:
 	log.error("No user specified, aborting")
 	sys.exit(0)
 
+discord_logging.init_discord_logging(user, logging.WARNING, 1)
 
 if not reddit.init(user):
 	sys.exit(0)
 
+counters.init(8002)
 
 wiki.loadPages()
 
@@ -109,6 +100,7 @@ while True:
 
 			try:
 				messages.processMessage(message)
+				counters.objects_replied.inc()
 			except Exception as err:
 				log.warning("Error in main loop")
 				log.warning(traceback.format_exc())

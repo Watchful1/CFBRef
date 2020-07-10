@@ -7,7 +7,7 @@ from datetime import timedelta
 import static
 import utils
 import wiki
-import reddit
+import counters
 import messages
 import file_utils
 from classes import Action
@@ -20,9 +20,11 @@ games = {}
 def init():
 	global games
 	games = {}
+	count_games = 0
 	for gameFile in os.listdir(static.SAVE_FOLDER_NAME):
 		game = reloadAndReturn(gameFile)
 		if game is not None:
+			count_games += 1
 			changed = False
 			for team in [game.home, game.away]:
 				wikiTeam = wiki.getTeamByTag(team.tag)
@@ -54,6 +56,8 @@ def init():
 
 			games[game.thread] = game
 
+	counters.active_games.set(count_games)
+
 
 def getAllGames():
 	allGames = []
@@ -65,6 +69,7 @@ def getAllGames():
 
 def addNewGame(game):
 	games[game.thread] = game
+	counters.active_games.inc()
 
 
 def reloadAndReturn(thread, alwaysReturn=False):
@@ -107,6 +112,7 @@ def endGame(game):
 	if game.thread in games:
 		del games[game.thread]
 	file_utils.archiveGameFile(game.thread)
+	counters.active_games.dec()
 	wiki.updateTeamsWiki()
 
 
