@@ -704,7 +704,7 @@ def renderCoachesWiki(coaches):
 		bldr.append("|")
 		bldr.append(coach['latest'])
 		bldr.append("|")
-		if coach['count'] < 100:
+		if coach['count'] <= 1:
 			bldr.append("Insufficient data")
 		else:
 			minutes = int(coach['count'] / 60)

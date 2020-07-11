@@ -87,11 +87,11 @@ index.init()
 
 drive_graphic.init()
 
+coach_stats.init("database.db")
+
 if update_wiki:
 	wiki.updateTeamsWiki()
 	wiki.updateCoachesWiki()
-
-coach_stats.init("database.db")
 
 count_messages = 0
 while True:
