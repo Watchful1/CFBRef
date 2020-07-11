@@ -2,6 +2,7 @@ import logging.handlers
 import re
 import praw
 import traceback
+from datetime import datetime
 
 import reddit
 import utils
@@ -12,6 +13,7 @@ import classes
 import index
 import string_utils
 import file_utils
+import coach_stats
 from classes import Play
 from classes import Action
 from classes import TimeoutOption
@@ -662,6 +664,10 @@ def processMessage(message, reprocess=False, isRerun=False):
 				else:
 					dataTable['source'] = parent.fullname
 					log.debug("Found a valid datatable in parent message: {}".format(str(dataTable)))
+
+			seconds_lag = (datetime.utcfromtimestamp(message.created_utc) - datetime.utcfromtimestamp(parent.created_utc)).total_seconds()
+			log.debug(f"Saving reply lag of {seconds_lag} for u/{message.author.name}")
+			coach_stats.add_stat(message.author.name, seconds_lag)
 
 	body = message.body.lower()
 	author = str(message.author)

@@ -20,6 +20,7 @@ import file_utils
 import string_utils
 import drive_graphic
 import counters
+import coach_stats
 from classes import Action
 
 
@@ -45,6 +46,7 @@ if not os.path.exists(static.ARCHIVE_FOLDER_NAME):
 
 def signal_handler(signal, frame):
 	log.info("Handling interupt")
+	coach_stats.close()
 	sys.exit(0)
 
 
@@ -87,6 +89,8 @@ drive_graphic.init()
 
 if update_wiki:
 	wiki.updateTeamsWiki()
+
+coach_stats.init("database.db")
 
 while True:
 	try:
