@@ -49,7 +49,7 @@ def getCoaches():
 def delete_old_stats():
 	c = dbConn.cursor()
 	c.execute('''
-		deleted from coach_stats
+		delete from coach_stats
 		where Created  <= date('now','-90 day')
 	''')
 
