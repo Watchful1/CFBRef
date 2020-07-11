@@ -4,6 +4,7 @@ import traceback
 import math
 import pytz
 import urllib.parse
+from datetime import datetime
 from collections import defaultdict
 
 import static
@@ -703,7 +704,7 @@ def renderCoachesWiki(coaches):
 		bldr.append("u/")
 		bldr.append(coach['username'])
 		bldr.append("|")
-		bldr.append(coach['latest'])
+		bldr.append(datetime.strptime(coach['latest'], "%Y-%m-%d %H:%M:%S").strftime("%m/%d"))
 		bldr.append("|")
 		if coach['count'] < min_count:
 			bldr.append("Insufficient data: ")
