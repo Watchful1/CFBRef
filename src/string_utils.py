@@ -675,7 +675,7 @@ def renderTeamsWiki(teams):
 					bldr.append(static.GIST_USERNAME)
 					bldr.append("/")
 					bldr.append(game.playGist)
-					bldr.append(")\n")
+					bldr.append(")")
 			bldr.append("|")
 			bldr.append("[Edit](")
 			bldr.append(buildMessageLink(
