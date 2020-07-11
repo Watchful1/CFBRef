@@ -698,14 +698,18 @@ def renderCoachesWiki(coaches):
 	bldr.append("Coach|Latest Response|Minutes Lag\n")
 	bldr.append(":-:|:-:|:-:\n")
 
+	min_count = 100
 	for coach in coaches:
 		bldr.append("u/")
 		bldr.append(coach['username'])
 		bldr.append("|")
 		bldr.append(coach['latest'])
 		bldr.append("|")
-		if coach['count'] <= 1:
-			bldr.append("Insufficient data")
+		if coach['count'] < min_count:
+			bldr.append("Insufficient data: ")
+			bldr.append(str(coach['count']))
+			bldr.append("/")
+			bldr.append(str(min_count))
 		else:
 			minutes = int(coach['count'] / 60)
 			if minutes < 15:
