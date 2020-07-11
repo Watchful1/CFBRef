@@ -89,13 +89,16 @@ drive_graphic.init()
 
 if update_wiki:
 	wiki.updateTeamsWiki()
+	wiki.updateCoachesWiki()
 
 coach_stats.init("database.db")
 
+count_messages = 0
 while True:
 	try:
 		for message in reddit.getMessageStream():
 			startTime = time.perf_counter()
+			count_messages += 1
 
 			log.debug(
 				f"Processing message: "
@@ -151,6 +154,10 @@ while True:
 				file_utils.saveGameObject(game)
 
 			utils.clearLogGameID()
+
+			if count_messages % 50 == 0:
+				wiki.updateCoachesWiki()
+
 			if once:
 				break
 

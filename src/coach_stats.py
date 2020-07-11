@@ -30,6 +30,32 @@ def add_stat(username, lag_seconds):
 	dbConn.commit()
 
 
+def getCoaches():
+	c = dbConn.cursor()
+	results = []
+	for row in c.execute('''
+		select Username,
+			avg(Seconds),
+			max(Created),
+			count(*)
+		from coach_stats
+		group by Username
+		'''):
+		results.append({'username': row[0], 'seconds': row[1], 'latest': row[2], 'count': row[3]})
+
+	return results
+
+
+def delete_old_stats():
+	c = dbConn.cursor()
+	c.execute('''
+		deleted from coach_stats
+		where Created  <= date('now','-90 day')
+	''')
+
+	dbConn.commit()
+
+
 def close():
 	if dbConn is not None:
 		dbConn.commit()

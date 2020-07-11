@@ -10,6 +10,7 @@ import reddit
 import static
 import string_utils
 import file_utils
+import coach_stats
 from classes import OffenseType
 from classes import DefenseType
 from classes import Result
@@ -226,6 +227,12 @@ def loadTeams():
 def updateTeamsWiki():
 	teamsWikiString = string_utils.renderTeamsWiki(teams)
 	reddit.setWikiPage(static.SUBREDDIT, "teams", teamsWikiString)
+
+
+def updateCoachesWiki():
+	coach_stats.delete_old_stats()
+	coachesWikiString = string_utils.renderCoachesWiki(coach_stats.getCoaches())
+	reddit.setWikiPage(static.SUBREDDIT, "coaches", coachesWikiString)
 
 
 def initOffenseDefense(play, offense, defense, range):

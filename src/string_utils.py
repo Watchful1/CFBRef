@@ -690,3 +690,28 @@ def renderTeamsWiki(teams):
 			bldr.append("\n")
 
 	return ''.join(bldr)
+
+
+def renderCoachesWiki(coaches):
+	bldr = []
+
+	bldr.append("Coach|Latest Response|Minutes Lag\n")
+	bldr.append(":-:|:-:|:-:\n")
+
+	for coach in coaches:
+		bldr.append("u/")
+		bldr.append(coach['username'])
+		bldr.append("|")
+		bldr.append(coach['latest'])
+		bldr.append("|")
+		if coach['count'] < 100:
+			bldr.append("Insufficient data")
+		else:
+			minutes = int(coach['count'] / 60)
+			if minutes < 15:
+				bldr.append("<15")
+			else:
+				bldr.append(str(minutes))
+		bldr.append("\n")
+
+	return ''.join(bldr)
