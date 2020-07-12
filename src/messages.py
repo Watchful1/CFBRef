@@ -4,6 +4,7 @@ import praw
 import traceback
 from datetime import datetime
 
+import counters
 import reddit
 import utils
 import wiki
@@ -650,6 +651,9 @@ def processMessage(message, reprocess=False, isRerun=False):
 	updateWaiting = True
 	dataTable = None
 
+	message_created = datetime.utcfromtimestamp(message.created_utc)
+	counters.reply_latency.observe((datetime.utcnow() - message_created).total_seconds())
+
 	if message.parent_id is not None and (message.parent_id.startswith("t1") or message.parent_id.startswith("t4")):
 		if isMessage:
 			parent = reddit.getMessage(message.parent_id[3:])
@@ -665,7 +669,7 @@ def processMessage(message, reprocess=False, isRerun=False):
 					dataTable['source'] = parent.fullname
 					log.debug("Found a valid datatable in parent message: {}".format(str(dataTable)))
 
-			seconds_lag = (datetime.utcfromtimestamp(message.created_utc) - datetime.utcfromtimestamp(parent.created_utc)).total_seconds()
+			seconds_lag = (message_created - datetime.utcfromtimestamp(parent.created_utc)).total_seconds()
 			log.debug(f"Saving reply lag of {seconds_lag:.0f} for u/{message.author.name}")
 			coach_stats.add_stat(message.author.name, seconds_lag)
 
