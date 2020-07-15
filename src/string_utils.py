@@ -696,7 +696,7 @@ def renderTeamsWiki(teams):
 def renderCoachesWiki(coaches):
 	bldr = []
 
-	bldr.append("Coach|Latest Response|Minutes Lag\n")
+	bldr.append("Coach|Latest Response|Seconds Lag\n")
 	bldr.append(":-:|:-:|:-:\n")
 
 	min_count = 20
@@ -712,7 +712,7 @@ def renderCoachesWiki(coaches):
 			bldr.append("/")
 			bldr.append(str(min_count))
 		else:
-			bldr.append(str(round(coach['count'] / 60, 2)))
+			bldr.append(str(coach['count']))
 		bldr.append("\n")
 
 	return ''.join(bldr)
