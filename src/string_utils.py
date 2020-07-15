@@ -699,7 +699,7 @@ def renderCoachesWiki(coaches):
 	bldr.append("Coach|Latest Response|Minutes Lag\n")
 	bldr.append(":-:|:-:|:-:\n")
 
-	min_count = 100
+	min_count = 20
 	for coach in coaches:
 		bldr.append("u/")
 		bldr.append(coach['username'])
@@ -712,11 +712,7 @@ def renderCoachesWiki(coaches):
 			bldr.append("/")
 			bldr.append(str(min_count))
 		else:
-			minutes = int(coach['count'] / 60)
-			if minutes < 15:
-				bldr.append("<15")
-			else:
-				bldr.append(str(minutes))
+			bldr.append(str(int(coach['count'] / 60)))
 		bldr.append("\n")
 
 	return ''.join(bldr)
