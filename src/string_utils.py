@@ -707,12 +707,12 @@ def renderCoachesWiki(coaches):
 		bldr.append(datetime.strptime(coach['latest'], "%Y-%m-%d %H:%M:%S").strftime("%m/%d"))
 		bldr.append("|")
 		if coach['count'] < min_count:
-			bldr.append("Insufficient data: ")
+			bldr.append("NA: ")
 			bldr.append(str(coach['count']))
 			bldr.append("/")
 			bldr.append(str(min_count))
 		else:
-			bldr.append(str(int(coach['count'] / 60)))
+			bldr.append(str(round(coach['count'] / 60, 2)))
 		bldr.append("\n")
 
 	return ''.join(bldr)
