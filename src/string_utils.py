@@ -712,7 +712,7 @@ def renderCoachesWiki(coaches):
 			bldr.append("/")
 			bldr.append(str(min_count))
 		else:
-			bldr.append(str(round(coach['seconds'] / coach['count'], 2)))
+			bldr.append(str(coach['seconds']))
 		bldr.append("\n")
 
 	return ''.join(bldr)
