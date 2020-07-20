@@ -201,6 +201,16 @@ def getTimeAfterForOffense(game, homeAway):
 		return 20
 	elif offenseType == OffenseType.AIR:
 		return 10
+	elif offenseType == OffenseType.SPREAD_TEST:
+		return 12
+	elif offenseType == OffenseType.WESTCOAST_TEST:
+		return 17
+	elif offenseType == OffenseType.PRO_TEST:
+		return 15
+	elif offenseType == OffenseType.OPTION_TEST:
+		return 20
+	elif offenseType == OffenseType.AIR_TEST:
+		return 10
 	else:
 		log.warning("Not a valid offense: {}".format(offenseType))
 		return None

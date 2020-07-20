@@ -153,6 +153,16 @@ def renderOffenseType(offense):
 		return "Option"
 	elif offense == OffenseType.AIR:
 		return "Air"
+	elif offense == OffenseType.SPREAD_TEST:
+		return "Spread test"
+	elif offense == OffenseType.WESTCOAST_TEST:
+		return "Westcoast test"
+	elif offense == OffenseType.PRO_TEST:
+		return "Pro test"
+	elif offense == OffenseType.OPTION_TEST:
+		return "Option test"
+	elif offense == OffenseType.AIR_TEST:
+		return "Air test"
 	else:
 		log.warning(f"Unknown offense type: {offense}")
 		return offense.name
@@ -165,6 +175,16 @@ def renderDefenseType(defense):
 		return "4-3"
 	elif defense == DefenseType.FIVE_TWO:
 		return "5-2"
+	elif defense == DefenseType.THREE_FOUR_TEST:
+		return "3-4 test"
+	elif defense == DefenseType.FOUR_THREE_TEST:
+		return "4-3 test"
+	elif defense == DefenseType.FIVE_TWO_TEST:
+		return "5-2 test"
+	elif defense == DefenseType.FOUR_FOUR_TEST:
+		return "4-4 test"
+	elif defense == DefenseType.THREE_THREE_FIVE_TEST:
+		return "3-3-5 test"
 	else:
 		log.warning(f"Unknown defense type: {defense}")
 		return defense.name

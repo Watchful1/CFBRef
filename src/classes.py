@@ -16,12 +16,22 @@ class OffenseType(Enum):
 	PRO = 2
 	OPTION = 3
 	AIR = 4
+	SPREAD_TEST = 5
+	WESTCOAST_TEST = 6
+	PRO_TEST = 7
+	OPTION_TEST = 8
+	AIR_TEST = 9
 
 
 class DefenseType(Enum):
 	THREE_FOUR = 1
 	FOUR_THREE = 2
 	FIVE_TWO = 3
+	THREE_FOUR_TEST = 4
+	FOUR_THREE_TEST = 5
+	FIVE_TWO_TEST = 6
+	FOUR_FOUR_TEST = 7
+	THREE_THREE_FIVE_TEST = 8
 
 
 class TimeoutOption(Enum):

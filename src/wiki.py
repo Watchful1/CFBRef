@@ -51,26 +51,46 @@ def validateItem(playItem, regex):
 
 def parseOffense(offenseString):
 	offenseString = offenseString.lower()
-	if "option" in offenseString:
+	if "option" == offenseString:
 		return OffenseType.OPTION
-	elif "spread" in offenseString:
+	elif "spread" == offenseString:
 		return OffenseType.SPREAD
-	elif "pro" in offenseString:
+	elif "pro" == offenseString:
 		return OffenseType.PRO
-	elif "air" in offenseString:
+	elif "air" == offenseString:
 		return OffenseType.AIR
+	elif "spread-test" == offenseString:
+		return OffenseType.SPREAD_TEST
+	elif "westcoast-test" == offenseString:
+		return OffenseType.WESTCOAST_TEST
+	elif "pro-test" == offenseString:
+		return OffenseType.PRO_TEST
+	elif "option-test" == offenseString:
+		return OffenseType.OPTION_TEST
+	elif "air-test" == offenseString:
+		return OffenseType.AIR_TEST
 	else:
 		return None
 
 
 def parseDefense(defenseString):
 	defenseString = defenseString.lower()
-	if "3-4" in defenseString:
+	if "3-4" == defenseString:
 		return DefenseType.THREE_FOUR
-	elif "4-3" in defenseString:
+	elif "4-3" == defenseString:
 		return DefenseType.FOUR_THREE
-	elif "5-2" in defenseString:
+	elif "5-2" == defenseString:
 		return DefenseType.FIVE_TWO
+	elif "3-4-test" == defenseString:
+		return DefenseType.THREE_FOUR_TEST
+	elif "4-3-test" == defenseString:
+		return DefenseType.FOUR_THREE_TEST
+	elif "5-2-test" == defenseString:
+		return DefenseType.FIVE_TWO_TEST
+	elif "4-4-test" == defenseString:
+		return DefenseType.FOUR_FOUR_TEST
+	elif "3-3-5-test" == defenseString:
+		return DefenseType.THREE_THREE_FIVE_TEST
 	else:
 		return None
 
@@ -129,54 +149,6 @@ def parseResult(resultString):
 		return Result.TURNOVER_PAT
 	else:
 		return None
-
-
-def loadTeamsOld():
-	global teams
-	teams = {}
-	teamsPage = reddit.getWikiPage(static.CONFIG_SUBREDDIT, "teams")
-
-	requirements = {
-		'tag': r"[a-z]+",
-		'name': r"[\w -]+",
-	}
-	for teamLine in teamsPage.splitlines():
-		items = teamLine.split('|')
-		if len(items) < 5:
-			log.warning("Could not parse team line: {}".format(teamLine))
-			continue
-
-		offense = parseOffense(items[2].lower())
-		if offense is None:
-			log.warning("Invalid offense type for team {}: {}".format(items[0], items[2]))
-			continue
-
-		defense = parseDefense(items[3].lower())
-		if defense is None:
-			log.warning("Invalid defense type for team {}: {}".format(items[0], items[2]))
-			continue
-
-		team = Team(tag=items[0], name=items[1], offense=offense, defense=defense)
-
-		for requirement in requirements:
-			if not validateItem(getattr(team, requirement), requirements[requirement]):
-				log.debug("Could not validate team on {}: {}".format(requirement, getattr(team, requirement)))
-				continue
-
-		for coach in items[4].lower().split(','):
-			coach = coach.strip()
-			team.coaches.append(coach)
-		teams[team.tag] = team
-
-	coach1 = "watchful1"
-	team1 = Team(tag="team1", name="Team 1", offense=OffenseType.OPTION, defense=DefenseType.THREE_FOUR)
-	team1.coaches.append(coach1)
-	teams[team1.tag] = team1
-
-	coach2 = "watchful1bot"
-	team2 = Team(tag="team2", name="Team 2", offense=OffenseType.SPREAD, defense=DefenseType.FOUR_THREE)
-	team2.coaches.append(coach2)
-	teams[team2.tag] = team2
 
 
 def parseTeamLine(teamLine):
@@ -325,11 +297,23 @@ def loadPlays():
 				continue
 
 		playParts = {}
+		previousMax = 751
 		for item in items[startIndex:]:
 			range, play = parsePlayPart(item)
 			if play is None:
+				log.warning(f"Could not parse play part: {item}")
 				continue
+			rangeParts = range.split("-")
+			if not len(rangeParts) == 2:
+				log.warning(f"Bad range: {range}")
+				continue
+			if previousMax - 1 != int(rangeParts[1]):
+				log.warning(f"Bad range max, {range}, expecting {previousMax}")
+			previousMax = int(rangeParts[0])
 			playParts[range] = play
+
+		if previousMax != 0:
+			log.warning(f"After parsing ranges, ended on {previousMax}")
 
 		if isMovementPlay:
 			plays[playType][offense][defense][items[3]] = playParts
