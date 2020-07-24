@@ -47,6 +47,7 @@ if not os.path.exists(static.ARCHIVE_FOLDER_NAME):
 def signal_handler(signal, frame):
 	log.info("Handling interupt")
 	coach_stats.close()
+	discord_logging.flush_discord()
 	sys.exit(0)
 
 
@@ -157,6 +158,8 @@ while True:
 
 			if count_messages % 50 == 0:
 				wiki.updateCoachesWiki()
+
+			discord_logging.flush_discord()
 
 			if once:
 				break
