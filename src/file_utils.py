@@ -18,7 +18,7 @@ def loadGameObject(threadID):
 	try:
 		file = open("{}/{}".format(static.SAVE_FOLDER_NAME, threadID), 'rb')
 	except FileNotFoundError as err:
-		log.warning("Game file doesn't exist: {}".format(threadID))
+		log.info("Game file doesn't exist: {}".format(threadID))
 		return None
 	game = pickle.load(file)
 	file.close()
