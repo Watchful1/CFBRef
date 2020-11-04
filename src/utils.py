@@ -4,6 +4,7 @@ import re
 import copy
 import requests
 import json
+import prawcore
 from datetime import datetime
 from datetime import timedelta
 
@@ -23,6 +24,21 @@ from classes import QuarterType
 from classes import DriveSummary
 
 log = logging.getLogger("bot")
+
+
+def process_error(message, exception, traceback):
+	is_transient = \
+		isinstance(exception, prawcore.exceptions.ServerError) or \
+		isinstance(exception, requests.exceptions.Timeout) or \
+		isinstance(exception, requests.exceptions.ReadTimeout) or \
+		isinstance(exception, requests.exceptions.RequestException)
+	log.warning(f"{message}: {type(exception).__name__} : {exception}")
+	if is_transient:
+		log.info(traceback)
+	else:
+		log.warning(traceback)
+
+	return is_transient
 
 
 def startGame(homeTeam, awayTeam, startTime=None, location=None, station=None, homeRecord=None, awayRecord=None,

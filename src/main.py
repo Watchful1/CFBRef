@@ -165,8 +165,9 @@ while True:
 				break
 
 	except Exception as err:
-		log.warning("Hit an error in main loop")
-		log.warning(traceback.format_exc())
+		utils.process_error(f"Hit an error in main loop", err, traceback.format_exc())
+
+	discord_logging.flush_discord()
 
 	if once:
 		break
