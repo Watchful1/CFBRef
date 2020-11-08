@@ -669,9 +669,10 @@ def processMessage(message, reprocess=False, isRerun=False):
 					dataTable['source'] = parent.fullname
 					log.debug("Found a valid datatable in parent message: {}".format(str(dataTable)))
 
-			seconds_lag = (message_created - datetime.utcfromtimestamp(parent.created_utc)).total_seconds()
-			log.debug(f"Saving reply lag of {seconds_lag:.0f} for u/{message.author.name}")
-			coach_stats.add_stat(message.author.name, seconds_lag)
+			if not isRerun:
+				seconds_lag = (message_created - datetime.utcfromtimestamp(parent.created_utc)).total_seconds()
+				log.debug(f"Saving reply lag of {seconds_lag:.0f} for u/{message.author.name}")
+				coach_stats.add_stat(message.author.name, seconds_lag)
 
 	body = message.body.lower()
 	author = str(message.author)
