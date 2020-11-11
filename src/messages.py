@@ -652,7 +652,8 @@ def processMessage(message, reprocess=False, isRerun=False):
 	dataTable = None
 
 	message_created = datetime.utcfromtimestamp(message.created_utc)
-	counters.reply_latency.observe((datetime.utcnow() - message_created).total_seconds())
+	if not isRerun:
+		counters.reply_latency.observe((datetime.utcnow() - message_created).total_seconds())
 
 	if message.parent_id is not None and (message.parent_id.startswith("t1") or message.parent_id.startswith("t4")):
 		if isMessage:
