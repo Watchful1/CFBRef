@@ -626,6 +626,8 @@ def processMessageRerunLastPlay(body):
 			utils.revertStatus(game, 0)
 			file_utils.saveGameObject(game)
 			reprocessPlay(game, game.status.messageId, True)
+			if game.errored:
+				log.warning(f"Game still errored after rerun: {game.thread}")
 		else:
 			log.info("Game has no plays")
 			return "Game has no plays"
