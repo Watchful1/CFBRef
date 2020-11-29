@@ -409,7 +409,7 @@ def loadStrings():
 			strings[row[0]].append({'value': row[1], 'probability': probability, 'yards': yards})
 
 
-def getStringFromKey(stringKey, yards=None, replacements=None):
+def getStringFromKey(stringKey, yards=None, repl=None):
 	if stringKey not in strings:
 		log.warning(f"Tried to fetch key that doesn't exist {stringKey}")
 		return f"Key not found {stringKey}"
@@ -443,17 +443,17 @@ def getStringFromKey(stringKey, yards=None, replacements=None):
 
 	choice = random.choices(choices, probabilities)[0]
 
-	bldr = []
-	if replacements is not None:
-		try:
-			bldr.append(choice.format(**replacements))
-		except Exception as err:
-			log.warning(f"Could not format string: {stringKey} : {str(replacements)}")
-			log.warning(f"Choice: {choice}")
-			return choice
+	if repl is None:
+		repl = {}
+	repl['yards'] = yards
 
-	else:
-		bldr.append(choice)
+	bldr = []
+	try:
+		bldr.append(choice.format(**repl))
+	except Exception as err:
+		log.warning(f"Could not format string: {stringKey} : {str(repl)}")
+		log.warning(f"Choice: {choice}")
+		return choice
 
 	bldr.append("^[(!)](")
 	bldr.append(string_utils.buildMessageLink(
