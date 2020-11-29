@@ -14,24 +14,17 @@ class RunStatus(Enum):
 class OffenseType(Enum):
 	SPREAD = 1
 	PRO = 2
-	OPTION = 3
+	FLEXBONE = 3
 	AIR = 4
-	SPREAD_TEST = 5
-	WESTCOAST_TEST = 6
-	PRO_TEST = 7
-	OPTION_TEST = 8
-	AIR_TEST = 9
+	PISTOL = 5
 
 
 class DefenseType(Enum):
 	THREE_FOUR = 1
 	FOUR_THREE = 2
 	FIVE_TWO = 3
-	THREE_FOUR_TEST = 4
-	FOUR_THREE_TEST = 5
-	FIVE_TWO_TEST = 6
-	FOUR_FOUR_TEST = 7
-	THREE_THREE_FIVE_TEST = 8
+	FOUR_FOUR = 4
+	THREE_THREE_FIVE = 5
 
 
 class TimeoutOption(Enum):

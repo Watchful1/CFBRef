@@ -51,24 +51,16 @@ def validateItem(playItem, regex):
 
 def parseOffense(offenseString):
 	offenseString = offenseString.lower()
-	if "option" == offenseString:
-		return OffenseType.OPTION
+	if "option" == offenseString or "flexbone" == offenseString:
+		return OffenseType.FLEXBONE
 	elif "spread" == offenseString:
 		return OffenseType.SPREAD
 	elif "pro" == offenseString:
 		return OffenseType.PRO
 	elif "air" == offenseString:
 		return OffenseType.AIR
-	elif "spread-test" == offenseString:
-		return OffenseType.SPREAD_TEST
-	elif "westcoast-test" == offenseString:
-		return OffenseType.WESTCOAST_TEST
-	elif "pro-test" == offenseString:
-		return OffenseType.PRO_TEST
-	elif "option-test" == offenseString:
-		return OffenseType.OPTION_TEST
-	elif "air-test" == offenseString:
-		return OffenseType.AIR_TEST
+	elif "pistol" == offenseString or "westcoast" == offenseString:
+		return OffenseType.PISTOL
 	else:
 		return None
 
@@ -81,16 +73,10 @@ def parseDefense(defenseString):
 		return DefenseType.FOUR_THREE
 	elif "5-2" == defenseString:
 		return DefenseType.FIVE_TWO
-	elif "3-4-test" == defenseString:
-		return DefenseType.THREE_FOUR_TEST
-	elif "4-3-test" == defenseString:
-		return DefenseType.FOUR_THREE_TEST
-	elif "5-2-test" == defenseString:
-		return DefenseType.FIVE_TWO_TEST
-	elif "4-4-test" == defenseString:
-		return DefenseType.FOUR_FOUR_TEST
-	elif "3-3-5-test" == defenseString:
-		return DefenseType.THREE_THREE_FIVE_TEST
+	elif "4-4" == defenseString:
+		return DefenseType.FOUR_FOUR
+	elif "3-3-5" == defenseString:
+		return DefenseType.THREE_THREE_FIVE
 	else:
 		return None
 

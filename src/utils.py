@@ -403,7 +403,7 @@ def newGameObject(home, away, quarterLength):
 
 
 def newDebugGameObject():
-	home = classes.Team(tag="team1", name="Team 1", offense=classes.OffenseType.OPTION,
+	home = classes.Team(tag="team1", name="Team 1", offense=classes.OffenseType.FLEXBONE,
 						defense=classes.DefenseType.THREE_FOUR)
 	home.coaches.append("watchful1")
 	away = classes.Team(tag="team2", name="Team 2", offense=classes.OffenseType.SPREAD,
