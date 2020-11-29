@@ -5,6 +5,7 @@ import random
 import csv
 from datetime import datetime
 from datetime import timedelta
+from collections import defaultdict
 
 import reddit
 import static
@@ -392,26 +393,57 @@ def loadIntro():
 
 def loadStrings():
 	global strings
-	strings = {}
+	strings = defaultdict(list)
 	with open("data/strings.csv", 'r') as stringsFile:
 		csv_reader = csv.reader(stringsFile, delimiter=",")
 		next(csv_reader)  # skip the headers
 		for row in csv_reader:
-			stringKey = row[0]
-			strings[stringKey] = []
+			if row[2] == '':
+				probability = None
+			else:
+				probability = row[2]
+			if row[3] == '':
+				yards = None
+			else:
+				yards = row[3]
+			strings[row[0]].append({'value': row[1], 'probability': probability, 'yards': yards})
 
-			for stringItem in row[1:]:
-				if stringItem != "":
-					strings[stringKey].append(stringItem)
 
-
-def getStringFromKey(stringKey, replacements=None):
+def getStringFromKey(stringKey, yards=None, replacements=None):
 	if stringKey not in strings:
 		log.warning(f"Tried to fetch key that doesn't exist {stringKey}")
 		return f"Key not found {stringKey}"
 
+	stringValues = []
+	existingProbabilities = 0
+	countNoProbability = 0
+	for stringValue in strings[stringKey]:
+		if yards is None or yards >= stringValue['yards']:
+			stringValues.append(stringValue)
+			if stringValue['probability'] is not None:
+				existingProbabilities += stringValue['probability']
+			else:
+				countNoProbability += 1
+
+	choices = []
+	probabilities = []
+	splitProbability = 100 / (len(stringValues) - countNoProbability)
+	sumProbabilities = 0
+	for stringValue in stringValues:
+		choices.append(stringValue['value'])
+		if stringValue['probability'] is not None:
+			probability = stringValue['probability']
+		else:
+			probability = splitProbability
+		probabilities.append(probability)
+		sumProbabilities += probability
+
+	if sumProbabilities != 100:
+		log.warning(f"Probabilities didn't sum to 100: {sumProbabilities} : {stringKey}")
+
+	choice = random.choices(choices, probabilities)[0]
+
 	bldr = []
-	choice = random.choice(strings[stringKey])
 	if replacements is not None:
 		try:
 			bldr.append(choice.format(**replacements))

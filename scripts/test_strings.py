@@ -1,0 +1,3 @@
+import wiki
+
+wiki.loadStrings()
