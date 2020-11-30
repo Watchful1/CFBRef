@@ -426,7 +426,7 @@ def getStringFromKey(stringKey, yards=None, repl=None):
 
 	choices = []
 	probabilities = []
-	splitProbability = round(100 / (len(stringValues) - countProbability), 2)
+	splitProbability = 100 / (len(stringValues) - countProbability)
 	sumProbabilities = 0
 	for stringValue in stringValues:
 		choices.append(stringValue['value'])
@@ -437,7 +437,7 @@ def getStringFromKey(stringKey, yards=None, repl=None):
 		probabilities.append(probability)
 		sumProbabilities += probability
 
-	if sumProbabilities != 100:
+	if round(sumProbabilities, 0) != 100:
 		strProbabilities = []
 		for probability in probabilities:
 			strProbabilities.append(str(probability))
