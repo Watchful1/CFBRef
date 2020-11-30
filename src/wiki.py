@@ -438,7 +438,7 @@ def getStringFromKey(stringKey, yards=None, repl=None):
 		sumProbabilities += probability
 
 	if sumProbabilities != 100:
-		log.warning(f"Probabilities didn't sum to 100: {sumProbabilities} : {stringKey}")
+		log.warning(f"Probabilities didn't sum to 100: {sumProbabilities} : {','.join(probabilities)} : {stringKey}")
 
 	choice = random.choices(choices, probabilities)[0]
 
