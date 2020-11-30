@@ -401,11 +401,11 @@ def loadStrings():
 			if row[2] == '':
 				probability = None
 			else:
-				probability = row[2]
+				probability = int(row[2])
 			if row[3] == '':
 				yards = None
 			else:
-				yards = row[3]
+				yards = int(row[3])
 			strings[row[0]].append({'value': row[1], 'probability': probability, 'yards': yards})
 
 
@@ -418,7 +418,7 @@ def getStringFromKey(stringKey, yards=None, repl=None):
 	existingProbabilities = 0
 	countNoProbability = 0
 	for stringValue in strings[stringKey]:
-		if yards is None or yards >= stringValue['yards']:
+		if yards is None or stringValue['yards'] is None or yards >= stringValue['yards']:
 			stringValues.append(stringValue)
 			if stringValue['probability'] is not None:
 				existingProbabilities += stringValue['probability']
