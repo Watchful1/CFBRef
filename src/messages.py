@@ -620,6 +620,8 @@ def processMessageRerunLastPlay(body):
 		log.info("Game has already been rerun")
 		return f"The last play has already been rerun. If the game is still broken, please ping {static.OWNER} in discord"
 
+	index.clearGameErrored(game)
+
 	try:
 		if len(game.previousStatus):
 			log.debug("Reverting status and reprocessing {}".format(game.previousStatus[0].messageId))
