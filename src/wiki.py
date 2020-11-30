@@ -416,18 +416,17 @@ def getStringFromKey(stringKey, yards=None, repl=None):
 
 	stringValues = []
 	existingProbabilities = 0
-	countNoProbability = 0
+	countProbability = 0
 	for stringValue in strings[stringKey]:
 		if yards is None or stringValue['yards'] is None or yards >= stringValue['yards']:
 			stringValues.append(stringValue)
 			if stringValue['probability'] is not None:
 				existingProbabilities += stringValue['probability']
-			else:
-				countNoProbability += 1
+				countProbability += 1
 
 	choices = []
 	probabilities = []
-	splitProbability = 100 / (len(stringValues) - countNoProbability)
+	splitProbability = 100 / (len(stringValues) - countProbability)
 	sumProbabilities = 0
 	for stringValue in stringValues:
 		choices.append(stringValue['value'])
