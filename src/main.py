@@ -116,17 +116,13 @@ while True:
 					log.debug("Setting game {} as errored".format(static.game.thread))
 					index.setGameErrored(static.game)
 					file_utils.saveGameObject(static.game)
-					ownerMessage = string_utils.renderGameStatusMessage(static.game)
 
-					message.reply("This game has errored. Please wait for the bot owner to help.")
-				else:
-					ownerMessage = "Unable to process message from /u/{}, skipping".format(str(message.author))
+					message.reply(string_utils.renderErrorMessage())
 
 				try:
-					reddit.sendMessage(static.OWNER, "NCFAA game errored", ownerMessage)
 					message.mark_read()
 				except Exception as err2:
-					log.warning("Error sending error message")
+					log.warning("Error marking errored game message as read")
 					log.warning(traceback.format_exc())
 
 			log.debug("Message processed after: %d", int(time.perf_counter() - startTime))

@@ -121,6 +121,11 @@ def getMessageStream():
 def replyMessage(message, body):
 	try:
 		return message.reply(body)
+	except praw.exceptions.RedditAPIException as err:
+		if "DELETED_COMMENT" in err.message:
+			log.info(traceback.format_exc())
+		else:
+			log.warning(traceback.format_exc())
 	except Exception as err:
 		log.warning(traceback.format_exc())
 		return None

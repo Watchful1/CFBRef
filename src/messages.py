@@ -697,8 +697,7 @@ def processMessage(message, reprocess=False, isRerun=False):
 
 			elif game.errored:
 				log.debug("Game is errored, skipping")
-				response = "This game is currently in an error state, /u/{} has been contacted to take a look".format(
-					static.OWNER)
+				response = string_utils.renderErrorMessage()
 				success = False
 				updateWaiting = False
 

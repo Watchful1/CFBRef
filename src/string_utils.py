@@ -722,3 +722,10 @@ def renderCoachesWiki(coaches):
 		bldr.append("\n")
 
 	return ''.join(bldr)
+
+
+def renderErrorMessage():
+	return \
+		"This game has errored. [Check here](https://www.redditstatus.com/) to see if reddit is partially down. Then " \
+		"contact a commissioner or post in #refbot on discord with a link to your game thread asking for help. If " \
+		"you're seeing this after they have helped, ping @Watchful1 on discord."
