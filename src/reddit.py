@@ -125,8 +125,11 @@ def replyMessage(message, body):
 		if "DELETED_COMMENT" in err.message:
 			log.info(traceback.format_exc())
 		else:
+			log.warning(f"Reddit API exception sending message: {err}")
+			log.warning(f"{err.message}")
 			log.warning(traceback.format_exc())
 	except Exception as err:
+		log.warning(f"Error sending message: {err}")
 		log.warning(traceback.format_exc())
 		return None
 
