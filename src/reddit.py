@@ -122,11 +122,11 @@ def replyMessage(message, body):
 	try:
 		return message.reply(body)
 	except praw.exceptions.RedditAPIException as err:
-		if "DELETED_COMMENT" in err.message:
+		if err.error_type == 'DELETED_COMMENT':
+			log.info(f"Unable to reply, comment deleted: {message.id}")
 			log.info(traceback.format_exc())
 		else:
 			log.warning(f"Reddit API exception sending message: {err}")
-			log.warning(f"{err.message}")
 			log.warning(traceback.format_exc())
 	except Exception as err:
 		log.warning(f"Error sending message: {err}")
