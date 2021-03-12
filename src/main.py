@@ -110,8 +110,13 @@ while True:
 				messages.processMessage(message)
 				counters.objects_replied.inc()
 			except Exception as err:
-				log.warning("Error in main loop")
-				log.warning(traceback.format_exc())
+				if utils.error_is_transient(err):
+					log.warning(f"Transient error, sleeping: {err}")
+					log.warning(traceback.format_exc())
+					time.sleep(180)
+				else:
+					log.warning(f"Error processing message: {err}")
+					log.warning(traceback.format_exc())
 				if static.game is not None:
 					log.debug("Setting game {} as errored".format(static.game.thread))
 					index.setGameErrored(static.game)

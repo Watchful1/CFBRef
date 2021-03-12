@@ -639,6 +639,7 @@ def processMessageRerunLastPlay(body):
 		log.warning("Unable to revert game")
 		return "Something went wrong reprocessing the last play"
 
+	log.warning(f"Reran last play for game {threadId}")
 	return f"Reran last play for game {threadId}"
 
 
