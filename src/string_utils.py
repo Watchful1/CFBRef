@@ -351,6 +351,13 @@ def renderGame(game):
 		f"pause {game.thread} 12")
 	)
 	bldr.append(")")
+	bldr.append(" ^| [^Pause](")
+	bldr.append(buildMessageLink(
+		static.ACCOUNT_NAME,
+		"Chew",
+		f"chew {game.thread}")
+	)
+	bldr.append(")")
 	bldr.append(" ^| [^Abandon](")
 	bldr.append(buildMessageLink(
 		static.ACCOUNT_NAME,
