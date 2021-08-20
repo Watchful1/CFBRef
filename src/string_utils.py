@@ -351,7 +351,7 @@ def renderGame(game):
 		f"pause {game.thread} 12")
 	)
 	bldr.append(")")
-	bldr.append(" ^| [^Pause](")
+	bldr.append(" ^| [^Chew](")
 	bldr.append(buildMessageLink(
 		static.ACCOUNT_NAME,
 		"Chew",
