@@ -116,5 +116,5 @@ punt,,,11-15,725-750|turnoverTouchdown,700-724|turnover,40-699|punt|15,33-39|pun
 punt,,,6-10,725-750|turnoverTouchdown,700-724|turnover,32-699|punt|10,25-31|punt|5,1-24|gain|40,0-0|touchdown,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 punt,,,0-5,725-750|turnoverTouchdown,700-724|turnover,25-699|punt|5,1-24|gain|40,0-0|touchdown,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 kickoffNormal,,,0-100,735-750|turnoverTouchdown,730-734|kick|0,720-729|kick|15,690-719|kick|25,580-689|kick|35,240-579|touchback,100-239|kick|45,50-99|kick|55,16-49|kick|60,1-15|gain|45,0-0|touchdown,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-kickoffSquib,,,0-100,750-750|turnoverTouchdown,720-749|kick|15,690-719|kick|20,580-689|kick|25,300-579|kick|30,16-299|kick|35,1-15|gain|45,0-0|touchdown,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+kickoffSquib,,,0-100,750-750|turnoverTouchdown,720-749|kick|15,690-719|kick|20,580-689|kick|25,300-579|kick|30,16-299|kick|35,1-15|gain|30,0-0|touchdown,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 kickoffOnside,,,0-100,748-750|turnoverTouchdown,140-747|kick|10,0-139|gain|10,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
