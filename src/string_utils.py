@@ -742,7 +742,7 @@ def renderGamesWiki(games):
 	conferenceNames = []
 	for conference in conferences:
 		conferenceNames.append(conference)
-		conferences[conference].sort(key=lambda team: team.tag)
+		conferences[conference].sort(key=lambda game: game.away.tag)
 
 	conferenceNames.sort(key=lambda name: name if name is not None else "")
 
