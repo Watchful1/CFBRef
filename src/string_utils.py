@@ -753,8 +753,8 @@ def renderGamesWiki(games):
 			bldr.append(conference)
 			bldr.append("**\n\n")
 
-		bldr.append("Away|Home|Score|Quarter|Time|Thread|Admin\n")
-		bldr.append(":-:|:-:|:-:|:-:|:-:|:-:|:-:\n")
+		bldr.append("Away|Home|Score|Quarter|Time|Playclock|Deadline|Status|Thread|Admin\n")
+		bldr.append(":-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:\n")
 
 		for game in conferences[conference]:
 			bldr.append(flair(game.away))
@@ -770,6 +770,15 @@ def renderGamesWiki(games):
 			bldr.append(str(game.status.quarter))
 			bldr.append("|")
 			bldr.append(renderTime(game.status.clock))
+			bldr.append("|")
+			bldr.append(game.playclock.strftime("%Y-%m-%d %H:%M:%S utc"))
+			bldr.append("|")
+			bldr.append(game.deadline.strftime("%Y-%m-%d %H:%M:%S utc"))
+			bldr.append("|")
+			if game.errored:
+				bldr.append("errored")
+			elif game.forceChew:
+				bldr.append("chew")
 			bldr.append("|")
 			bldr.append("[link](")
 			bldr.append(static.SUBREDDIT_LINK)
