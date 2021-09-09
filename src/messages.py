@@ -2,7 +2,8 @@ import logging.handlers
 import re
 import praw
 import traceback
-from datetime import datetime
+from datetime import datetime, timedelta
+import pytz
 
 import counters
 import reddit
@@ -15,10 +16,7 @@ import index
 import string_utils
 import file_utils
 import coach_stats
-from classes import Play
-from classes import Action
-from classes import TimeoutOption
-from classes import TimeOption
+from classes import Play, Action, TimeoutOption, TimeOption, T, HomeAway
 
 log = logging.getLogger("bot")
 
@@ -431,12 +429,53 @@ def processMessageAbandonGame(body):
 	if game is None:
 		return "Game not found: {}".format(threadIds[0])
 
+	if game.status.state(T.home).points > game.status.state(T.away).points:
+		game_result = f"{game.team(T.home).name} wins {game.status.state(T.home).points}-{game.status.state(T.away).points}!"
+	elif game.status.state(T.home).points < game.status.state(T.away).points:
+		game_result = f"{game.team(T.away).name} wins {game.status.state(T.away).points}-{game.status.state(T.home).points}!"
+	else:
+		game_result = f"game was tied!"
+
+	reddit.replySubmission(
+		game.thread,
+		f"{string_utils.getCoachString(game, T.home)}\n\n{string_utils.getCoachString(game, T.away)}\n\nThis game has been force-ended; {game_result}"
+	)
+
 	utils.endGame(game, "Abandoned", False)
 	utils.updateGameThread(game)
 	file_utils.saveGameObject(game)
 	index.endGame(game)
 
 	return "Game {} abandoned".format(threadIds[0])
+
+
+def processMessageNotification(body):
+	log.debug("Processing notify game message")
+	threadIds = re.findall('(?: )([\da-z]{6})', body)
+	if len(threadIds) < 1:
+		log.debug("Couldn't find a thread id in message")
+		return "Couldn't find a thread id in message"
+	log.debug("Found thread id: {}".format(threadIds[0]))
+
+	game = index.reloadAndReturn(threadIds[0], True)
+	if game is None:
+		return "Game not found: {}".format(threadIds[0])
+
+	now_est = pytz.utc.localize(datetime.utcnow())\
+		.astimezone(static.EASTERN)\
+		.replace(hour=0).replace(minute=0).replace(second=0).replace(microsecond=0)
+	sat_est = now_est + timedelta((12 - now_est.weekday()) % 7) + timedelta(days=1)
+	sat_utc = sat_est.astimezone(pytz.utc)
+	sat = sat_utc.replace(tzinfo=None)
+	hours_till_sat = int(((sat - datetime.utcnow()).total_seconds() / 60) / 60)
+
+	reddit.replySubmission(
+		game.thread,
+		f"{string_utils.getCoachString(game, T.home)}\n\n{string_utils.getCoachString(game, T.away)}\n\n"
+		f"Hello! I just wanted to inform you that the game week ends this Saturday at 11:59 PM Eastern (or in about {hours_till_sat} hours). Please attempt to get as much of your game done as possible by that deadline. Thanks!"
+	)
+
+	return "Game {} notification posted".format(threadIds[0])
 
 
 def processMessageGameStatus(body):
@@ -484,27 +523,6 @@ def processMessageDefaultChew(body):
 	file_utils.saveGameObject(game)
 
 	return result
-
-
-def processMessageGameList(body):
-	log.debug("Processing game list message")
-
-	bldr = ['Teams|Link|Quarter|Clock\n:-:|:-:|:-:|:-:\n']
-	games = index.getAllGames()
-	log.debug("Listing {} games".format(len(games)))
-	for game in games:
-		bldr.append(game.away.name)
-		bldr.append(" vs ")
-		bldr.append(game.home.name)
-		bldr.append("|[Link](")
-		bldr.append(string_utils.getLinkToThread(game.thread))
-		bldr.append(")|")
-		bldr.append(str(game.status.quarter))
-		bldr.append("|")
-		bldr.append(string_utils.renderTime(game.status.clock))
-		bldr.append("\n")
-
-	return ''.join(bldr)
 
 
 def processMessageSuggestion(body, subject):
@@ -765,12 +783,12 @@ def processMessage(message, reprocess=False, isRerun=False):
 					response = processMessageReindex(message.body)
 				elif body.startswith("chew"):
 					response = processMessageDefaultChew(message.body)
-				elif body.startswith("gamelist"):
-					response = processMessageGameList(message.body)
 				elif body.startswith("restart"):
 					response = processMessageRestartGame(message.body)
 				elif body.startswith("rerun"):
 					response = processMessageRerunLastPlay(message.body)
+				elif body.startswith("notify"):
+					response = processMessageNotification(message.body)
 
 	message.mark_read()
 	if response is not None:

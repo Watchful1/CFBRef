@@ -753,7 +753,7 @@ def renderGamesWiki(games):
 			bldr.append(conference)
 			bldr.append("**\n\n")
 
-		bldr.append("Away|Home|Score|Quarter|Time|Playclock (UTC)|Deadline (UTC)|Status|Thread|Admin\n")
+		bldr.append("Away|Home|Score|Quarter|Time|Playclock|Deadline|Status|Thread|Admin\n")
 		bldr.append(":-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:\n")
 
 		for game in conferences[conference]:
@@ -771,9 +771,9 @@ def renderGamesWiki(games):
 			bldr.append("|")
 			bldr.append(renderTime(game.status.clock))
 			bldr.append("|")
-			bldr.append(game.playclock.strftime("%m-%d %H:%M"))
+			bldr.append(renderDatetime(game.playclock))
 			bldr.append("|")
-			bldr.append(game.deadline.strftime("%m-%d %H:%M"))
+			bldr.append(renderDatetime(game.deadline))
 			bldr.append("|")
 			if game.errored:
 				bldr.append("errored")
@@ -809,8 +809,15 @@ def renderGamesWiki(games):
 			bldr.append("[abandon](")
 			bldr.append(buildMessageLink(
 				static.ACCOUNT_NAME,
-				"Abandon ",
+				"Abandon",
 				f"abandon {game.thread}")
+			)
+			bldr.append(") ")
+			bldr.append("[notify](")
+			bldr.append(buildMessageLink(
+				static.ACCOUNT_NAME,
+				"Notify",
+				f"notify {game.thread}")
 			)
 			bldr.append(")")
 			bldr.append("\n")
