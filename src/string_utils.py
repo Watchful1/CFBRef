@@ -753,7 +753,7 @@ def renderGamesWiki(games):
 			bldr.append(conference)
 			bldr.append("**\n\n")
 
-		bldr.append("Away|Home|Score|Quarter|Time|Playclock|Deadline|Status|Thread|Admin\n")
+		bldr.append("Away|Home|Score|Quarter|Time|Playclock (UTC)|Deadline (UTC)|Status|Thread|Admin\n")
 		bldr.append(":-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:\n")
 
 		for game in conferences[conference]:
@@ -771,9 +771,9 @@ def renderGamesWiki(games):
 			bldr.append("|")
 			bldr.append(renderTime(game.status.clock))
 			bldr.append("|")
-			bldr.append(game.playclock.strftime("%Y-%m-%d %H:%M:%S utc"))
+			bldr.append(game.playclock.strftime("%m-%d %H:%M"))
 			bldr.append("|")
-			bldr.append(game.deadline.strftime("%Y-%m-%d %H:%M:%S utc"))
+			bldr.append(game.deadline.strftime("%m-%d %H:%M"))
 			bldr.append("|")
 			if game.errored:
 				bldr.append("errored")
