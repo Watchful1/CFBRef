@@ -165,7 +165,7 @@ while True:
 
 			if count_messages % 50 == 0:
 				wiki.updateCoachesWiki()
-				wiki.updateGamesWiki()
+				#wiki.updateGamesWiki()
 
 			discord_logging.flush_discord()
 

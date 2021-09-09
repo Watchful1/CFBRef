@@ -733,7 +733,7 @@ def renderCoachesWiki(coaches):
 
 def renderGamesWiki(games):
 	conferences = defaultdict(list)
-	for game in games:
+	for game in games.values():
 		if game.home.conference != game.away.conference:
 			conferences['mixed'].append(game)
 		else:
