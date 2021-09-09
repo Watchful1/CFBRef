@@ -93,6 +93,7 @@ coach_stats.init("database.db")
 if update_wiki:
 	wiki.updateTeamsWiki()
 	wiki.updateCoachesWiki()
+	wiki.updateGamesWiki()
 
 count_messages = 0
 while True:
@@ -164,6 +165,7 @@ while True:
 
 			if count_messages % 50 == 0:
 				wiki.updateCoachesWiki()
+				wiki.updateGamesWiki()
 
 			discord_logging.flush_discord()
 

@@ -731,6 +731,86 @@ def renderCoachesWiki(coaches):
 	return ''.join(bldr)
 
 
+def renderGamesWiki(games):
+	conferences = defaultdict(list)
+	for game in games:
+		if game.home.conference != game.away.conference:
+			conferences['mixed'].append(game)
+		else:
+			conferences[game.home.conference].append(game)
+
+	conferenceNames = []
+	for conference in conferences:
+		conferenceNames.append(conference)
+		conferences[conference].sort(key=lambda team: team.tag)
+
+	conferenceNames.sort(key=lambda name: name if name is not None else "")
+
+	bldr = []
+	for conference in conferenceNames:
+		if conference is not None:
+			bldr.append("***\n\n**")
+			bldr.append(conference)
+			bldr.append("**\n\n")
+
+		bldr.append("Away|Home|Score|Quarter|Time|Thread|Admin\n")
+		bldr.append(":-:|:-:|:-:|:-:|:-:|:-:|:-:\n")
+
+		for game in conferences[conference]:
+			bldr.append(flair(game.away))
+			bldr.append(game.away.name)
+			bldr.append("|")
+			bldr.append(flair(game.home))
+			bldr.append(game.home.name)
+			bldr.append("|")
+			bldr.append(str(game.status.awayState.points))
+			bldr.append("-")
+			bldr.append(str(game.status.homeState.points))
+			bldr.append("|")
+			bldr.append(str(game.status.quarter))
+			bldr.append("|")
+			bldr.append(renderTime(game.status.clock))
+			bldr.append("|")
+			bldr.append(renderTime(game.status.clock))
+			bldr.append("|")
+			bldr.append("[link](")
+			bldr.append(static.SUBREDDIT_LINK)
+			bldr.append(game.thread)
+			bldr.append(")")
+			bldr.append("|")
+			bldr.append("[rerun](")
+			bldr.append(buildMessageLink(
+				static.ACCOUNT_NAME,
+				"Rerun",
+				f"rerun {game.thread}")
+			)
+			bldr.append(")")
+			bldr.append("[pause](")
+			bldr.append(buildMessageLink(
+				static.ACCOUNT_NAME,
+				"Pause",
+				f"pause {game.thread} 12")
+			)
+			bldr.append(")")
+			bldr.append("[chew](")
+			bldr.append(buildMessageLink(
+				static.ACCOUNT_NAME,
+				"Chew",
+				f"chew {game.thread}")
+			)
+			bldr.append(")")
+			bldr.append("[abandon](")
+			bldr.append(buildMessageLink(
+				static.ACCOUNT_NAME,
+				"Abandon ",
+				f"abandon {game.thread}")
+			)
+			bldr.append(")")
+			bldr.append("\n\n")
+
+	return ''.join(bldr)
+
+
 def renderErrorMessage():
 	return \
 		"This game has errored. [Check here](https://www.redditstatus.com/) to see if reddit is partially down. Then " \

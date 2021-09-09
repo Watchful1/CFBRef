@@ -102,8 +102,6 @@ def startGame(homeTeam, awayTeam, startTime=None, location=None, station=None, h
 	log.debug("Comment posted, now waiting on: {}".format(game.status.waitingId))
 	updateGameThread(game)
 
-	wiki.updateTeamsWiki()
-
 	log.debug("Returning game started message")
 	return "Game started between {} and {}. Find it [here]({}).".format(
 		homeTeam.name,

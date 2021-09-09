@@ -82,6 +82,7 @@ def processMessageNewGame(body, author):
 		results.append(utils.startGame(homeTeam, awayTeam, startTime, location, station, homeRecord, awayRecord, prefix, suffix, quarterLength))
 
 	wiki.updateTeamsWiki()
+	wiki.updateGamesWiki()
 	return '\n'.join(results)
 
 
