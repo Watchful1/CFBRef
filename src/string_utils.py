@@ -782,21 +782,21 @@ def renderGamesWiki(games):
 				"Rerun",
 				f"rerun {game.thread}")
 			)
-			bldr.append(")")
+			bldr.append(") ")
 			bldr.append("[pause](")
 			bldr.append(buildMessageLink(
 				static.ACCOUNT_NAME,
 				"Pause",
 				f"pause {game.thread} 12")
 			)
-			bldr.append(")")
+			bldr.append(") ")
 			bldr.append("[chew](")
 			bldr.append(buildMessageLink(
 				static.ACCOUNT_NAME,
 				"Chew",
 				f"chew {game.thread}")
 			)
-			bldr.append(")")
+			bldr.append(") ")
 			bldr.append("[abandon](")
 			bldr.append(buildMessageLink(
 				static.ACCOUNT_NAME,
