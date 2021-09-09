@@ -196,6 +196,8 @@ def updateCoachesWiki():
 
 
 def updateGamesWiki():
+	if True:
+		return
 	gamesWikiString = string_utils.renderGamesWiki(index.games)
 	reddit.setWikiPage(static.SUBREDDIT, "games", gamesWikiString)
 
