@@ -114,7 +114,7 @@ def endGame(game):
 	file_utils.archiveGameFile(game.thread)
 	counters.active_games.dec()
 	wiki.updateTeamsWiki()
-	#wiki.updateGamesWiki()
+	wiki.updateGamesWiki()
 
 
 def setGameErrored(game):
