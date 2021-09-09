@@ -771,8 +771,6 @@ def renderGamesWiki(games):
 			bldr.append("|")
 			bldr.append(renderTime(game.status.clock))
 			bldr.append("|")
-			bldr.append(renderTime(game.status.clock))
-			bldr.append("|")
 			bldr.append("[link](")
 			bldr.append(static.SUBREDDIT_LINK)
 			bldr.append(game.thread)
@@ -806,7 +804,7 @@ def renderGamesWiki(games):
 				f"abandon {game.thread}")
 			)
 			bldr.append(")")
-			bldr.append("\n\n")
+			bldr.append("\n")
 
 	return ''.join(bldr)
 
