@@ -366,6 +366,8 @@ def addStatRunPass(game, runPass, amount):
 		addStat(game, 'yardsRushing', amount)
 	elif runPass == Play.PASS:
 		addStat(game, 'yardsPassing', amount)
+	elif runPass == Play.PUNT:
+		pass
 	else:
 		log.warning("Error in addStatRunPass, invalid play: {}".format(runPass))
 
