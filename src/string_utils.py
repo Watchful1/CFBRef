@@ -334,7 +334,8 @@ def renderGame(game):
 			f"{team.tag}|{team.name}|{renderOffenseType(team.playbook.offense)}"
 			f"|{renderDefenseType(team.playbook.defense)}"
 			f"|{','.join(team.coaches)}"
-			f"{('|'+team.conference) if team.conference is not None else ''}")
+			f"|{team.conference if team.conference is not None else ''}"
+			f"|{team.css_tag if team.css_tag is not None else ''}")
 		)
 		bldr.append(")")
 	bldr.append(" ^| [^Rerun ^play](")

@@ -50,14 +50,6 @@ def saveStringSuggestion(stringKey, suggestion):
 		fileHandle.write("----------------------------------------\n")
 
 
-def saveRestartReason(threadId, reason):
-	with open(static.RESTART_REASON_FILE, 'a') as fileHandle:
-		fileHandle.write(threadId)
-		fileHandle.write(": ")
-		fileHandle.write(reason)
-		fileHandle.write("\n")
-
-
 def saveTeams(teams):
 	file = open(static.TEAMS_FILE, 'wb')
 	pickle.dump(teams, file)

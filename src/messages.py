@@ -593,12 +593,6 @@ def processMessageRestartGame(body):
 		log.info(f"Couldn't load game {threadId}")
 		return "Game not found: {}".format(threadId)
 
-	reasonGroup = re.search(r'(?: [\da-z]{6} )(.*)', body)
-	if not reasonGroup or reasonGroup.group(1) == "Replace this with the reason you need to restart the game":
-		log.debug("Couldn't find a restart reason")
-		return "Couldn't find a restart reason in the message. Please include one after the thread id."
-	file_utils.saveRestartReason(threadId, reasonGroup.group(1))
-
 	bldr = []
 	bldr.append(f"Game {threadId} abandoned.\n\n")
 	log.debug("Abandoning game")
@@ -614,7 +608,7 @@ def processMessageRestartGame(body):
 		game.location,
 		game.station,
 		game.home.record,
-		game.home.record,
+		game.away.record,
 		game.prefix,
 		game.suffix))
 
