@@ -553,6 +553,9 @@ def processMessageTeams(body, subject):
 			game = index.getGameFromTeamTag(team.tag)
 			if game is not None:
 				try:
+					gameTeam = game.home if game.home.tag == team.tag else game.away
+					gameTeam.pastCoaches.extend(gameTeam.coaches)
+					gameTeam.coaches = team.coaches
 					if len(game.previousStatus):
 						log.debug("Reverting status and reprocessing {}".format(game.previousStatus[0].messageId))
 						utils.revertStatus(game, 0)
