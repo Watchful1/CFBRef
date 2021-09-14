@@ -560,7 +560,7 @@ def processMessageTeams(body, subject):
 						log.debug("Reverting status and reprocessing {}".format(game.previousStatus[0].messageId))
 						utils.revertStatus(game, 0)
 						file_utils.saveGameObject(game)
-						reprocessPlay(game, game.status.messageId)
+						reprocessPlay(game, game.status.messageId, True)
 						bldr.append(" and reprocessed last play")
 					else:
 						log.info("Coaches changed, but game has no plays, not reprocessing")

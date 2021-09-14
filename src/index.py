@@ -45,7 +45,7 @@ def init():
 						log.debug("Reverting status and reprocessing {}".format(game.previousStatus[0].messageId))
 						utils.revertStatus(game, 0)
 						file_utils.saveGameObject(game)
-						messages.reprocessPlay(game, game.status.messageId)
+						messages.reprocessPlay(game, game.status.messageId, True)
 					else:
 						log.info("Coaches changed, but game has no plays, not reprocessing")
 
