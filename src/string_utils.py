@@ -748,6 +748,14 @@ def renderGamesWiki(games):
 	conferenceNames.sort(key=lambda name: name if name is not None else "")
 
 	bldr = []
+	bldr.append("[Notify All](")
+	bldr.append(buildMessageLink(
+		static.ACCOUNT_NAME,
+		"Notify All",
+		f"notifyAll")
+	)
+	bldr.append(")\n\n")
+
 	for conference in conferenceNames:
 		if conference is not None:
 			bldr.append("***\n\n**")

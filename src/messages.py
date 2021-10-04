@@ -478,6 +478,29 @@ def processMessageNotification(body):
 	return "Game {} notification posted".format(threadIds[0])
 
 
+def processMessageNotifyAll(body):
+	log.debug("Processing notify all games message")
+	now_est = pytz.utc.localize(datetime.utcnow())\
+		.astimezone(static.EASTERN)\
+		.replace(hour=0).replace(minute=0).replace(second=0).replace(microsecond=0)
+	sat_est = now_est + timedelta((12 - now_est.weekday()) % 7) + timedelta(days=1)
+	sat_utc = sat_est.astimezone(pytz.utc)
+	sat = sat_utc.replace(tzinfo=None)
+	hours_till_sat = int(((sat - datetime.utcnow()).total_seconds() / 60) / 60)
+
+	countNotified = 0
+	for game in index.games:
+		log.debug("Notifying game: {}".format(game.thread))
+		reddit.replySubmission(
+			game.thread,
+			f"{string_utils.getCoachString(game, T.home)}\n\n{string_utils.getCoachString(game, T.away)}\n\n"
+			f"Hello! I just wanted to inform you that the game week ends this Saturday at 11:59 PM Eastern (or in about {hours_till_sat} hours). Please attempt to get as much of your game done as possible by that deadline. Thanks!"
+		)
+		countNotified += 1
+
+	return "Posted notification for {} games".format(countNotified)
+
+
 def processMessageGameStatus(body):
 	log.debug("Processing game status message")
 	threadIds = re.findall('(?: )([\da-z]{6})', body)
@@ -784,6 +807,8 @@ def processMessage(message, reprocess=False, isRerun=False):
 					response = processMessageRestartGame(message.body)
 				elif body.startswith("rerun"):
 					response = processMessageRerunLastPlay(message.body)
+				elif body.startswith("notifyAll"):
+					response = processMessageNotifyAll(message.body)
 				elif body.startswith("notify"):
 					response = processMessageNotification(message.body)
 
