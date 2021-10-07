@@ -227,13 +227,11 @@ def processMessageDefenseNumber(game, message, author):
 def processMessageOffensePlay(game, message, author):
 	log.debug("Processing offense number message")
 
-	timeoutMessageOffense = None
-	timeoutMessageDefense = None
 	if "timeout" in message or "time out" in message:
 		if game.status.state(game.status.possession).timeouts > 0:
 			game.status.state(game.status.possession).requestedTimeout = TimeoutOption.REQUESTED
 		else:
-			timeoutMessageOffense = "The offense requested a timeout, but they don't have any left"
+			game.status.timeoutMessages.append("The offense requested a timeout, but they don't have any left")
 
 	normalOptions = ["run", "pass", "punt", "field goal", "kneel", "spike"]
 	conversionOptions = ["two point", "pat", "kneel"]
@@ -312,23 +310,13 @@ def processMessageOffensePlay(game, message, author):
 		author
 	)
 
-	if game.status.state(game.status.possession).requestedTimeout == TimeoutOption.USED:
-		timeoutMessageOffense = "The offense is charged a timeout"
-	elif game.status.state(game.status.possession).requestedTimeout == TimeoutOption.REQUESTED:
-		timeoutMessageOffense = "The offense requested a timeout, but it was not used"
 	game.status.state(game.status.possession).requestedTimeout = TimeoutOption.NONE
-
-	if game.status.state(game.status.possession.negate()).requestedTimeout == TimeoutOption.USED:
-		timeoutMessageDefense = "The defense was charged a timeout"
-	elif game.status.state(game.status.possession.negate()).requestedTimeout == TimeoutOption.REQUESTED:
-		timeoutMessageDefense = "The defense requested a timeout, but it was not used"
 	game.status.state(game.status.possession.negate()).requestedTimeout = TimeoutOption.NONE
 
 	result = [resultMessage]
-	if timeoutMessageOffense is not None:
-		result.append(timeoutMessageOffense)
-	if timeoutMessageDefense is not None:
-		result.append(timeoutMessageDefense)
+	if len(game.status.timeoutMessages):
+		result.extend(game.status.timeoutMessages)
+		game.status.timeoutMessages = []
 
 	if not game.status.timeRunoff:
 		result.append("The clock is stopped.")

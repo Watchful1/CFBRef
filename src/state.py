@@ -301,10 +301,12 @@ def betweenPlayRunoff(game, play, offenseHomeAway, timeOption):
 			log.debug("Using offensive timeout")
 			game.status.state(offenseHomeAway).requestedTimeout = TimeoutOption.USED
 			game.status.state(offenseHomeAway).timeouts -= 1
+			game.status.timeoutMessages.append("The offense is charged a timeout")
 		elif game.status.state(offenseHomeAway.negate()).requestedTimeout == TimeoutOption.REQUESTED:
 			log.debug("Using defensive timeout")
 			game.status.state(offenseHomeAway.negate()).requestedTimeout = TimeoutOption.USED
 			game.status.state(offenseHomeAway.negate()).timeouts -= 1
+			game.status.timeoutMessages.append("The defense was charged a timeout")
 		else:
 			if timeOption == TimeOption.RUN:
 				timeOffClock = min(max(game.status.clock - 1, 7), 30)
@@ -318,6 +320,11 @@ def betweenPlayRunoff(game, play, offenseHomeAway, timeOption):
 				timeOffClock = 7
 			else:
 				timeOffClock = getTimeAfterForOffense(game, offenseHomeAway)
+
+	if game.status.state(offenseHomeAway).requestedTimeout == TimeoutOption.REQUESTED:
+		game.status.timeoutMessages.append("The offense requested a timeout, but it was not used")
+	if game.status.state(offenseHomeAway.negate()).requestedTimeout == TimeoutOption.REQUESTED:
+		game.status.timeoutMessages.append("The defense requested a timeout, but it was not used")
 
 	log.debug("Between play runoff: {} : {} : {}".format(game.status.clock, timeOffClock, game.status.timeRunoff))
 

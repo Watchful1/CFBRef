@@ -255,6 +255,7 @@ class GameStatus:
 		self.plays = [[]]
 		self.drives = []
 		self.noOnside = False
+		self.timeoutMessages = []
 
 		self.homePlaybook = Playbook()
 		self.awayPlaybook = Playbook()

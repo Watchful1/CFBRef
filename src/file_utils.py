@@ -22,6 +22,10 @@ def loadGameObject(threadID):
 		return None
 	game = pickle.load(file)
 	file.close()
+
+	if not hasattr(game.status, "timeoutMessages"):
+		game.status.timeoutMessages = []
+
 	return game
 
 
