@@ -574,7 +574,9 @@ def processMessageTeams(body, subject):
 						reprocessPlay(game, game.status.messageId, True)
 						bldr.append(" and reprocessed last play")
 					else:
-						log.info("Coaches changed, but game has no plays, not reprocessing")
+						log.debug("Coaches changed, but game has no plays, reposting coin toss")
+						utils.postGameStartedMessage(game)
+						bldr.append(" and reposted coin toss")
 
 				except Exception as err:
 					log.warning(traceback.format_exc())

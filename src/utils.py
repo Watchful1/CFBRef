@@ -46,6 +46,16 @@ def process_error(message, exception, traceback):
 	return is_transient
 
 
+def postGameStartedMessage(game):
+	log.debug("Game started, posting coin toss comment")
+	message = "{}\n\n" \
+			  "The game has started! {}, you're home. {}, you're away, call **heads** or **tails** in the air." \
+		.format(wiki.intro, string_utils.getCoachString(game, True), string_utils.getCoachString(game, False))
+	sendGameComment(game, message, getActionTable(game, Action.COIN))
+	log.debug("Comment posted, now waiting on: {}".format(game.status.waitingId))
+	updateGameThread(game)
+
+
 def startGame(homeTeam, awayTeam, startTime=None, location=None, station=None, homeRecord=None, awayRecord=None,
 			  prefix=None, suffix=None, quarterLength=None):
 	log.debug("Creating new game between {} and {}".format(homeTeam, awayTeam))
@@ -94,13 +104,7 @@ def startGame(homeTeam, awayTeam, startTime=None, location=None, station=None, h
 	for user in game.away.coaches:
 		log.debug("Coach added to away: {}".format(user))
 
-	log.debug("Game started, posting coin toss comment")
-	message = "{}\n\n" \
-			  "The game has started! {}, you're home. {}, you're away, call **heads** or **tails** in the air." \
-		.format(wiki.intro, string_utils.getCoachString(game, True), string_utils.getCoachString(game, False))
-	sendGameComment(game, message, getActionTable(game, Action.COIN))
-	log.debug("Comment posted, now waiting on: {}".format(game.status.waitingId))
-	updateGameThread(game)
+	postGameStartedMessage(game)
 
 	log.debug("Returning game started message")
 	return "Game started between {} and {}. Find it [here]({}).".format(
