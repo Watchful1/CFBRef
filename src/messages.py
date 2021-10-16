@@ -477,7 +477,7 @@ def processMessageNotifyAll(body):
 	hours_till_sat = int(((sat - datetime.utcnow()).total_seconds() / 60) / 60)
 
 	countNotified = 0
-	for game in index.games:
+	for game in index.games.values():
 		log.debug("Notifying game: {}".format(game.thread))
 		reddit.replySubmission(
 			game.thread,
