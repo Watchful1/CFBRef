@@ -752,7 +752,7 @@ def renderGamesWiki(games):
 	bldr.append(buildMessageLink(
 		static.ACCOUNT_NAME,
 		"Notify All",
-		f"notifyAll")
+		f"allNotify")
 	)
 	bldr.append(")\n\n")
 
