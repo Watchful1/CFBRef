@@ -797,7 +797,7 @@ def processMessage(message, reprocess=False, isRerun=False):
 					response = processMessageRestartGame(message.body)
 				elif body.startswith("rerun"):
 					response = processMessageRerunLastPlay(message.body)
-				elif body.startswith("allNotify"):
+				elif body.startswith("allnotify"):
 					response = processMessageNotifyAll(message.body)
 				elif body.startswith("notify"):
 					response = processMessageNotification(message.body)
