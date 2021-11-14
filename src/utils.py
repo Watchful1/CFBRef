@@ -1,6 +1,7 @@
 import logging.handlers
 import random
 import re
+import time
 import copy
 import requests
 import json
@@ -201,7 +202,15 @@ def updateGameThread(game):
 	game.dirty = False
 	file_utils.saveGameObject(game)
 	threadText = string_utils.renderGame(game)
-	reddit.editThread(game.thread, threadText)
+	try:
+		reddit.editThread(game.thread, threadText)
+	except Exception as err:
+		if error_is_transient(err):
+			log.info("Transient error editing thread, waiting and trying again")
+			time.sleep(10)
+			reddit.editThread(game.thread, threadText)
+		else:
+			raise
 
 
 def coachHomeAway(game, coach, checkPast=False):
