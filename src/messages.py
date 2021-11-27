@@ -437,9 +437,9 @@ def processMessageAbandonGame(body):
 	return "Game {} abandoned".format(threadIds[0])
 
 
-def processMessageNotification(body):
+def processMessageNotification(body, subject):
 	log.debug("Processing notify game message")
-	threadIds = re.findall('(?: )([\da-z]{6})', body)
+	threadIds = re.findall('(?: )([\da-z]{6})', subject)
 	if len(threadIds) < 1:
 		log.debug("Couldn't find a thread id in message")
 		return "Couldn't find a thread id in message"
@@ -449,18 +449,9 @@ def processMessageNotification(body):
 	if game is None:
 		return "Game not found: {}".format(threadIds[0])
 
-	now_est = pytz.utc.localize(datetime.utcnow())\
-		.astimezone(static.EASTERN)\
-		.replace(hour=0).replace(minute=0).replace(second=0).replace(microsecond=0)
-	sat_est = now_est + timedelta((12 - now_est.weekday()) % 7) + timedelta(days=1)
-	sat_utc = sat_est.astimezone(pytz.utc)
-	sat = sat_utc.replace(tzinfo=None)
-	hours_till_sat = int(((sat - datetime.utcnow()).total_seconds() / 60) / 60)
-
 	reddit.replySubmission(
 		game.thread,
-		f"{string_utils.getCoachString(game, T.home)}\n\n{string_utils.getCoachString(game, T.away)}\n\n"
-		f"Hello! I just wanted to inform you that the game week ends this Saturday at 11:59 PM Eastern (or in about {hours_till_sat} hours). Please attempt to get as much of your game done as possible by that deadline. Thanks!"
+		f"{string_utils.getCoachString(game, T.home)}\n\n{string_utils.getCoachString(game, T.away)}\n\n{body}"
 	)
 
 	return "Game {} notification posted".format(threadIds[0])
@@ -468,21 +459,13 @@ def processMessageNotification(body):
 
 def processMessageNotifyAll(body):
 	log.debug("Processing notify all games message")
-	now_est = pytz.utc.localize(datetime.utcnow())\
-		.astimezone(static.EASTERN)\
-		.replace(hour=0).replace(minute=0).replace(second=0).replace(microsecond=0)
-	sat_est = now_est + timedelta((12 - now_est.weekday()) % 7) + timedelta(days=1)
-	sat_utc = sat_est.astimezone(pytz.utc)
-	sat = sat_utc.replace(tzinfo=None)
-	hours_till_sat = int(((sat - datetime.utcnow()).total_seconds() / 60) / 60)
 
 	countNotified = 0
 	for game in index.games.values():
 		log.debug("Notifying game: {}".format(game.thread))
 		reddit.replySubmission(
 			game.thread,
-			f"{string_utils.getCoachString(game, T.home)}\n\n{string_utils.getCoachString(game, T.away)}\n\n"
-			f"Hello! I just wanted to inform you that the game week ends this Saturday at 11:59 PM Eastern (or in about {hours_till_sat} hours). Please attempt to get as much of your game done as possible by that deadline. Thanks!"
+			f"{string_utils.getCoachString(game, T.home)}\n\n{string_utils.getCoachString(game, T.away)}\n\n{body}"
 		)
 		countNotified += 1
 
@@ -797,10 +780,10 @@ def processMessage(message, reprocess=False, isRerun=False):
 					response = processMessageRestartGame(message.body)
 				elif body.startswith("rerun"):
 					response = processMessageRerunLastPlay(message.body)
-				elif body.startswith("allnotify"):
+				elif message.subject.startswith("allnotify"):
 					response = processMessageNotifyAll(message.body)
-				elif body.startswith("notify"):
-					response = processMessageNotification(message.body)
+				elif message.subject.startswith("notify"):
+					response = processMessageNotification(message.body, message.subject)
 
 	message.mark_read()
 	if response is not None:

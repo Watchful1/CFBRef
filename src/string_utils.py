@@ -751,8 +751,9 @@ def renderGamesWiki(games):
 	bldr.append("[Notify All](")
 	bldr.append(buildMessageLink(
 		static.ACCOUNT_NAME,
-		"Notify All",
-		f"allnotify")
+		"allnotify",
+		"Hello! I just wanted to inform you that the game week ends this Saturday at 11:59 PM Eastern."
+		"Please attempt to get as much of your game done as possible by that deadline. Thanks!")
 	)
 	bldr.append(")\n\n")
 
@@ -825,8 +826,9 @@ def renderGamesWiki(games):
 			bldr.append("[notify](")
 			bldr.append(buildMessageLink(
 				static.ACCOUNT_NAME,
-				"Notify",
-				f"notify {game.thread}")
+				f"notify {game.thread}",
+				"Hello! I just wanted to inform you that the game week ends this Saturday at 11:59 PM Eastern."
+				"Please attempt to get as much of your game done as possible by that deadline. Thanks!")
 			)
 			bldr.append(")")
 			bldr.append("\n")
