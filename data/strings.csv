@@ -18,6 +18,7 @@ failedTwoPointConversion,"They line up in the shotgun, quarterback takes the sna
 failedTwoPointConversion,"They line up in the shotgun, quarterback takes the snap, hands it off on the sweep and it's STUFFED! NO GOOD!",,
 failedTwoPointConversion,"They line up in the I-formation, quarterback takes the snap, hands off and it's STUFFED! NO GOOD!",,
 gainPassNegative,"They line up in the shotgun, and THE QB CAN'T HOLD THE SNAP! THE BALL'S ON THE GROUND! They're coming out of the pile now... and the offense has it. It's for a loss of {negativeYards} though.",,
+gainPassNegative,The quarterback takes the snap and throws a screen to the receiver who’s running backwards to try and escape the defense! He tries to do too much and it’s gonna cost him! He’s tackled down for a loss of {negativeYards} yards!,,
 gainPassNegative,"The quarterback takes the snap out of the shotgun, throws a quick pass to the right and it's shut down! Loss of {negativeYards}!",,
 gainPassNegative,"The quarterback takes the snap out of the shotgun, rolls right and fires one to his wideout WHO'S HIT FOR A LOSS! {negativeYards} yards!",,
 gainPassNegative,The quarterback is sacked! It's a loss of {negativeYards}.,,
@@ -35,6 +36,7 @@ gainPassPositive,"The quarterback takes the snap out of the shotgun, throws a qu
 gainPassPositive,"The quarterback takes the snap out of the shotgun, fakes the handoff and hits the out route! He'll go down for a gain of {yards}. {down} and {yardsLeft}",,
 gainPassPositive,"The quarterback sees a blitz, and quickly gets the ball out for {yards} yards!",,
 gainPassPositive,"The QB takes the snap, fakes the handoff, looking right and there's an open man! Brought down for a gain of {yards}. {down} and {yardsLeft}.",,
+gainPassPositive,"The quarterback takes the snap and fakes the handoff to the running back, rolls right and throws the short route to the Tight End! He'll go down for a gain of {yards}. {down} and {yardsLeft}",,
 gainPassPositive,"The QB takes the ball out of the shotgun, looking, looking, nothing open so he takes off! Dragged down after a gain of {yards}! {down} and {yardsLeft}.",,
 gainPassPositive,"The QB drops back, stands in the pocket, still looking! Finally hits his checkdown, he'll be tackled for a gain of {yards}. {down} and {yardsLeft}",,
 gainPassPositive,"The QB drops back, looks left, now finds a man! He'll be tackled for a gain of {yards}. {down} and {yardsLeft} to go.",,
@@ -91,6 +93,7 @@ overtimeForcedGameEnd,It is the end of the 6th quarter in an overtime forced by 
 overtimeGameEnd,That's the end of the game. {team} has won!,,
 overtimeTiedQuarterEnd,It's still tied! Going to the {quarter} quarter.,,
 passFirstDown,"The quarterback drops back, scans downfield, and completes a pass to the tight end down the seam! He's brought down for a gain of {yards} yards, first down!",,10
+passFirstDown,"The quarterback takes the snap and fakes the handoff to the running back, rolls right and throws the short route to the Tight End who gets to the corner! He'll go down for a gain of {yards}. First down {team}!",,
 passFirstDown,"The quarterback takes the snap out of the shotgun, now fires one over the middle and it's caught! There's room to run! He's finally dragged down after a gain of {yards}! First down!",,10
 passFirstDown,"The quarterback takes the snap out of the shotgun, fakes the handoff and hits the out route! He's got room down the sideline! Finally pulled down after a gain of {yards}! Move those chains!",,10
 passFirstDown,"It's a pass over the middle and he's got room to run! Finally brought down for a gain of {yards} yard(s), first down!",,10
@@ -112,7 +115,10 @@ passTouchdown,"They line up in the shotgun, QB takes the ball, hands off to the 
 passTouchdown,{team} with a {yards} yard pass into the end zone for a touchdown!,,
 passTouchdown,"The QB takes the snap, fakes the handoff, looking right and there's an open man! No defenders around! He's got room! Tries to cut inside...AND HE BEATS THE DEFENSE! NOBODY'S GONNA CATCH HIM! Touchdown {team} after the {yards} yard catch and run!",,
 passTouchdown,"The QB takes the snap, drops back, and... what's this? Looks like a busted play, and he takes off! HE'S GOT RUNNING ROOM! HE'S GONNA SCORE! Touchdown {team}! A run of {yards} off the busted play!",,
+passTouchdown,"The quarterback takes the snap and fakes the handoff to the running back, rolls right and HEAVES a ball deep down the field to the receiver who holds on! Makes a man miss and he’s gone! {team} with a {yards} yard pass down the back stretch for a touchdown!",,
+passTouchdown,"The quarterback takes the snap and throws a screen to the receiver who’s running backwards to try and escape the defense! He tries to do too much and it’s gonna cost- WAIT, he gets around to the outside and has space! Empty turf in front of him! {team} with a {yards} yard pass down the back stretch for a touchdown!",,
 passTouchdown,"{team} lines up in the gun with 3 wideouts. QB takes the snap, looks left, option 1 is covered, looks right, option 2 is covered. QB checks down to option 3. The WR makes his defender miss and he's taking it all the way! {team} with a {yards} yard pass for a touchdown!",,
+passTouchdown,"The quarterback takes the snap and fakes the handoff to the running back, rolls right and HEAVES a ball deep down the field to the receiver who holds on! Makes a man miss and he’s gone! {team} with a {yards} yard pass down the back stretch for a touchdown",,
 puntInEndZone,The punt is off...and it'll sail out of the back of the end zone.,,
 puntInEndZone,"The punt goes into the end zone, touchback.",,
 puntOutOfEndZone,"The punt goes out the back of the end zone, touchback.",,
