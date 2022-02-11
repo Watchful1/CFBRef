@@ -1,3 +1,4 @@
 import wiki
 
-wiki.loadStrings()
+if __name__ == "__main__":
+	wiki.loadStrings()
