@@ -158,7 +158,7 @@ runSafety,The runner is taken down in the end zone for a safety.,,
 runTouchdown,"They line up in the offset I, quarterback takes the snap, hands off and HE FINDS A HOLE! Only one man to beat... AND HE DOES! It's {team} with the run of {yards} for the score!",,5
 runTouchdown,"Quarterback hands it to the back, and he spins out of a tackle, and he's free! It's a footrace and they won't catch him! Touchdown {team}! It's a {yards} rushing touchdown!",,5
 runTouchdown,"Its a triple option run, the QB keeps the first read, breaks out and fakes the pitch to the RB which completely throws off the LB! The QB has speed and he's gone! TD {team} after {yards} yards!",,
-runTouchdown,"Its a triple option run, the QB keeps the first read, breaks out and pitches it to the RB last second WHO HAS SPACE! HE'S GONNA BE GONE FOR A {yard} YARD TD FOR {team}!",,
+runTouchdown,"Its a triple option run, the QB keeps the first read, breaks out and pitches it to the RB last second WHO HAS SPACE! HE'S GONNA BE GONE FOR A {yards} YARD TD FOR {team}!",,
 runTouchdown,"It's a reverse play to the wide receiver, who breaks a tackle in the backfield... and the field is wide open in front of him! The safety is trying to catch up but the receiver is too fast! {yards} yard touchdown!",,5
 runTouchdown,"{team} lines up I-Formation. It's a handoff to the back, straight up the middle, and is stopped- wait- he's broken free! Breaks a tackle in the secondary and he's churning and chugging to the endzone! Touchdown {team}!",,5
 runTouchdown,"{team}'s quarterback hands off the to the right. DOWN THE SIDELINE! WATCH OUT, HE'S GOT GETTING AWAY FROM THE COPS SPEED! {yards} yard rush into the end zone for a touchdown!",,15
