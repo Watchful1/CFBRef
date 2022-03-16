@@ -230,9 +230,9 @@ class Playbook:
 
 
 class GameStatus:
-	def __init__(self, quarterLength):
+	def __init__(self, quarterLength, quarter=1):
 		self.clock = quarterLength
-		self.quarter = 1
+		self.quarter = quarter
 		self.location = -1
 		self.possession = HomeAway(T.home)
 		self.down = 1
@@ -296,7 +296,7 @@ class Team:
 
 
 class Game:
-	def __init__(self, home, away, quarterLength=None):
+	def __init__(self, home, away, quarterLength=None, quarter=1):
 		self.home = home
 		self.away = away
 
@@ -319,7 +319,7 @@ class Game:
 			self.quarterLength = 7*60
 		else:
 			self.quarterLength = quarterLength
-		self.status = GameStatus(self.quarterLength)
+		self.status = GameStatus(self.quarterLength, quarter=quarter)
 
 	def team(self, isHome):
 		if isHome:

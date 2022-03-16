@@ -30,11 +30,11 @@ WEBHOOK_D2 = None
 
 
 def get_webhook_for_conference(division):
-	if division == "Division 2":
+	if division == "Division 2" and WEBHOOK_D2:
 		return [WEBHOOK_D2]
-	elif division == "FCS":
+	elif division == "FCS" and WEBHOOK_FCS:
 		return [WEBHOOK_FCS]
-	elif division == "FBS":
+	elif division == "FBS" and WEBHOOK_MAIN:
 		return [WEBHOOK_MAIN]
 	else:
 		return []

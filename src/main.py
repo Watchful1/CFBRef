@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 import os
 import logging.handlers
 import time
@@ -60,6 +58,7 @@ once = False
 debug = False
 user = None
 update_wiki = False
+no_wiki = False
 if len(sys.argv) >= 2:
 	user = sys.argv[1]
 	for arg in sys.argv:
@@ -71,6 +70,8 @@ if len(sys.argv) >= 2:
 			static.quarterLength = 60
 		elif arg == 'updateWiki':
 			update_wiki = True
+		elif arg == 'noWriteWiki':
+			no_wiki = True
 else:
 	log.error("No user specified, aborting")
 	sys.exit(0)
@@ -79,6 +80,8 @@ discord_logging.init_discord_logging(user, logging.WARNING, 1)
 
 if not reddit.init(user):
 	sys.exit(0)
+
+reddit.noWrite = no_wiki
 
 counters.init(8002)
 

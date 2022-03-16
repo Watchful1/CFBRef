@@ -54,11 +54,20 @@ def postGameStartedMessage(game):
 		.format(wiki.intro, string_utils.getCoachString(game, True), string_utils.getCoachString(game, False))
 	sendGameComment(game, message, getActionTable(game, Action.COIN))
 	log.debug("Comment posted, now waiting on: {}".format(game.status.waitingId))
-	updateGameThread(game)
+
+
+def startGameOvertime(game, tagTeams=False):
+	log.debug("Starting overtime, posting coin toss comment")
+	message = "Overtime has started! {}, you're away, call **heads** or **tails** in the air.\n\n{}".format(
+		string_utils.getCoachString(game, False), string_utils.getCoachString(game, True) if tagTeams else '')
+	comment = sendGameComment(game, message, getActionTable(game, Action.COIN))
+	setWaitingId(game, comment.fullname)
+	game.status.waitingAction = Action.COIN
+	game.status.waitingOn = classes.HomeAway(False)
 
 
 def startGame(homeTeam, awayTeam, startTime=None, location=None, station=None, homeRecord=None, awayRecord=None,
-			  prefix=None, suffix=None, quarterLength=None):
+			  prefix=None, suffix=None, quarterLength=None, startOvertime=False):
 	log.debug("Creating new game between {} and {}".format(homeTeam, awayTeam))
 
 	result = verifyTeams([homeTeam, awayTeam])
@@ -69,7 +78,11 @@ def startGame(homeTeam, awayTeam, startTime=None, location=None, station=None, h
 	homeTeam = wiki.getTeamByTag(homeTeam.lower())
 	awayTeam = wiki.getTeamByTag(awayTeam.lower())
 
-	game = newGameObject(homeTeam, awayTeam, quarterLength)
+	if startOvertime:
+		quarter = 5
+	else:
+		quarter = 1
+	game = newGameObject(homeTeam, awayTeam, quarterLength, quarter)
 	if startTime is not None:
 		game.startTime = startTime
 	if location is not None:
@@ -105,7 +118,12 @@ def startGame(homeTeam, awayTeam, startTime=None, location=None, station=None, h
 	for user in game.away.coaches:
 		log.debug("Coach added to away: {}".format(user))
 
-	postGameStartedMessage(game)
+	if startOvertime:
+		game.status.quarterType = QuarterType.OVERTIME_NORMAL
+		startGameOvertime(game, tagTeams=True)
+	else:
+		postGameStartedMessage(game)
+	updateGameThread(game)
 
 	log.debug("Returning game started message")
 	return "Game started between {} and {}. Find it [here]({}).".format(
@@ -416,8 +434,8 @@ def revertStatus(game, index):
 	game.status = game.previousStatus[index]
 
 
-def newGameObject(home, away, quarterLength):
-	return classes.Game(home, away, quarterLength)
+def newGameObject(home, away, quarterLength, quarter):
+	return classes.Game(home, away, quarterLength, quarter)
 
 
 def newDebugGameObject():

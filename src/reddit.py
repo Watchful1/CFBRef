@@ -7,6 +7,7 @@ import static
 
 log = logging.getLogger("bot")
 reddit = None
+noWrite = False
 
 
 def init(user):
@@ -25,20 +26,23 @@ def init(user):
 	log.info("Logged into reddit as /u/" + static.ACCOUNT_NAME)
 
 	config_keys = [
-		{'var': "GIST_USERNAME", 'name': "gist_username"},
-		{'var': "GIST_TOKEN", 'name': "gist_token"},
-		{'var': "CLOUDINARY_KEY", 'name': "cloudinary_key"},
-		{'var': "CLOUDINARY_SECRET", 'name': "cloudinary_secret"},
-		{'var': "WEBHOOK_MAIN", 'name': "webhook_main"},
-		{'var': "WEBHOOK_FCS", 'name': "webhook_fcs"},
-		{'var': "WEBHOOK_D2", 'name': "webhook_d2"},
+		{'var': "GIST_USERNAME", 'name': "gist_username", 'optional': False},
+		{'var': "GIST_TOKEN", 'name': "gist_token", 'optional': False},
+		{'var': "CLOUDINARY_KEY", 'name': "cloudinary_key", 'optional': False},
+		{'var': "CLOUDINARY_SECRET", 'name': "cloudinary_secret", 'optional': False},
+		{'var': "WEBHOOK_MAIN", 'name': "webhook_main", 'optional': True},
+		{'var': "WEBHOOK_FCS", 'name': "webhook_fcs", 'optional': True},
+		{'var': "WEBHOOK_D2", 'name': "webhook_d2", 'optional': True},
 	]
 	for key in config_keys:
 		if reddit.config.CONFIG.has_option(user, key['name']):
 			setattr(static, key['var'], reddit.config.CONFIG[user][key['name']])
 		else:
-			log.error(f"{key['name']} key not in config, aborting")
-			return False
+			if key['optional']:
+				log.warning(f"{key['name']} key not in config, aborting")
+			else:
+				log.error(f"{key['name']} key not in config, aborting")
+				return False
 
 	return True
 
@@ -94,7 +98,9 @@ def getWikiPage(subreddit, pageName):
 
 def setWikiPage(subreddit, pageName, content):
 	wikiPage = reddit.subreddit(subreddit).wiki[pageName]
-	wikiPage.edit(content)
+	global noWrite
+	if not noWrite:
+		wikiPage.edit(content)
 
 
 def submitSelfPost(subreddit, title, text):

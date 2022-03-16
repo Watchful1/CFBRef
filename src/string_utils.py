@@ -659,7 +659,7 @@ def renderTeamsWiki(teams):
 
 	conferenceNames.sort(key=lambda name: name if name is not None else "")
 
-	bldr = []
+	bldr = ["[New game command options](https://www.reddit.com/r/FakeCollegeFootball/wiki/botcommands)\n\n"]
 	for conference in conferenceNames:
 		if conference is not None:
 			bldr.append("***\n\n**")

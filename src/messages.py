@@ -47,6 +47,7 @@ def processMessageNewGame(body, author):
 		prefix = None
 		suffix = None
 		quarterLength = None
+		startOvertime = False
 
 		for match in re.finditer(r'(?: )(\w+)(?:=")([^"]*)', line):
 			if match.group(1) == "start":
@@ -76,8 +77,13 @@ def processMessageNewGame(body, author):
 					log.debug("Found quarter length: {}".format(quarterLength))
 				except Exception:
 					log.warning("Could not parse quarter length argument: ".format(match.group(2)))
+			elif match.group(1) == "special":
+				special = string_utils.escapeMarkdown(match.group(2))
+				if special == "overtime":
+					startOvertime = True
+					log.debug("Starting overtime game")
 
-		results.append(utils.startGame(homeTeam, awayTeam, startTime, location, station, homeRecord, awayRecord, prefix, suffix, quarterLength))
+		results.append(utils.startGame(homeTeam, awayTeam, startTime, location, station, homeRecord, awayRecord, prefix, suffix, quarterLength, startOvertime))
 
 	wiki.updateTeamsWiki()
 	wiki.updateGamesWiki()
@@ -330,13 +336,7 @@ def processMessageOffensePlay(game, message, author):
 	if game.status.waitingAction in classes.playActions:
 		utils.sendDefensiveNumberMessage(game)
 	elif game.status.waitingAction == Action.OVERTIME:
-		log.debug("Starting overtime, posting coin toss comment")
-		message = "Overtime has started! {}, you're away, call **heads** or **tails** in the air.".format(
-			string_utils.getCoachString(game, False))
-		comment = utils.sendGameComment(game, message, utils.getActionTable(game, Action.COIN))
-		utils.setWaitingId(game, comment.fullname)
-		game.status.waitingAction = Action.COIN
-		game.status.waitingOn = classes.HomeAway(False)
+		utils.startGameOvertime(game)
 
 	return success, string_utils.embedTableInMessage('\n\n'.join(result), utils.getActionTable(game, game.status.waitingAction))
 
