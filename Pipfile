@@ -15,4 +15,4 @@ prometheus-client = "*"
 discord-logging = {editable = true,git = "https://github.com/Watchful1/DiscordLogging.git"}
 
 [requires]
-python_version = "3.8"
+python_version = "3.9"
