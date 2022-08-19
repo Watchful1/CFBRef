@@ -293,14 +293,23 @@ def processMessageOffensePlay(game, message, author):
 			timeOption = TimeOption.HURRY
 		else:
 			timeOption = TimeOption.NORMAL
+	mods_found = 0
 	if any(x in message for x in ['chew', 'chew the clock', 'milk the clock', 'chew clock']):
 		timeOption = TimeOption.CHEW
-	elif any(x in message for x in ['hurry up', 'no huddle', 'no-huddle', 'hurry']):
+		mods_found += 1
+	if any(x in message for x in ['hurry up', 'no huddle', 'no-huddle', 'hurry']):
 		timeOption = TimeOption.HURRY
-	elif any(x in message for x in ['normal']):
+		mods_found += 1
+	if any(x in message for x in ['normal']):
 		timeOption = TimeOption.NORMAL
-	elif any(x in message for x in ['burn clock', 'final play']):
+		mods_found += 1
+	if any(x in message for x in ['burn clock', 'final play']):
 		timeOption = TimeOption.RUN
+		mods_found += 1
+
+	if mods_found >= 2:
+		log.debug("Found multiple modifiers")
+		return False, "There were multiple clock modifiers in your message, you can only use one"
 
 	number, numberMessage = utils.extractPlayNumber(message)
 	if play not in classes.timePlays and number == -1:
