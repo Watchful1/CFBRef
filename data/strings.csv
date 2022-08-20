@@ -217,7 +217,7 @@ turnoverFumbleZero,"They line up in the offset I, quarterback takes the snap, ha
 turnoverFumbleZero,"The quarterback takes the snap, turns to hand it off, but the D-line blitz is already there! Ball pops out in the handoff, fumble! It's a pile-up at the line of scrimmage, but it looks like {team} had hands on it last... And the ref says... Turnover! It's {team} ball!",,
 turnoverFumbleZero,Fumble! The snap is fumbled and {team} falls on it!,,
 turnoverInterceptionNegative,Quarterback looks to throw and its picked off! The defender has one man to beat and gets tackled by the QB! A Touchdown saving tackle. {team} takes the field.,,
-turnoverInterceptionNegative,Drops back and the ball is intercepted! The defense returns it back to the {yardline},,
+turnoverInterceptionNegative,Drops back and the ball is intercepted! The defense returns it back to the {location},,
 turnoverInterceptionNegative,Fumble! The quarterback is sacked {negativeYards} back and drops the ball. {team} recovers it!,,
 turnoverInterceptionPositive,"The Quarterback throws it deep, lays it out there into double coverage, AND THE BALL IS INTERCEPTED BY {team}! A poor decision by the Quarterback to make that throw.",,
 turnoverInterceptionPositive,The QB drops back and targets it's first read and what a terrible read that was! It's picked off! Back to the bench for the offense. {team} takes the field!,,
