@@ -146,17 +146,17 @@ def parseTeamLine(teamLine):
 	}
 	items = teamLine.split('|')
 	if len(items) < 7:
-		log.warning("Could not parse team line: {}".format(teamLine))
+		log.info("Could not parse team line: {}".format(teamLine))
 		return None, "Not enough items"
 
 	offense = parseOffense(items[2].lower())
 	if offense is None:
-		log.warning("Invalid offense type for team {}: {}".format(items[0], items[2]))
+		log.info("Invalid offense type for team {}: {}".format(items[0], items[2]))
 		return None, "Invalid offense type for team {}: {}".format(items[0], items[2])
 
 	defense = parseDefense(items[3].lower())
 	if defense is None:
-		log.warning("Invalid defense type for team {}: {}".format(items[0], items[2]))
+		log.info("Invalid defense type for team {}: {}".format(items[0], items[2]))
 		return None, "Invalid defense type for team {}: {}".format(items[0], items[2])
 
 	team = Team(tag=items[0], name=items[1], offense=offense, defense=defense)

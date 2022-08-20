@@ -70,7 +70,7 @@ def sendMessage(recipients, subject, message):
 			)
 			results.append(getRecentSentMessage())
 		except praw.exceptions.APIException:
-			log.warning("User "+recipient+" doesn't exist")
+			log.info("User "+recipient+" doesn't exist")
 			return []
 		except Exception:
 			log.warning("Couldn't sent message to "+recipient)
