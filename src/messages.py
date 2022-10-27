@@ -358,7 +358,9 @@ def reprocessPlay(game, messageId, isRerun=False):
 		message = reddit.getThingFromFullname(messageId)
 		if message is None:
 			return "Something went wrong. Not valid fullname: {}".format(messageId)
-		processMessage(message, True, isRerun)
+		result = processMessage(message, True, isRerun)
+		if not result:
+			return "Something went wrong reprocessing the play when changing coaches. Report this to u/watchful1 and don't try again"
 	return "Reprocessed message: {}".format(messageId)
 
 
@@ -831,3 +833,5 @@ def processMessage(message, reprocess=False, isRerun=False):
 
 	if game is not None and game.status.waitingAction == Action.END:
 		index.endGame(game)
+
+	return success
