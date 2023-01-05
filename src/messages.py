@@ -366,7 +366,7 @@ def reprocessPlay(game, messageId, isRerun=False):
 
 def processMessageKickGame(body):
 	log.debug("Processing kick game message")
-	threadIds = re.findall('([\da-z]{6})', body)
+	threadIds = re.findall('([\da-z]{6,8})', body)
 	if len(threadIds) < 1:
 		log.debug("Couldn't find a thread id in message")
 		return "Couldn't find a thread id in message"
@@ -387,7 +387,7 @@ def processMessageKickGame(body):
 		file_utils.saveGameObject(game)
 		result.append("Reverted to status: {}".format(statusIndex[0]))
 
-	messageFullname = re.findall('(?:message:)(t\d_[\da-z]{6,})', body)
+	messageFullname = re.findall('(?:message:)(t\d_[\da-z]{6,8})', body)
 	if len(messageFullname) > 0:
 		result.append(reprocessPlay(game, messageFullname[0]))
 
@@ -397,7 +397,7 @@ def processMessageKickGame(body):
 
 def processMessagePauseGame(body):
 	log.debug("Processing pause game message")
-	threadIds = re.findall('([\da-z]{6})', body)
+	threadIds = re.findall('([\da-z]{6,8})', body)
 	if len(threadIds) < 1:
 		log.debug("Couldn't find a thread id in message")
 		return "Couldn't find a thread id in message"
@@ -418,7 +418,7 @@ def processMessagePauseGame(body):
 
 def processMessageAbandonGame(body):
 	log.debug("Processing abandon game message")
-	threadIds = re.findall('(?: )([\da-z]{6})', body)
+	threadIds = re.findall('(?: )([\da-z]{6,8})', body)
 	if len(threadIds) < 1:
 		log.debug("Couldn't find a thread id in message")
 		return "Couldn't find a thread id in message"
@@ -450,7 +450,7 @@ def processMessageAbandonGame(body):
 
 def processMessageNotification(body, subject):
 	log.debug("Processing notify game message")
-	threadIds = re.findall('(?: )([\da-z]{6})', subject)
+	threadIds = re.findall('(?: )([\da-z]{6,8})', subject)
 	if len(threadIds) < 1:
 		log.debug("Couldn't find a thread id in message")
 		return "Couldn't find a thread id in message"
@@ -485,7 +485,7 @@ def processMessageNotifyAll(body):
 
 def processMessageGameStatus(body):
 	log.debug("Processing game status message")
-	threadIds = re.findall('(?: )([\da-z]{6})', body)
+	threadIds = re.findall('(?: )([\da-z]{6,8})', body)
 	if len(threadIds) < 1:
 		log.debug("Couldn't find a thread id in message")
 		return "Couldn't find a thread id in message"
@@ -507,7 +507,7 @@ def processMessageReindex(body):
 
 def processMessageDefaultChew(body):
 	log.debug("Processing default chew message")
-	threadIds = re.findall('(?: )([\da-z]{6})', body)
+	threadIds = re.findall('(?: )([\da-z]{6,8})', body)
 	if len(threadIds) < 1:
 		log.debug("Couldn't find a thread id in message")
 		return "Couldn't find a thread id in message"
@@ -591,7 +591,7 @@ def processMessageTeams(body, subject):
 
 def processMessageRestartGame(body):
 	log.debug("Processing restart game message")
-	threadIdGroup = re.search(r'(?: )([\da-z]{6})', body)
+	threadIdGroup = re.search(r'(?: )([\da-z]{6,8})', body)
 	if not threadIdGroup:
 		log.debug("Couldn't find a thread id in message")
 		return "Couldn't find a thread id in message"
@@ -627,7 +627,7 @@ def processMessageRestartGame(body):
 
 def processMessageRerunLastPlay(body):
 	log.debug("Processing rerun play message")
-	threadIdGroup = re.search(r'(?: )([\da-z]{6})', body)
+	threadIdGroup = re.search(r'(?: )([\da-z]{6,8})', body)
 	if not threadIdGroup:
 		log.debug("Couldn't find a thread id in message")
 		return "Couldn't find a thread id in message"
