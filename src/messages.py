@@ -303,7 +303,7 @@ def processMessageOffensePlay(game, message, author):
 	if any(x in message for x in ['normal']):
 		timeOption = TimeOption.NORMAL
 		mods_found += 1
-	if any(x in message for x in ['burn clock', 'final play']):
+	if any(x in message for x in ['burn clock', 'final play', 'last play']):
 		timeOption = TimeOption.RUN
 		mods_found += 1
 
