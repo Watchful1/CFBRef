@@ -728,16 +728,19 @@ def processMessage(message, reprocess=False, isRerun=False):
 			else:
 				game.playRerun = isRerun
 				if dataTable['action'] == Action.COIN and not isMessage:
-					keywords = ["heads", "tails"]
+					keywords = ["heads", "head", "tails", "tail"]
 					keyword = utils.findKeywordInMessage(keywords, body)
-					if keyword == "heads":
+					if keyword == "heads" or keyword == "head":
 						success, response = processMessageCoin(game, True, author)
-					elif keyword == "tails":
+					elif keyword == "tails" or keyword == "tail":
 						success, response = processMessageCoin(game, False, author)
 					elif keyword == "mult":
 						success = False
 						response = "I found both {} in your message. Please reply with just one of them.".format(
 							' and '.join(keywords))
+					else:
+						success = False
+						response = "I couldn't find **heads** or **tails** in your message, please try again."
 
 				elif dataTable['action'] == Action.DEFER and not isMessage:
 					if utils.isGameOvertime(game):
@@ -753,6 +756,9 @@ def processMessage(message, reprocess=False, isRerun=False):
 						success = False
 						response = "I found both {} in your message. Please reply with just one of them.".format(
 							' and '.join(keywords))
+					else:
+						success = False
+						response = "I couldn't find the keyword in your message, please try again."
 
 				elif dataTable['action'] in classes.playActions and isMessage:
 					success, response = processMessageDefenseNumber(game, body, author)
@@ -822,8 +828,8 @@ def processMessage(message, reprocess=False, isRerun=False):
 	else:
 		if isMessage:
 			log.debug("Couldn't understand message")
-			resultMessage = reddit.replyMessage(message,
-												"I couldn't understand your message, please try again or message /u/Watchful1 if you need help.")
+			resultMessage = reddit.replyMessage(
+				message, "I couldn't understand your message, please try again or message /u/Watchful1 if you need help.")
 			if resultMessage is None:
 				log.warning("Could not send message")
 
