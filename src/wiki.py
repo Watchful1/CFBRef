@@ -405,7 +405,7 @@ def loadStrings():
 		next(csv_reader)  # skip the headers
 		for row in csv_reader:
 			if row[2] == '':
-				probability = None
+				probability = 100
 			else:
 				probability = int(row[2])
 			if row[3] == '':
@@ -425,36 +425,14 @@ def getStringFromKey(stringKey, yards=None, repl=None):
 		log.warning(f"Tried to fetch key that doesn't exist {stringKey}")
 		return f"Key not found {stringKey}"
 
-	stringValues = []
-	existingProbabilities = 0
-	countProbability = 0
+	choices = []
+	probabilities = []
 	for stringValue in strings[stringKey]:
 		if yards is None or stringValue['yards'] is None or \
 				(stringValue['yardsGreater'] is True and yards >= stringValue['yards']) or \
 				(stringValue['yardsGreater'] is False and yards <= stringValue['yards']):
-			stringValues.append(stringValue)
-			if stringValue['probability'] is not None:
-				existingProbabilities += stringValue['probability']
-				countProbability += 1
-
-	choices = []
-	probabilities = []
-	splitProbability = (100 - existingProbabilities) / (len(stringValues) - countProbability)
-	sumProbabilities = 0
-	for stringValue in stringValues:
-		choices.append(stringValue['value'])
-		if stringValue['probability'] is not None:
-			probability = stringValue['probability']
-		else:
-			probability = splitProbability
-		probabilities.append(probability)
-		sumProbabilities += probability
-
-	if round(sumProbabilities, 0) != 100:
-		strProbabilities = []
-		for probability in probabilities:
-			strProbabilities.append(str(probability))
-		log.warning(f"Probabilities didn't sum to 100: {sumProbabilities} : {','.join(strProbabilities)} : {stringKey}")
+			choices.append(stringValue['value'])
+			probabilities.append(stringValue['probability'])
 
 	choice = random.choices(choices, probabilities)[0]
 
