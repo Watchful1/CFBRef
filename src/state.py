@@ -423,9 +423,9 @@ def executeGain(game, play, yards, incomplete=False):
 		scoreSafety(game, game.status.possession.negate())
 
 		if play == Play.RUN:
-			resultMessage = wiki.getStringFromKey("runSafety", yards=newYards)
+			resultMessage = wiki.getStringFromKey("runSafety", yards=newYards, repl={'team': game.team(game.status.possession).name})
 		elif play == Play.PASS:
-			resultMessage = wiki.getStringFromKey("passSafety", yards=newYards)
+			resultMessage = wiki.getStringFromKey("passSafety", yards=newYards, repl={'team': game.team(game.status.possession).name})
 		else:
 			resultMessage = "It's a safety!"
 
