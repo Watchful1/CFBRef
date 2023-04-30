@@ -328,16 +328,18 @@ def isGameWaitingOn(game, user, action, messageId, forceCoach=False):
 def sendDefensiveNumberMessage(game):
 	defenseHomeAway = game.status.possession.negate()
 	log.debug("Sending get defence number to {}".format(string_utils.getCoachString(game, defenseHomeAway)))
-	results = reddit.sendMessage(recipients=game.team(defenseHomeAway).coaches,
-								 subject="{} vs {}".format(game.away.name, game.home.name),
-								 message=string_utils.embedTableInMessage(
-									 "{}\n\nReply with a number between **1** and **1500**, inclusive.\n\nYou have until {}."
-										 .format(
-										 string_utils.getCurrentPlayString(game),
-										 string_utils.renderDatetime(game.playclock)
-									 ),
-									 getActionTable(game, game.status.waitingAction)
-								 ))
+	results = reddit.sendMessage(
+		recipients=game.team(defenseHomeAway).coaches,
+		subject="{} vs {}".format(game.away.name, game.home.name),
+		message=string_utils.embedTableInMessage(
+			"{}\n\nReply with a number between **1** and **1500**, inclusive.\n\nYou have until {}."
+			.format(
+				string_utils.getCurrentPlayString(game),
+				string_utils.renderDatetime(game.playclock)
+			),
+			getActionTable(game, game.status.waitingAction)
+		)
+	)
 	resetWaitingId(game)
 	for message in results:
 		addWaitingId(game, message.fullname)

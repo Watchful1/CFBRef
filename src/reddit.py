@@ -63,19 +63,11 @@ def sendMessage(recipients, subject, message):
 		recipients = [recipients]
 	results = []
 	for recipient in recipients:
-		try:
-			reddit.redditor(recipient).message(
-				subject=subject,
-				message=message
-			)
-			results.append(getRecentSentMessage())
-		except praw.exceptions.APIException:
-			log.info("User "+recipient+" doesn't exist")
-			return []
-		except Exception:
-			log.warning("Couldn't sent message to "+recipient)
-			log.warning(traceback.format_exc())
-			return []
+		reddit.redditor(recipient).message(
+			subject=subject,
+			message=message
+		)
+		results.append(getRecentSentMessage())
 
 	return results
 
