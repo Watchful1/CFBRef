@@ -330,7 +330,7 @@ def processMessageOffensePlay(game, message, author):
 
 	result = [resultMessage]
 	if len(game.status.timeoutMessages):
-		result.extend(game.status.timeoutMessages)
+		result.insert(0, game.status.timeoutMessages)
 		game.status.timeoutMessages = []
 
 	if not game.status.timeRunoff:
