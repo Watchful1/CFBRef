@@ -728,7 +728,7 @@ def processMessage(message, reprocess=False, isRerun=False):
 			else:
 				game.playRerun = isRerun
 				if dataTable['action'] == Action.COIN and not isMessage:
-					keywords = ["heads", "head", "tails", "tail"]
+					keywords = ["heads", "tails"]
 					keyword = utils.findKeywordInMessage(keywords, body)
 					if keyword == "heads" or keyword == "head":
 						success, response = processMessageCoin(game, True, author)
