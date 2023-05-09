@@ -197,7 +197,6 @@ successfulKickoff,"The kickoff is caught, but the runner goes down immediately. 
 successfulKickoff,The receiver takes the ball at the goal line and makes a cut before being brought down at the {yardLine}. The kick is for {yards} yards.,,
 successfulKickoff,The kickoff is returned to the {yardLine}.,,
 successfulKickoff,"The kickoff is caught. The returner has it, and it'll be returned to the {yardLine}!",,
-successfulKickoff,"Quarterback looks to throw and its picked off! The defender has one man to beat, but he's brought down at the {yardLine} A touchdown saving tackle.",,
 touchback,"The kick sails past the uprights, it's a touchback.",,
 touchback,"The kick goes into the end zone, touchback.",,
 touchback,The return man watches the ball sail over his head into the end zone. Touchback.,,
