@@ -780,7 +780,8 @@ def executePlay(game, play, number, timeOption, isConversion, offensive_submitte
 						'yards': yards,
 						'negativeYards': yards * -1,
 						'location': string_utils.getLocationString(game),
-						'fieldGoalYards': (100 - game.status.location) + 17
+						'fieldGoalYards': (100 - game.status.location) + 17,
+						'yardLine': string_utils.getLocationString(game)
 					}
 					if play == Play.RUN:
 						utils.addStat(game, 'turnoverFumble', 1)
