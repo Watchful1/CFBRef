@@ -63,11 +63,11 @@ def sendMessage(recipients, subject, message):
 		recipients = [recipients]
 	results = []
 	for recipient in recipients:
-		reddit.redditor(recipient).message(
-			subject=subject,
-			message=message
-		)
-		results.append(getRecentSentMessage())
+			reddit.redditor(recipient).message(
+				subject=subject,
+				message=message
+			)
+			results.append(getRecentSentMessage())
 
 	return results
 

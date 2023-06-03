@@ -14,9 +14,14 @@ def saveGameObject(game):
 	file.close()
 
 
-def loadGameObject(threadID):
+def loadGameObject(threadID=None, filename=None):
+	if filename is None:
+		if threadID is None:
+			log.warning(f"No thread id or filename when loading game")
+			return None
+		filename = "{}/{}".format(static.SAVE_FOLDER_NAME, threadID)
 	try:
-		file = open("{}/{}".format(static.SAVE_FOLDER_NAME, threadID), 'rb')
+		file = open(filename, 'rb')
 	except FileNotFoundError as err:
 		log.info("Game file doesn't exist: {}".format(threadID))
 		return None

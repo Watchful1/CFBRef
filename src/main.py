@@ -149,10 +149,6 @@ while True:
 					.format(
 						string_utils.getLinkToThread(game.thread),
 						string_utils.getLinkFromGameThing(game.thread, utils.getPrimaryWaitingId(game.status.waitingId)))
-				results = reddit.sendMessage(
-					recipients=game.team(game.status.waitingOn).coaches,
-					subject="{} vs {} 12 hour warning".format(game.away.name, game.home.name),
-					message=warningText)
 				log.debug(
 					"12 hour warning sent to {} for game {}: {}"
 					.format(
@@ -161,6 +157,13 @@ while True:
 						','.join([result.fullname for result in results])
 					)
 				)
+				try:
+					results = reddit.sendMessage(
+						recipients=game.team(game.status.waitingOn).coaches,
+						subject="{} vs {} 12 hour warning".format(game.away.name, game.home.name),
+						message=warningText)
+				except Exception as err:
+					log.warning(f"Error sending 12 hour warning message to {game.team(game.status.waitingOn).coaches}")
 				game.playclockWarning = True
 				file_utils.saveGameObject(game)
 
