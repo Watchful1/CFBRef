@@ -241,7 +241,7 @@ def parsePlayPart(playPart):
 
 	if len(parts) > 2:
 		if not validateItem(parts[2], "-?\d+"):
-			log.warning("Could not validate yards: {}".format(parts[2]))
+			log.warning("Could not validate yards: {} - {}".format(parts[2], playPart))
 			return None, None
 		play['yards'] = int(parts[2])
 
@@ -301,7 +301,7 @@ def loadPlays():
 				log.warning(f"Bad range: {range}")
 				continue
 			if previousMax - 1 != int(rangeParts[1]):
-				log.warning(f"Bad range max, {range}, expecting {previousMax}")
+				log.warning(f"Bad range max, {range}, expecting {previousMax} - {playLine.strip()}")
 			previousMax = int(rangeParts[0])
 			playParts[range] = play
 
