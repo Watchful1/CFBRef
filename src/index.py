@@ -10,7 +10,7 @@ import wiki
 import counters
 import messages
 import file_utils
-from classes import Action
+from classes import Action, PlayclockWarning
 
 log = logging.getLogger("bot")
 
@@ -103,8 +103,10 @@ def getGamesPastPlayclockWarning():
 	pastPlayclock = []
 	for thread in games:
 		game = games[thread]
-		if not game.errored and not game.playclockWarning and game.playclock - timedelta(hours=12) < datetime.utcnow():
-			pastPlayclock.append(game)
+		if not game.errored and game.playclockWarning in {PlayclockWarning.NONE} and game.playclock - timedelta(hours=6) < datetime.utcnow():
+			pastPlayclock.append((PlayclockWarning.SIX_HOUR, "6", game))
+		elif not game.errored and game.playclockWarning in {PlayclockWarning.NONE, PlayclockWarning.SIX_HOUR} and game.playclock - timedelta(hours=12) < datetime.utcnow():
+			pastPlayclock.append((PlayclockWarning.TWELVE_HOUR, "12", game))
 	return pastPlayclock
 
 
@@ -125,7 +127,7 @@ def setGameErrored(game):
 def clearGameErrored(game):
 	game.errored = False
 	game.deadline = game.deadline + (datetime.utcnow() - game.playclock)
-	game.playclock = datetime.utcnow() + timedelta(hours=24)
+	game.playclock = datetime.utcnow() + timedelta(hours=18)
 
 
 def getGameFromTeamTag(tag):

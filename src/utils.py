@@ -485,12 +485,12 @@ def endGame(game, winner, postThread=True):
 
 
 def pauseGame(game, hours):
-	game.playclock = datetime.utcnow() + timedelta(hours=hours + 24)
-	game.deadline = game.deadline + timedelta(hours=hours + 24)
+	game.playclock = datetime.utcnow() + timedelta(hours=hours + 18)
+	game.deadline = game.deadline + timedelta(hours=hours + 18)
 
 
 def setGamePlayed(game):
-	game.playclock = datetime.utcnow() + timedelta(hours=24)
+	game.playclock = datetime.utcnow() + timedelta(hours=18)
 	game.playclockWarning = False
 
 

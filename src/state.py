@@ -973,7 +973,7 @@ def executeDelayOfGame(game):
 	delay_of_game_play.actualResult = Result.DELAY_OF_GAME
 	utils.addPlay(game, delay_of_game_play, Result.DELAY_OF_GAME)
 	game.status.state(game.status.waitingOn).playclockPenalties += 1
-	penaltyMessage = "{} has not sent their number in over 24 hours, playclock penalty. This is their {} penalty.".format(
+	penaltyMessage = "{} has not sent their number in over 18 hours, playclock penalty. This is their {} penalty.".format(
 		string_utils.getCoachString(game, game.status.waitingOn),
 		string_utils.getNthWord(game.status.state(game.status.waitingOn).playclockPenalties))
 

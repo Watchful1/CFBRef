@@ -19,7 +19,7 @@ import string_utils
 import drive_graphic
 import counters
 import coach_stats
-from classes import Action
+from classes import Action, PlayclockWarning
 
 
 class ContextFilter(logging.Filter):
@@ -142,13 +142,14 @@ while True:
 				if game.status.waitingAction == Action.END:
 					index.endGame(game)
 
-			for game in index.getGamesPastPlayclockWarning():
+			for warning, hours, game in index.getGamesPastPlayclockWarning():
 				warningText = \
 					"This is a warning that your [game]({}) is waiting on a reply from you to " \
-					"this {}. You have 12 hours until a delay of game penalty."\
+					"this {}. You have {} hours until a delay of game penalty."\
 					.format(
 						string_utils.getLinkToThread(game.thread),
-						string_utils.getLinkFromGameThing(game.thread, utils.getPrimaryWaitingId(game.status.waitingId)))
+						string_utils.getLinkFromGameThing(game.thread, utils.getPrimaryWaitingId(game.status.waitingId)),
+						hours)
 				try:
 					results = reddit.sendMessage(
 						recipients=game.team(game.status.waitingOn).coaches,
@@ -157,14 +158,15 @@ while True:
 				except Exception as err:
 					log.warning(f"Error sending 12 hour warning message to {game.team(game.status.waitingOn).coaches}")
 				log.debug(
-					"12 hour warning sent to {} for game {}: {}"
+					"{} hour warning sent to {} for game {}: {}"
 					.format(
+						hours,
 						string_utils.getCoachString(game, game.status.waitingOn),
 						game.thread,
 						','.join([result.fullname for result in results])
 					)
 				)
-				game.playclockWarning = True
+				game.playclockWarning = warning
 				file_utils.saveGameObject(game)
 
 			utils.clearLogGameID()

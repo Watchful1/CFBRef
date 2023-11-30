@@ -72,6 +72,12 @@ class Play(Enum):
 	DELAY_OF_GAME = 12
 
 
+class PlayclockWarning(Enum):
+	NONE = 1
+	SIX_HOUR = 2
+	TWELVE_HOUR = 3
+
+
 class Result(Enum):
 	GAIN = 1
 	TURNOVER = 2
@@ -309,10 +315,10 @@ class Game:
 		self.station = None
 		self.prefix = None
 		self.suffix = None
-		self.playclock = datetime.utcnow() + timedelta(hours=24)
+		self.playclock = datetime.utcnow() + timedelta(hours=18)
 		self.deadline = datetime.utcnow() + timedelta(days=10)
 		self.forceChew = False
-		self.playclockWarning = False
+		self.playclockWarning = PlayclockWarning.NONE
 		self.playGist = None
 		self.playRerun = False
 		if quarterLength is None:
