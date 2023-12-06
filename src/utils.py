@@ -181,9 +181,9 @@ def paste(title, content, gist_username, gist_token):
 		return None
 
 
-def edit_paste(title, content, id, gist_username, gist_token):
+def edit_paste(title, content, gistId, gist_username, gist_token):
 	result = requests.patch(
-		'https://api.github.com/gists/' + id,
+		'https://api.github.com/gists/' + gistId,
 		json.dumps(
 			{'files': {title: {"content": content}}}
 		),
@@ -198,7 +198,7 @@ def edit_paste(title, content, id, gist_username, gist_token):
 		log.debug("Edited gist {}".format(result_json['id']))
 		return result_json['id']
 	else:
-		log.warning("Could not edit gist: {}".format(result.status_code))
+		log.warning(f"Could not edit gist: {result.status_code} : {static.GIST_BASE_URL}{gist_username}/{gistId}")
 		return None
 
 
