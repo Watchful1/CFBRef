@@ -198,7 +198,7 @@ def edit_paste(title, content, gistId, gist_username, gist_token):
 		log.debug("Edited gist {}".format(result_json['id']))
 		return result_json['id']
 	else:
-		log.warning(f"Could not edit gist: {result.status_code} : {static.GIST_BASE_URL}{gist_username}/{gistId}")
+		log.warning(f"Could not edit gist: {result.status_code} : <{static.GIST_BASE_URL}{gist_username}/{gistId}>")
 		return None
 
 
