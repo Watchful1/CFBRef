@@ -28,6 +28,10 @@ WEBHOOK_MAIN = None
 WEBHOOK_FCS = None
 WEBHOOK_D2 = None
 
+GIST_RESET = None
+GIST_LIMITED = False
+GIST_PENDING = set()
+
 
 def get_webhook_for_conference(division):
 	if division == "Division 2" and WEBHOOK_D2:

@@ -23,6 +23,12 @@ def init():
 	count_games = 0
 	for gameFile in os.listdir(static.SAVE_FOLDER_NAME):
 		game = reloadAndReturn(gameFile)
+		if not hasattr(game, "gistUpdatePending"):
+			game.gistUpdatePending = False
+
+		if game.gistUpdatePending:
+			static.GIST_PENDING.add(game.thread)
+
 		if game is not None:
 			count_games += 1
 			changed = False

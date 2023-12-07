@@ -954,11 +954,7 @@ def executePlay(game, play, number, timeOption, isConversion, offensive_submitte
 		if driveSummaryMessage is not None:
 			messages.append(driveSummaryMessage)
 
-	playString = string_utils.renderPlays(game)
-	if game.playGist is None:
-		game.playGist = utils.paste("Play summary", playString, static.GIST_USERNAME, static.GIST_TOKEN)
-	else:
-		utils.edit_paste("Play summary", playString, game.playGist, static.GIST_USERNAME, static.GIST_TOKEN)
+	utils.paste_plays(game)
 
 	return success, '\n\n'.join(messages)
 

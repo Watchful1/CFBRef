@@ -321,6 +321,7 @@ class Game:
 		self.playclockWarning = PlayclockWarning.NONE
 		self.playGist = None
 		self.playRerun = False
+		self.gistUpdatePending = False
 		if quarterLength is None:
 			self.quarterLength = 7*60
 		else:

@@ -169,6 +169,12 @@ while True:
 				game.playclockWarning = warning
 				file_utils.saveGameObject(game)
 
+			if not static.GIST_LIMITED or datetime.utcnow() > static.GIST_RESET:
+				for thread in static.GIST_PENDING:
+					game = index.reloadAndReturn(thread)
+					if game is not None:
+						utils.paste_plays(game)
+
 			utils.clearLogGameID()
 
 			if count_messages % 50 == 0:

@@ -17,6 +17,7 @@ import index
 import string_utils
 import file_utils
 import drive_graphic
+import counters
 from classes import HomeAway
 from classes import Action
 from classes import Play
@@ -160,46 +161,57 @@ def verifyTeams(teamTags):
 	return None
 
 
-def paste(title, content, gist_username, gist_token):
-	result = requests.post(
-		'https://api.github.com/gists',
-		json.dumps(
-			{'files': {title: {"content": content}}}
-		),
-		auth=requests.auth.HTTPBasicAuth(gist_username, gist_token)
-	)
+def paste_plays(game):
+	method = "create" if game.playGist is None else "edit"
+
+	if static.GIST_LIMITED and datetime.utcnow() < static.GIST_RESET:
+		log.info(f"Gist update deferred till: {static.GIST_RESET}")
+		counters.gist_event.labels(type="deferred", method=method).inc()
+		static.GIST_PENDING.add(game.thread)
+		game.gistUpdatePending = True
+		return False
+
+	if game.thread in static.GIST_PENDING:
+		static.GIST_PENDING.remove(game.thread)
+
+	play_string = string_utils.renderPlays(game)
+	title = f"Play summary: {game.home.name} vs {game.away.name} : {game.thread}"
+	base_url = 'https://api.github.com/gists'
+	content = json.dumps({'files': {title: {"content": play_string}}})
+	auth = requests.auth.HTTPBasicAuth(static.GIST_USERNAME, static.GIST_TOKEN)
+	if game.playGist is not None:
+		result = requests.patch(base_url + game.playGist, data=content, auth=auth)
+	else:
+		result = requests.post(base_url, data=content, auth=auth)
+
+	ratelimit_remaining = int(result.headers['x-ratelimit-remaining'])
+	counters.gist_ratelimit.set(ratelimit_remaining)
+
+	static.GIST_RESET = datetime.utcfromtimestamp(int(result.headers['x-ratelimit-reset']))
+	if ratelimit_remaining <= 5:
+		static.GIST_LIMITED = True
+	else:
+		static.GIST_LIMITED = False
 
 	if result.ok:
+		game.gistUpdatePending = False
+		counters.gist_event.labels(type="success", method=method).inc()
 		result_json = result.json()
 		if 'id' not in result_json:
 			log.warning("id not in gist response")
-			return None
-		log.debug("Pasted to gist {}".format(result_json['id']))
-		return result_json['id']
+			return False
+		log.info(f"Pasted to gist <{static.GIST_BASE_URL}{static.GIST_USERNAME}/{result_json['id']}>")
+		game.playGist = result_json['id']
+		return True
 	else:
-		log.warning("Could not create gist: {}".format(result.status_code))
-		return None
-
-
-def edit_paste(title, content, gistId, gist_username, gist_token):
-	result = requests.patch(
-		'https://api.github.com/gists/' + gistId,
-		json.dumps(
-			{'files': {title: {"content": content}}}
-		),
-		auth=requests.auth.HTTPBasicAuth(gist_username, gist_token)
-	)
-
-	if result.ok:
-		result_json = result.json()
-		if 'id' not in result_json:
-			log.warning("id not in gist response")
-			return None
-		log.debug("Edited gist {}".format(result_json['id']))
-		return result_json['id']
-	else:
-		log.warning(f"Could not edit gist: {result.status_code} : <{static.GIST_BASE_URL}{gist_username}/{gistId}>")
-		return None
+		static.GIST_PENDING.add(game.thread)
+		game.gistUpdatePending = True
+		counters.gist_event.labels(type="failure", method=method).inc()
+		if game.playGist is not None:
+			log.warning(f"Could not edit gist: {result.status_code} : <{static.GIST_BASE_URL}{static.GIST_USERNAME}/{game.playGist}>")
+		else:
+			log.warning(f"Could not edit gist: {result.status_code} : {game.thread}")
+		return False
 
 
 def coinToss():
