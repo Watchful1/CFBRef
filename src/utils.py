@@ -180,9 +180,11 @@ def paste_plays(game):
 	content = json.dumps({'files': {title: {"content": play_string}}})
 	auth = requests.auth.HTTPBasicAuth(static.GIST_USERNAME, static.GIST_TOKEN)
 	if game.playGist is not None:
-		result = requests.patch(base_url + game.playGist, data=content, auth=auth)
+		url = base_url + game.playGist
+		result = requests.patch(url, data=content, auth=auth)
 	else:
-		result = requests.post(base_url, data=content, auth=auth)
+		url = base_url
+		result = requests.post(url, data=content, auth=auth)
 
 	ratelimit_remaining = int(result.headers['x-ratelimit-remaining'])
 	counters.gist_ratelimit.set(ratelimit_remaining)
@@ -208,9 +210,9 @@ def paste_plays(game):
 		game.gistUpdatePending = True
 		counters.gist_event.labels(type="failure", method=method).inc()
 		if game.playGist is not None:
-			log.warning(f"Could not edit gist: {result.status_code} : <{static.GIST_BASE_URL}{static.GIST_USERNAME}/{game.playGist}>")
+			log.warning(f"Could not edit gist: {url} : {result.status_code} : {result.content} : <{static.GIST_BASE_URL}{static.GIST_USERNAME}/{game.playGist}>")
 		else:
-			log.warning(f"Could not post gist: {result.status_code} : {game.thread}")
+			log.warning(f"Could not post gist: {url} : {result.status_code} : {result.content} : {game.thread}")
 		return False
 
 
