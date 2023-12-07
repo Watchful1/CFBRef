@@ -180,7 +180,7 @@ def paste_plays(game):
 	content = json.dumps({'files': {title: {"content": play_string}}})
 	auth = requests.auth.HTTPBasicAuth(static.GIST_USERNAME, static.GIST_TOKEN)
 	if game.playGist is not None:
-		url = base_url + game.playGist
+		url = base_url + "/" + game.playGist
 		result = requests.patch(url, data=content, auth=auth)
 	else:
 		url = base_url
