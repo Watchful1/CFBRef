@@ -170,7 +170,7 @@ while True:
 				file_utils.saveGameObject(game)
 
 			counters.gist_queue.set(len(static.GIST_PENDING))
-			if not static.GIST_LIMITED or datetime.utcnow() > static.GIST_RESET:
+			if not static.GIST_LIMITED or datetime.utcnow() > static.GIST_RESET and len(static.GIST_PENDING):
 				log.info(f"Resending gists: {static.GIST_LIMITED} : {static.GIST_RESET}")
 				for thread in list(static.GIST_PENDING):
 					game = index.reloadAndReturn(thread)

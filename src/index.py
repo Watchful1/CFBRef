@@ -27,6 +27,7 @@ def init():
 			game.gistUpdatePending = False
 
 		if game.gistUpdatePending:
+			log.info(f"Game {game.thread} has playlist update pending")
 			static.GIST_PENDING.add(game.thread)
 
 		if game is not None:
