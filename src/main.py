@@ -172,7 +172,7 @@ while True:
 			counters.gist_queue.set(len(static.GIST_PENDING))
 			if not static.GIST_LIMITED or datetime.utcnow() > static.GIST_RESET:
 				log.info(f"Resending gists: {static.GIST_LIMITED} : {static.GIST_RESET}")
-				for thread in static.GIST_PENDING:
+				for thread in list(static.GIST_PENDING):
 					game = index.reloadAndReturn(thread)
 					log.info(f"Resending gist: {game.thread} : {game.playGist}")
 					if game is not None:
