@@ -210,7 +210,7 @@ def paste_plays(game):
 		if game.playGist is not None:
 			log.warning(f"Could not edit gist: {result.status_code} : <{static.GIST_BASE_URL}{static.GIST_USERNAME}/{game.playGist}>")
 		else:
-			log.warning(f"Could not edit gist: {result.status_code} : {game.thread}")
+			log.warning(f"Could not post gist: {result.status_code} : {game.thread}")
 		return False
 
 
