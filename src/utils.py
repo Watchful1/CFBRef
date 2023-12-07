@@ -210,9 +210,9 @@ def paste_plays(game):
 		game.gistUpdatePending = True
 		counters.gist_event.labels(type="failure", method=method).inc()
 		if game.playGist is not None:
-			log.warning(f"Could not edit gist: {url} : {result.status_code} : {result.content} : <{static.GIST_BASE_URL}{static.GIST_USERNAME}/{game.playGist}>")
+			log.warning(f"Could not edit gist: {url} : {ratelimit_remaining}|{result.status_code} : {result.content} : <{static.GIST_BASE_URL}{static.GIST_USERNAME}/{game.playGist}>")
 		else:
-			log.warning(f"Could not post gist: {url} : {result.status_code} : {result.content} : {game.thread}")
+			log.warning(f"Could not post gist: {url} : {ratelimit_remaining}|{result.status_code} : {result.content} : {game.thread}")
 		return False
 
 
