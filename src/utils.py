@@ -187,7 +187,7 @@ def paste_plays(game):
 		result = requests.post(url, data=content, auth=auth)
 
 	ratelimit_remaining = int(result.headers['x-ratelimit-remaining'])
-	counters.gist_ratelimit.set(ratelimit_remaining)
+	counters.gist_ratelimit.labels(method=method).set(ratelimit_remaining)
 
 	static.GIST_RESET = datetime.utcfromtimestamp(int(result.headers['x-ratelimit-reset']))
 	if ratelimit_remaining <= 5:
