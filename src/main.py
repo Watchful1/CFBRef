@@ -169,6 +169,7 @@ while True:
 				game.playclockWarning = warning
 				file_utils.saveGameObject(game)
 
+			counters.gist_queue.set(len(static.GIST_PENDING))
 			if not static.GIST_LIMITED or datetime.utcnow() > static.GIST_RESET:
 				for thread in static.GIST_PENDING:
 					game = index.reloadAndReturn(thread)
