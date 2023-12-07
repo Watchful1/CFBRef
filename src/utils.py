@@ -202,7 +202,7 @@ def paste_plays(game):
 		if 'id' not in result_json:
 			log.warning("id not in gist response")
 			return False
-		log.info(f"Pasted to gist <{static.GIST_BASE_URL}{static.GIST_USERNAME}/{result_json['id']}> : {ratelimit_remaining}")
+		log.info(f"Pasted to gist <{static.GIST_BASE_URL}{static.GIST_USERNAME}/{result_json['id']}> : {method} : {ratelimit_remaining}")
 		game.playGist = result_json['id']
 		return True
 	else:
