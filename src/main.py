@@ -174,6 +174,10 @@ while True:
 				log.info(f"Resending gists: {static.GIST_LIMITED} : {static.GIST_RESET} : {len(static.GIST_PENDING)}")
 				for thread in list(static.GIST_PENDING):
 					game = index.reloadAndReturn(thread)
+					if game is None:
+						log.warning(f"Game for thread doesn't exist: {thread}")
+						static.GIST_PENDING.remove(thread)
+						continue
 					log.info(f"Resending gist: {game.thread} : {game.playGist}")
 					if game is not None:
 						utils.paste_plays(game)
