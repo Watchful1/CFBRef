@@ -18,12 +18,7 @@ import string_utils
 import file_utils
 import drive_graphic
 import counters
-from classes import HomeAway
-from classes import Action
-from classes import Play
-from classes import Result
-from classes import QuarterType
-from classes import DriveSummary
+from classes import HomeAway, Action, Play, Result, QuarterType, DriveSummary, PlayclockWarning
 
 log = logging.getLogger("bot")
 
