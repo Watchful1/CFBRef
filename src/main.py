@@ -142,32 +142,35 @@ while True:
 				if game.status.waitingAction == Action.END:
 					index.endGame(game)
 
-			for warning, hours, game in index.getGamesPastPlayclockWarning():
-				warningText = \
-					"This is a warning that your [game]({}) is waiting on a reply from you to " \
-					"this {}. You have {} hours until a delay of game penalty."\
-					.format(
-						string_utils.getLinkToThread(game.thread),
-						string_utils.getLinkFromGameThing(game.thread, utils.getPrimaryWaitingId(game.status.waitingId)),
-						hours)
-				try:
-					results = reddit.sendMessage(
-						recipients=game.team(game.status.waitingOn).coaches,
-						subject="{} vs {} {} hour warning".format(game.away.name, game.home.name, hours),
-						message=warningText)
-				except Exception as err:
-					log.warning(f"Error sending {hours} hour warning message to {game.team(game.status.waitingOn).coaches}")
-				log.debug(
-					"{} hour warning sent to {} for game {}: {}"
-					.format(
-						hours,
-						string_utils.getCoachString(game, game.status.waitingOn),
-						game.thread,
-						','.join([result.fullname for result in results])
+			try:
+				for warning, hours, game in index.getGamesPastPlayclockWarning():
+					warningText = \
+						"This is a warning that your [game]({}) is waiting on a reply from you to " \
+						"this {}. You have {} hours until a delay of game penalty."\
+						.format(
+							string_utils.getLinkToThread(game.thread),
+							string_utils.getLinkFromGameThing(game.thread, utils.getPrimaryWaitingId(game.status.waitingId)),
+							hours)
+					try:
+						results = reddit.sendMessage(
+							recipients=game.team(game.status.waitingOn).coaches,
+							subject="{} vs {} {} hour warning".format(game.away.name, game.home.name, hours),
+							message=warningText)
+					except Exception as err:
+						log.warning(f"Error sending {hours} hour warning message to {game.team(game.status.waitingOn).coaches}")
+					log.debug(
+						"{} hour warning sent to {} for game {}: {}"
+						.format(
+							hours,
+							string_utils.getCoachString(game, game.status.waitingOn),
+							game.thread,
+							','.join([result.fullname for result in results])
+						)
 					)
-				)
-				game.playclockWarning = warning
-				file_utils.saveGameObject(game)
+					game.playclockWarning = warning
+					file_utils.saveGameObject(game)
+			except Exception as e:
+				log.warning(f"Exception sending warning messages: {e}")
 
 			counters.gist_queue.set(len(static.GIST_PENDING))
 			if (not static.GIST_LIMITED or datetime.utcnow() > static.GIST_RESET) and len(static.GIST_PENDING):
