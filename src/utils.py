@@ -505,7 +505,7 @@ def pauseGame(game, hours):
 
 def setGamePlayed(game):
 	game.playclock = datetime.utcnow() + timedelta(hours=18)
-	game.playclockWarning = False
+	game.playclockWarning = PlayclockWarning.NONE
 
 
 def addPlay(game, playSummary, forceDriveEndType):

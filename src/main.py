@@ -153,10 +153,10 @@ while True:
 				try:
 					results = reddit.sendMessage(
 						recipients=game.team(game.status.waitingOn).coaches,
-						subject="{} vs {} 12 hour warning".format(game.away.name, game.home.name),
+						subject="{} vs {} {} hour warning".format(game.away.name, game.home.name, hours),
 						message=warningText)
 				except Exception as err:
-					log.warning(f"Error sending 12 hour warning message to {game.team(game.status.waitingOn).coaches}")
+					log.warning(f"Error sending {hours} hour warning message to {game.team(game.status.waitingOn).coaches}")
 				log.debug(
 					"{} hour warning sent to {} for game {}: {}"
 					.format(
