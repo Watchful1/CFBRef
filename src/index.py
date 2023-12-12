@@ -110,14 +110,19 @@ def getGamesPastPlayclockWarning():
 	pastPlayclock = []
 	for thread in games:
 		game = games[thread]
-		if not game.errored and game.playclockWarning in {PlayclockWarning.NONE} and game.playclock - timedelta(hours=6) < datetime.utcnow():
-			pastPlayclock.append((PlayclockWarning.SIX_HOUR, "6", game))
-		elif not game.errored and game.playclockWarning in {PlayclockWarning.NONE, PlayclockWarning.SIX_HOUR} and game.playclock - timedelta(hours=12) < datetime.utcnow():
+		if game.errored:
+			continue
+		seconds_till_playclock = (game.playclock - datetime.utcnow()).total_seconds()
+		if seconds_till_playclock < (12 * 60 * 60) and game.playclockWarning in {PlayclockWarning.NONE}:
 			pastPlayclock.append((PlayclockWarning.TWELVE_HOUR, "12", game))
+		elif seconds_till_playclock < (6 * 60 * 60) and game.playclockWarning in {PlayclockWarning.NONE, PlayclockWarning.TWELVE_HOUR}:
+			pastPlayclock.append((PlayclockWarning.SIX_HOUR, "6", game))
 	return pastPlayclock
 
 
 def endGame(game):
+	if game.gistUpdatePending:
+		utils.paste_plays(game, True)
 	if game.thread in games:
 		del games[game.thread]
 	file_utils.archiveGameFile(game.thread)

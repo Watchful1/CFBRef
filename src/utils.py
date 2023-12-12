@@ -156,10 +156,10 @@ def verifyTeams(teamTags):
 	return None
 
 
-def paste_plays(game):
+def paste_plays(game, force=False):
 	method = "create" if game.playGist is None else "edit"
 
-	if static.GIST_LIMITED and datetime.utcnow() < static.GIST_RESET:
+	if not force and static.GIST_LIMITED and datetime.utcnow() < static.GIST_RESET:
 		log.info(f"Gist update deferred till: {static.GIST_RESET}")
 		counters.gist_event.labels(type="deferred", method=method).inc()
 		static.GIST_PENDING.add(game.thread)
