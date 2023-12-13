@@ -494,7 +494,7 @@ def processMessageGameStatus(body):
 		return "Couldn't find a thread id in message"
 	log.debug("Found thread id: {}".format(threadIds[0]))
 
-	game = file_utils.loadGameObject(threadIds[0])
+	game = index.reloadAndReturn(threadIds[0])
 	if game is None:
 		return "Game {} doesn't exist".format(threadIds[0])
 	else:
@@ -516,7 +516,7 @@ def processMessageDefaultChew(body):
 		return "Couldn't find a thread id in message"
 	log.debug("Found thread id: {}".format(threadIds[0]))
 
-	game = file_utils.loadGameObject(threadIds[0])
+	game = index.reloadAndReturn(threadIds[0])
 	if game is None:
 		return "Game not found: {}".format(threadIds[0])
 
@@ -601,7 +601,7 @@ def processMessageRestartGame(body):
 	threadId = threadIdGroup.group(1)
 	log.debug("Found thread id: {}".format(threadId))
 
-	game = file_utils.loadGameObject(threadId)
+	game = index.reloadAndReturn(threadId)
 	if game is None:
 		log.info(f"Couldn't load game {threadId}")
 		return "Game not found: {}".format(threadId)
@@ -637,7 +637,7 @@ def processMessageRerunLastPlay(body):
 	threadId = threadIdGroup.group(1)
 	log.debug("Found thread id: {}".format(threadId))
 
-	game = file_utils.loadGameObject(threadId)
+	game = index.reloadAndReturn(threadId)
 	if game is None:
 		log.info(f"Couldn't load game {threadId}")
 		return f"Game not found: {threadId}"
