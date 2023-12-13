@@ -307,9 +307,6 @@ def processMessageOffensePlay(game, message, author):
 		timeOption = TimeOption.RUN
 		mods_found += 1
 
-	if game.forceChew and timeOption != TimeOption.CHEW:
-		log.warning(f"Game in force chew, but bad time option: {timeOption}")
-
 	if mods_found >= 2:
 		log.debug("Found multiple modifiers")
 		return False, "There were multiple clock modifiers in your message, you can only use one"
