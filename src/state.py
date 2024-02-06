@@ -554,7 +554,7 @@ def executePlay(game, play, number, timeOption, isConversion, offensive_submitte
 					actualResult = Result.KNEEL
 					result = {'result': actualResult}
 
-					resultMessage = wiki.getStringFromKey("kneel")
+					resultMessage = wiki.getStringFromKey("kneel", repl={'team': game.team(game.status.possession).name})
 					if utils.isGameOvertime(game):
 						timeMessage = overtimeTurnover(game)
 					else:
@@ -565,7 +565,7 @@ def executePlay(game, play, number, timeOption, isConversion, offensive_submitte
 					actualResult = Result.SPIKE
 					result = {'result': actualResult}
 
-					resultMessage = wiki.getStringFromKey("spike")
+					resultMessage = wiki.getStringFromKey("spike", repl={'team': game.team(game.status.possession).name})
 					if utils.isGameOvertime(game):
 						timeMessage = overtimeTurnover(game)
 					else:
@@ -588,7 +588,7 @@ def executePlay(game, play, number, timeOption, isConversion, offensive_submitte
 
 				elif result['result'] == Result.PAT:
 					log.debug("Successful PAT")
-					resultMessage = wiki.getStringFromKey("scoredPAT")
+					resultMessage = wiki.getStringFromKey("scoredPAT", repl={'team': game.team(game.status.possession).name})
 					scorePAT(game, game.status.possession)
 					if utils.isGameOvertime(game):
 						timeMessage = overtimeTurnover(game)
@@ -598,11 +598,11 @@ def executePlay(game, play, number, timeOption, isConversion, offensive_submitte
 				elif result['result'] == Result.KICKOFF:
 					log.debug("Attempt unsuccessful")
 					if play == Play.TWO_POINT:
-						resultMessage = wiki.getStringFromKey("failedTwoPointConversion")
+						resultMessage = wiki.getStringFromKey("failedTwoPointConversion", repl={'team': game.team(game.status.possession).name})
 					elif play == Play.PAT:
-						resultMessage = wiki.getStringFromKey("failedPAT")
+						resultMessage = wiki.getStringFromKey("failedPAT", repl={'team': game.team(game.status.possession).name})
 					else:
-						resultMessage = wiki.getStringFromKey("failedConversion")
+						resultMessage = wiki.getStringFromKey("failedConversion", repl={'team': game.team(game.status.possession).name})
 					if utils.isGameOvertime(game):
 						timeMessage = overtimeTurnover(game)
 					else:
@@ -878,9 +878,9 @@ def executePlay(game, play, number, timeOption, isConversion, offensive_submitte
 					else:
 						turnover(game)
 					actualResult = Result.TURNOVER
-					resultMessage = wiki.getStringFromKey("turnoverDownsKneel")
+					resultMessage = wiki.getStringFromKey("turnoverDownsKneel", repl={'team': game.team(game.status.possession.negate()).name})
 				else:
-					resultMessage = wiki.getStringFromKey("kneel")
+					resultMessage = wiki.getStringFromKey("kneel", repl={'team': game.team(game.status.possession).name})
 
 			elif play == Play.SPIKE:
 				log.debug("Running spike play")
@@ -894,9 +894,9 @@ def executePlay(game, play, number, timeOption, isConversion, offensive_submitte
 					else:
 						turnover(game)
 					actualResult = Result.TURNOVER
-					resultMessage = wiki.getStringFromKey("turnoverDownsSpike")
+					resultMessage = wiki.getStringFromKey("turnoverDownsSpike", repl={'team': game.team(game.status.possession.negate()).name})
 				else:
-					resultMessage = wiki.getStringFromKey("spike")
+					resultMessage = wiki.getStringFromKey("spike", repl={'team': game.team(game.status.possession).name})
 
 			game.status.reset_defensive()
 
