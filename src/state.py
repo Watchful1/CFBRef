@@ -777,6 +777,7 @@ def executePlay(game, play, number, timeOption, isConversion, offensive_submitte
 					log.debug("Play results in a turnover")
 					statsTable = {
 						'team': game.team(game.status.possession.negate()).name,
+						'snapTeam': game.team(game.status.possession).name,
 						'yards': yards,
 						'negativeYards': yards * -1,
 						'location': string_utils.getLocationString(game),
