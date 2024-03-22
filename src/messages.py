@@ -714,14 +714,14 @@ def processMessage(message, reprocess=False, isRerun=False):
 			utils.setLogGameID(game.thread, game)
 
 			waitingOn = utils.isGameWaitingOn(game, author, dataTable['action'], dataTable['source'], reprocess)
-			if waitingOn is not None:
-				response = waitingOn
+			if game.errored:
+				log.debug("Game is errored, skipping")
+				response = string_utils.renderErrorMessage()
 				success = False
 				updateWaiting = False
 
-			elif game.errored:
-				log.debug("Game is errored, skipping")
-				response = string_utils.renderErrorMessage()
+			elif waitingOn is not None:
+				response = waitingOn
 				success = False
 				updateWaiting = False
 

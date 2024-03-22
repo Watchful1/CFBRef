@@ -79,7 +79,7 @@ def replySubmission(id, message):
 		return resultComment
 	except Exception as err:
 		log.warning(traceback.format_exc())
-		return None
+		raise
 
 
 def getWikiPage(subreddit, pageName):
