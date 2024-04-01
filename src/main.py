@@ -198,7 +198,7 @@ while True:
 				for comment in reddit.getSubredditComments(static.SUBREDDIT):
 					if comment.author.name.lower() == "nfcaaofficialrefbot":
 						continue
-					recently_processed_comments.put(message.id)
+					recently_processed_comments.put(comment.id)
 
 				comments_checked = datetime.utcnow()
 
@@ -211,7 +211,7 @@ while True:
 							continue
 						if comment.author.name.lower() == "nfcaaofficialrefbot":
 							continue
-						recently_processed_comments.put(message.id)
+						recently_processed_comments.put(comment.id)
 						if comment.parent().author.name.lower() != "nfcaaofficialrefbot":
 							continue
 						log.warning(f"Possible missed comment: <https://www.reddit.com{comment.permalink}?context=9>")
