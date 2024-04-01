@@ -5,7 +5,8 @@ import sys
 import signal
 import traceback
 import discord_logging
-from datetime import datetime
+import praw
+from datetime import datetime, timedelta
 
 import static
 import reddit
@@ -19,7 +20,7 @@ import string_utils
 import drive_graphic
 import counters
 import coach_stats
-from classes import Action, PlayclockWarning
+from classes import Action, PlayclockWarning, Queue
 
 
 class ContextFilter(logging.Filter):
@@ -99,6 +100,8 @@ if update_wiki:
 	wiki.updateGamesWiki()
 
 count_messages = 0
+comments_checked = datetime.utcnow()
+recently_processed_comments = Queue(200)
 while True:
 	try:
 		for message in reddit.getMessageStream():
@@ -111,6 +114,9 @@ while True:
 			wiki.loadPages()
 
 			try:
+				if isinstance(message, praw.models.Comment):
+					recently_processed_comments.put(message.id)
+
 				messages.processMessage(message)
 				counters.objects_replied.inc()
 			except Exception as err:
@@ -187,6 +193,24 @@ while True:
 						file_utils.saveGameObject(game)
 
 			utils.clearLogGameID()
+
+			try:
+				if comments_checked < datetime.utcnow() - timedelta(minutes=2):
+					for comment in reddit.getSubredditComments(static.SUBREDDIT):
+						if recently_processed_comments.contains(comment.id):
+							continue
+						if datetime.utcfromtimestamp(comment.created_utc) > datetime.utcnow() - timedelta(minutes=1):
+							continue
+						if comment.author.name.lower() == "nfcaaofficialrefbot":
+							continue
+						recently_processed_comments.put(message.id)
+						if comment.parent().author.name.lower() != "nfcaaofficialrefbot":
+							continue
+						log.warning(f"Possible missed comment: <https://www.reddit.com{comment.permalink}>")
+
+					comments_checked = datetime.utcnow()
+			except Exception as e:
+				log.warning(f"Exception checking subreddit comments: {e}")
 
 			if count_messages % 50 == 0:
 				wiki.updateCoachesWiki()

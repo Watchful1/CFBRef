@@ -5,6 +5,26 @@ from enum import Enum
 import static
 
 
+class Queue:
+	def __init__(self, max_size):
+		self.list = []
+		self.set = set()
+		self.max_size = max_size
+
+	def put(self, item):
+		if len(self.list) >= self.max_size:
+			old_item = self.list.pop(0)
+			self.set.remove(old_item)
+		self.list.append(item)
+		self.set.add(item)
+
+	def peek(self):
+		return self.list[0] if len(self.list) > 0 else None
+
+	def contains(self, item):
+		return item in self.set
+
+
 class RunStatus(Enum):
 	CONTINUE = 1
 	CONTINUE_QUARTER = 2

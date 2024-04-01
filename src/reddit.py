@@ -116,6 +116,10 @@ def getMessageStream():
 	return reddit.inbox.stream()
 
 
+def getSubredditComments(subreddit, limit=100):
+	return reddit.subreddit(subreddit).comments(limit=limit)
+
+
 def replyMessage(message, body):
 	try:
 		return message.reply(body)
