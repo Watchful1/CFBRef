@@ -1,9 +1,11 @@
+import logging
 from datetime import datetime
 from datetime import timedelta
 from enum import Enum
 
 import static
 
+log = logging.getLogger("bot")
 
 class Queue:
 	def __init__(self, max_size):
@@ -14,7 +16,11 @@ class Queue:
 	def put(self, item):
 		if len(self.list) >= self.max_size:
 			old_item = self.list.pop(0)
-			self.set.remove(old_item)
+			if old_item in self.set:
+				self.set.remove(old_item)
+			else:
+				log.warning(f"Couldn't remove item from set: {old_item}")
+
 		self.list.append(item)
 		self.set.add(item)
 

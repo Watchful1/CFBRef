@@ -100,7 +100,7 @@ if update_wiki:
 	wiki.updateGamesWiki()
 
 count_messages = 0
-comments_checked = datetime.utcnow()
+comments_checked = None
 recently_processed_comments = Queue(200)
 while True:
 	try:
@@ -194,6 +194,14 @@ while True:
 
 			utils.clearLogGameID()
 
+			if comments_checked is None:
+				for comment in reddit.getSubredditComments(static.SUBREDDIT):
+					if comment.author.name.lower() == "nfcaaofficialrefbot":
+						continue
+					recently_processed_comments.put(message.id)
+
+				comments_checked = datetime.utcnow()
+
 			try:
 				if comments_checked < datetime.utcnow() - timedelta(minutes=2):
 					for comment in reddit.getSubredditComments(static.SUBREDDIT):
@@ -206,7 +214,7 @@ while True:
 						recently_processed_comments.put(message.id)
 						if comment.parent().author.name.lower() != "nfcaaofficialrefbot":
 							continue
-						log.warning(f"Possible missed comment: <https://www.reddit.com{comment.permalink}>")
+						log.warning(f"Possible missed comment: <https://www.reddit.com{comment.permalink}?context=9>")
 
 					comments_checked = datetime.utcnow()
 			except Exception as e:
