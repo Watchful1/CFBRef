@@ -7,28 +7,29 @@ import static
 
 log = logging.getLogger("bot")
 
+
 class Queue:
 	def __init__(self, max_size):
 		self.list = []
-		self.set = set()
+		self.hashset = set()
 		self.max_size = max_size
 
 	def put(self, item):
 		if len(self.list) >= self.max_size:
 			old_item = self.list.pop(0)
-			if old_item in self.set:
-				self.set.remove(old_item)
+			if old_item in self.hashset:
+				self.hashset.remove(old_item)
 			else:
-				log.warning(f"Couldn't remove item from set: {old_item} : {len(self.list)} : {len(self.set)}")
+				log.warning(f"Couldn't remove item from set: {old_item} : {len(self.list)} : {len(self.hashset)}")
 
 		self.list.append(item)
-		self.set.add(item)
+		self.hashset.add(item)
 
 	def peek(self):
 		return self.list[0] if len(self.list) > 0 else None
 
 	def contains(self, item):
-		return item in self.set
+		return item in self.hashset
 
 
 class RunStatus(Enum):
