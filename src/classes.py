@@ -19,7 +19,7 @@ class Queue:
 			if old_item in self.set:
 				self.set.remove(old_item)
 			else:
-				log.warning(f"Couldn't remove item from set: {old_item}")
+				log.warning(f"Couldn't remove item from set: {old_item} : {len(self.list)} : {len(self.set)}")
 
 		self.list.append(item)
 		self.set.add(item)
