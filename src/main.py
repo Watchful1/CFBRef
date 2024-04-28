@@ -146,7 +146,7 @@ if __name__ == "__main__":
 				wiki.loadPages()
 				count_messages += 1
 
-				if isinstance(message, praw.models.Comment):
+				if isinstance(message, praw.models.Comment) and not recently_processed_comments.contains(message.id):
 					recently_processed_comments.put(message.id)
 				handle_message(message)
 
