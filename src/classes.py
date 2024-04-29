@@ -17,6 +17,10 @@ class Queue:
 	def put(self, item):
 		# log.debug(f"Queue list: {str(self.list)}")
 		# log.debug(f"Queue set: {str(self.hashset)}")
+		if self.contains(item):
+			location = self.list.index(item)
+			self.list.pop(location)
+
 		if len(self.list) >= self.max_size:
 			old_item = self.list.pop(0)
 			if old_item in self.hashset:
