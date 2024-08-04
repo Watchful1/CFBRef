@@ -221,7 +221,7 @@ if __name__ == "__main__":
 							recently_processed_comments.put(comment.id)
 							if comment.parent().author.name.lower() != "nfcaaofficialrefbot":
 								continue
-							log.warning(f"Handling missed comment: <https://www.reddit.com{comment.permalink}?context=9>")
+							log.info(f"Handling missed comment: <https://www.reddit.com{comment.permalink}?context=9>")
 							handle_message(comment)
 							count_messages += 1
 
