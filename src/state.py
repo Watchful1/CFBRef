@@ -982,7 +982,7 @@ def executeDelayOfGame(game):
 
 	else:
 		if utils.isGameOvertime(game):
-			forceEightPointTouchdown(game, game.status.possession)
+			forceEightPointTouchdown(game, game.status.waitingOn.negate())
 			resultMessage = overtimeTurnover(game)
 			if game.status.waitingAction != Action.END:
 				utils.sendDefensiveNumberMessage(game)
