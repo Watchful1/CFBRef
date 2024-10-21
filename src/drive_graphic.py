@@ -197,10 +197,6 @@ def makeField(plays,
             draw = draw_line_of_scrimmage(draw=draw, play=play)
             line_of_scrimmage_drawn = True
 
-        # Skip plays with 0 yard change
-        if not play.yards or play.yards == 0:
-            continue
-
         # Draw the play line for a yardage-change play (including made field goal)
         draw = draw_play_line(draw=draw,
                               play=play,
