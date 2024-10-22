@@ -3,8 +3,6 @@ from datetime import datetime
 from datetime import timedelta
 from enum import Enum
 
-import static
-
 log = logging.getLogger("bot")
 
 

@@ -736,7 +736,7 @@ def executePlay(game, play, number, timeOption, isConversion, offensive_submitte
 
 			elif result['result'] == Result.FIELD_GOAL:
 				log.debug("Result is a field goal")
-				resultMessage = wiki.getStringFromKey("successfulFieldGoal", yards=100 - game.status.location + 17)
+				resultMessage = wiki.getStringFromKey("successfulFieldGoal", yards=100 - game.status.location + static.FIELD_GOAL_ADDITIONAL_YARDAGE)
 				utils.addStat(game, 'fieldGoalsScored', 1)
 				scoreFieldGoal(game, game.status.possession)
 				if utils.isGameOvertime(game):
@@ -781,7 +781,7 @@ def executePlay(game, play, number, timeOption, isConversion, offensive_submitte
 						'yards': yards,
 						'negativeYards': yards * -1,
 						'location': string_utils.getLocationString(game),
-						'fieldGoalYards': (100 - game.status.location) + 17,
+						'fieldGoalYards': (100 - game.status.location) + static.FIELD_GOAL_ADDITIONAL_YARDAGE,
 						'yardLine': string_utils.getLocationString(game)
 					}
 					if play == Play.RUN:
