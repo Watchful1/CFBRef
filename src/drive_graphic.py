@@ -92,8 +92,7 @@ def get_true_x_position(yard_position: int, is_home: bool) -> int:
 
 
 def is_displayable_play(play) -> bool:
-    enum_values = [_enum.value for _enum in [Play.RUN, Play.PASS, Play.FIELD_GOAL]]
-    return play.play.value in enum_values
+    return play.play in [Play.RUN, Play.PASS, Play.FIELD_GOAL]
 
 
 def draw_line_of_scrimmage(draw: ImageDraw, play) -> ImageDraw:
@@ -110,16 +109,16 @@ def draw_play_line(draw: ImageDraw,
                    pass_color: str = DEFAULT_PASS_COLOR,
                    kick_color: str = DEFAULT_KICK_COLOR) -> ImageDraw:
     play_color = run_color
-    if play.play.value == Play.RUN.value:
+    if play.play == Play.RUN:
         play_color = run_color
-    elif play.play.value == Play.PASS.value:
+    elif play.play == Play.PASS:
         play_color = pass_color
-    elif play.play.value == Play.FIELD_GOAL.value:
+    elif play.play == Play.FIELD_GOAL:
         play_color = kick_color
 
     start_yardage = int(play.location)
     play_yards = 0 if not play.yards else int(play.yards)
-    if play.play.value == Play.FIELD_GOAL.value:
+    if play.play == Play.FIELD_GOAL:
         play_yards = static.field_width + 1  # Just draw a line off the edge of the screen for field goals
     end_yardage = start_yardage + play_yards
 
