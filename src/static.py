@@ -54,7 +54,3 @@ datatag = " [](#datatag"
 ### Log ###
 logGameId = ""
 game = None
-
-
-## Lengths ##
-FIELD_GOAL_ADDITIONAL_YARDAGE = 17
