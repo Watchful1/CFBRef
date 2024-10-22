@@ -3,6 +3,9 @@ import logging.handlers
 import traceback
 from datetime import datetime
 from datetime import timedelta
+import sys
+
+import discord_logging
 
 import static
 import utils
@@ -23,6 +26,11 @@ def init():
 	count_games = 0
 	for gameFile in os.listdir(static.SAVE_FOLDER_NAME):
 		game = reloadAndReturn(gameFile)
+		if game is None:
+			log.warning(f"Couldn't load game file {gameFile}")
+			discord_logging.flush_discord()
+			sys.exit(1)
+
 		if not hasattr(game, "gistUpdatePending"):
 			game.gistUpdatePending = False
 
