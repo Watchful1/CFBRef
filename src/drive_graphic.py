@@ -8,7 +8,6 @@ from cloudinary.uploader import upload
 
 import static
 from classes import Play, Result
-from src.static import field_height
 
 log = logging.getLogger("bot")
 
@@ -34,7 +33,7 @@ DEFAULT_KICK_COLOR = "yellow"
 # Seems like a good number to show on field, unlikely to be more plays in a drive
 MAX_PLAY_COUNT = 42
 # 212 // 42 = 5, should scale if resolution or max play count changes
-SPACING_BETWEEN_PLAY_LINES = field_height // MAX_PLAY_COUNT
+SPACING_BETWEEN_PLAY_LINES = static.field_height // MAX_PLAY_COUNT
 PLAY_LINE_THICKNESS = 212 // static.field_height  # 1 pixel thick when field height is 212 (default)
 
 
@@ -97,7 +96,7 @@ def is_displayable_play(play) -> bool:
 
 def draw_line_of_scrimmage(draw: ImageDraw, play) -> ImageDraw:
     line_of_scrimage_x = get_true_x_position(yard_position=play.location, is_home=play.posHome)
-    draw = draw_vertical_line(draw=draw, x=line_of_scrimage_x, y1=0, y2=field_height,
+    draw = draw_vertical_line(draw=draw, x=line_of_scrimage_x, y1=0, y2=static.field_height,
                               color=DEFAULT_LINE_OF_SCRIMMAGE_COLOR, thickness=FIELD_LINE_THICKNESS)
     return draw
 
