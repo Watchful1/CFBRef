@@ -25,7 +25,7 @@ def init():
 	games = {}
 	count_games = 0
 	for gameFile in os.listdir(static.SAVE_FOLDER_NAME):
-		game = reloadAndReturn(gameFile)
+		game = reloadAndReturn(gameFile, alwaysReturn=True)
 		if game is None:
 			log.warning(f"Couldn't load game file {gameFile}")
 			discord_logging.flush_discord()
