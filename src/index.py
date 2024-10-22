@@ -100,8 +100,10 @@ def reloadAndReturn(thread, alwaysReturn=False):
 		games[game.thread] = game
 		return game
 	elif alwaysReturn:
+		log.info(f"Tried to load ended game")
 		return game
 	else:
+		log.info(f"Tried to load ended game")
 		return None
 
 
