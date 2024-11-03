@@ -1,6 +1,8 @@
 import logging.handlers
 import traceback
+from dataclasses import dataclass
 from io import BytesIO
+from typing import List
 
 import cloudinary
 from PIL import Image, ImageDraw
@@ -8,6 +10,7 @@ from cloudinary.uploader import upload
 
 import static
 from classes import Play, Result
+from src.classes import PlaySummary
 
 log = logging.getLogger("bot")
 
@@ -25,16 +28,55 @@ DEFAULT_FIELD_COLOR = "green"
 DEFAULT_FIELD_LINE_COLOR = "grey"
 DEFAULT_ENDZONE_COLOR = "lightgrey"
 DEFAULT_ENDZONE_BORDER_COLOR = "black"
-DEFAULT_LINE_OF_SCRIMMAGE_COLOR = "white"
 DEFAULT_RUN_COLOR = "red"
 DEFAULT_PASS_COLOR = "blue"
-DEFAULT_KICK_COLOR = "yellow"
+DEFAULT_KICK_MADE_COLOR = "yellow"
+DEFAULT_KICK_MISS_COLOR = "black"
+DEFAULT_TURNOVER_COLOR = "orange"
+DEFAULT_ALT_PLAY_COLOR = "purple"  # Used for plays that don't have a specific color (e.g. kneel, spike, delay of game)
 
 # Seems like a good number to show on field, unlikely to be more plays in a drive
 MAX_PLAY_COUNT = 42
 # 212 // 42 = 5, should scale if resolution or max play count changes
 SPACING_BETWEEN_PLAY_LINES = static.field_height // MAX_PLAY_COUNT
 PLAY_LINE_THICKNESS = 212 // static.field_height  # 1 pixel thick when field height is 212 (default)
+
+
+@dataclass
+class GraphicColors:
+    home_team_color: str
+    away_team_color: str
+    field_color: str
+    field_line_color: str
+    endzone_border_color: str
+    pass_color: str
+    run_color: str
+    kick_made_color: str
+    kick_miss_color: str
+    turnover_color: str
+    alt_color: str
+
+    def get_play_color(self, play: PlaySummary):
+        play_type = play.play
+        play_result = play.actualResult
+
+        if play_result in [Result.TURNOVER, Result.TURNOVER_TOUCHDOWN, Result.TURNOVER_PAT, Result.SAFETY]:
+            return self.turnover_color
+
+        if play_type == Play.RUN:
+            return self.run_color  # Gain/loss doesn't matter for color
+        elif play_type == Play.PASS:
+            return self.pass_color  # Won't show incomplete passes
+        elif play_type in [Play.FIELD_GOAL, Play.PAT]:
+            return self.kick_miss_color if play_result == Result.MISS else self.kick_made_color
+        elif play_type == Play.PUNT:
+            if play_type == Play.PUNT and play_result == Result.GAIN:  # Recovered their own punt
+                return self.kick_made_color
+        else:
+            return self.alt_color  # play.KNEEL, play.SPIKE, play.DELAY_OF_GAME
+
+    def get_line_of_scrimmage_color(self, play: PlaySummary):
+        return self.home_team_color if play.posHome else self.away_team_color
 
 
 def init():
@@ -91,39 +133,60 @@ def get_true_x_position(yard_position: int, is_home: bool) -> int:
     return yards_from_back_of_left_endzone * FIELD_GRAPHIC_SCALE  # Convert yards to pixels
 
 
-def is_displayable_play(play) -> bool:
-    return play.play in [Play.RUN, Play.PASS, Play.FIELD_GOAL]
+def is_displayable_play(play: PlaySummary) -> bool:
+    # Display run/pass plays (regardless of gain/loss), field goals and PAT attempts (regardless of result),
+    # and self-recovered punts
+    return (play.play in [Play.RUN, Play.PASS, Play.FIELD_GOAL, Play.PAT]
+            or (play.play == Play.PUNT and play.actualResult == Result.GAIN))
 
 
-def draw_line_of_scrimmage(draw: ImageDraw, play) -> ImageDraw:
+def draw_line_of_scrimmage(draw: ImageDraw, play: PlaySummary, colors: GraphicColors) -> ImageDraw:
+    line_color = colors.get_line_of_scrimmage_color(play=play)
     line_of_scrimage_x = get_true_x_position(yard_position=play.location, is_home=play.posHome)
     draw = draw_vertical_line(draw=draw, x=line_of_scrimage_x, y1=0, y2=static.field_height,
-                              color=DEFAULT_LINE_OF_SCRIMMAGE_COLOR, thickness=FIELD_LINE_THICKNESS)
+                              color=line_color, thickness=FIELD_LINE_THICKNESS)
     return draw
 
 
-def draw_play_line(draw: ImageDraw,
-                   play,
-                   line_y_position: int,
-                   run_color: str = DEFAULT_RUN_COLOR,
-                   pass_color: str = DEFAULT_PASS_COLOR,
-                   kick_color: str = DEFAULT_KICK_COLOR) -> ImageDraw:
-    play_color = run_color
-    if play.play == Play.RUN:
-        play_color = run_color
-    elif play.play == Play.PASS:
-        play_color = pass_color
-    elif play.play == Play.FIELD_GOAL:
-        play_color = kick_color
+def play_is_turnover(play: PlaySummary) -> bool:
+    return play.actualResult in [Result.TURNOVER, Result.TURNOVER_TOUCHDOWN, Result.TURNOVER_PAT, Result.SAFETY]
 
+
+def play_is_to_endzone(play: PlaySummary) -> bool:
+    if play.actualResult in [Result.TOUCHDOWN, Result.TWO_POINT, Result.TURNOVER_TOUCHDOWN, Result.TURNOVER_PAT,
+                             Result.SAFETY]:
+        return True  # Some team (offense or defense) crossed a goal line somewhere
+
+    if play.play in [Play.FIELD_GOAL, Play.PAT] and not play_is_turnover(play=play):
+        return True  # A kick was attempted and didn't end in a (non-scoring) turnover
+
+    return False
+
+
+def draw_play_line(draw: ImageDraw,
+                   play: PlaySummary,
+                   line_y_position: int,
+                   colors: GraphicColors) -> ImageDraw:
     start_yardage = int(play.location)
     play_yards = 0 if not play.yards else int(play.yards)
-    if play.play == Play.FIELD_GOAL:
-        play_yards = static.field_width + 1  # Just draw a line off the edge of the screen for field goals
+
+    if play_is_to_endzone(play=play):
+        # Just draw a line off the edge of the screen to ensure it reaches the back of the endzone
+        play_yards = static.field_width + 1
+
+    if play_is_turnover(play=play):
+        play_yards *= -1  # Draw turnovers as negative yardage
+
     end_yardage = start_yardage + play_yards
 
     start_x = get_true_x_position(yard_position=start_yardage, is_home=play.posHome)
     end_x = get_true_x_position(yard_position=end_yardage, is_home=play.posHome)
+
+    # if no gain, draw at least a single pixel
+    if start_x == end_x:
+        end_x += 1
+
+    play_color = colors.get_play_color(play=play)
 
     draw = draw_horizontal_line(draw=draw, x1=start_x, x2=end_x, y=line_y_position, color=play_color,
                                 thickness=PLAY_LINE_THICKNESS)
@@ -131,47 +194,48 @@ def draw_play_line(draw: ImageDraw,
     return draw
 
 
-def makeField(plays,
-              field_color: str = DEFAULT_FIELD_COLOR,
-              field_line_color: str = DEFAULT_FIELD_LINE_COLOR,
-              run_color: str = DEFAULT_RUN_COLOR,
-              pass_color: str = DEFAULT_PASS_COLOR,
-              kick_color: str = DEFAULT_KICK_COLOR,
-              home_team_color: str = None,
-              away_team_color: str = None) -> Image:
+def makeField(plays: List[PlaySummary],
+              colors: GraphicColors = None) -> Image:
     """
     Create a field image with the given plays
 
     :param plays: List of plays to display on the field
-    :param field_color: Optional, override default color of the field
-    :param field_line_color: Optional, override default color of the field lines
-    :param run_color: Optional, override default color of run plays
-    :param pass_color: Optional, override default color of pass plays
-    :param kick_color: Optional, override default color of kick plays
-    :param home_team_color: Optional, override default color of the home team (used for endzone)
-    :param away_team_color: Optional, override default color of the away team (used for endzone)
+    :param colors: Optional, override default colors for graphic
     :return: Image of the field with the plays drawn
     """
-    field = Image.new(mode='RGB', size=(static.field_width, static.field_height), color=field_color)
-    draw = ImageDraw.Draw(field)
+    if not colors:
+        colors = GraphicColors(
+            home_team_color=DEFAULT_ENDZONE_COLOR,
+            away_team_color=DEFAULT_ENDZONE_COLOR,
+            field_color=DEFAULT_FIELD_COLOR,
+            field_line_color=DEFAULT_FIELD_LINE_COLOR,
+            endzone_border_color=DEFAULT_ENDZONE_BORDER_COLOR,
+            pass_color=DEFAULT_PASS_COLOR,
+            run_color=DEFAULT_RUN_COLOR,
+            kick_made_color=DEFAULT_KICK_MADE_COLOR,
+            kick_miss_color=DEFAULT_KICK_MISS_COLOR,
+            turnover_color=DEFAULT_TURNOVER_COLOR,
+            alt_color=DEFAULT_ALT_PLAY_COLOR
+        )
 
-    home_endzone_color = home_team_color or DEFAULT_ENDZONE_COLOR
-    away_endzone_color = away_team_color or DEFAULT_ENDZONE_COLOR
+    field = Image.new(mode='RGB', size=(static.field_width, static.field_height), color=colors.field_color)
+    draw = ImageDraw.Draw(field)
 
     # Draw endzones
     draw = fill_in_box(draw=draw, x1=LEFT_ENDZONE_START_X, x2=FIELD_START_X, y1=0, y2=static.field_height,
-                       color=home_endzone_color)
+                       color=colors.home_team_color)
     draw = fill_in_box(draw=draw, x1=FIELD_END_X, x2=RIGHT_ENDZONE_END_X, y1=0, y2=static.field_height,
-                       color=away_endzone_color)
+                       color=colors.away_team_color)
 
     # Draw main field
-    draw = fill_in_box(draw=draw, x1=FIELD_END_X, x2=FIELD_END_X, y1=0, y2=static.field_height, color=field_color)
+    draw = fill_in_box(draw=draw, x1=FIELD_END_X, x2=FIELD_END_X, y1=0, y2=static.field_height,
+                       color=colors.field_color)
 
     # Draw yard lines
     for fifth_yard_line in range(FIELD_START_X, FIELD_END_X + 1, FIELD_LINE_INTERVAL_X):  # +1 to be inclusive
         # Use DEFAULT_ENDZONE_BORDER_COLOR for the endzone lines, otherwise use field_line_color for 5-yard lines
-        color = DEFAULT_ENDZONE_BORDER_COLOR \
-            if (fifth_yard_line == FIELD_START_X or fifth_yard_line == FIELD_END_X) else field_line_color
+        color = colors.endzone_border_color \
+            if (fifth_yard_line == FIELD_START_X or fifth_yard_line == FIELD_END_X) else colors.field_line_color
         draw = draw_vertical_line(draw=draw, x=fifth_yard_line, y1=0, y2=static.field_height, color=color,
                                   thickness=FIELD_LINE_THICKNESS)
 
@@ -193,16 +257,14 @@ def makeField(plays,
 
         # Draw the line of scrimmage at the start location of the first displayable play
         if not line_of_scrimmage_drawn:
-            draw = draw_line_of_scrimmage(draw=draw, play=play)
+            draw = draw_line_of_scrimmage(draw=draw, play=play, colors=colors)
             line_of_scrimmage_drawn = True
 
         # Draw the play line for a yardage-change play (including made field goal)
         draw = draw_play_line(draw=draw,
                               play=play,
                               line_y_position=play_y_position,
-                              run_color=run_color,
-                              pass_color=pass_color,
-                              kick_color=kick_color)
+                              colors=colors)
         play_y_position += SPACING_BETWEEN_PLAY_LINES
 
     return field
