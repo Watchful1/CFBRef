@@ -9,8 +9,7 @@ from PIL import Image, ImageDraw
 from cloudinary.uploader import upload
 
 import static
-from classes import Play, Result
-from src.classes import PlaySummary
+from classes import Play, Result, PlaySummary
 
 log = logging.getLogger("bot")
 
