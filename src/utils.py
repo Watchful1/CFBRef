@@ -540,7 +540,7 @@ def addPlay(game, playSummary, forceDriveEndType):
 		else:
 			summary.result = drive[-1].actualResult
 
-		field = drive_graphic.makeField(drive)
+		field = drive_graphic.makeField(plays=drive)
 		driveImageUrl = drive_graphic.uploadField(field, game.thread, str(len(game.status.plays) - 2))
 		game.status.drives.append({'summary': summary, 'url': driveImageUrl})
 		return f"Drive: [{str(summary)}]({driveImageUrl})"
